@@ -1,8 +1,8 @@
-# AvalancheJS - The Avalanche Platform JavaScript Library
+# CaminoJS - The Camino Platform JavaScript Library
 
 ## Overview
 
-AvalancheJS is a JavaScript Library for interfacing with the Avalanche Platform. It is built using TypeScript and intended to support both browser and Node.js. The AvalancheJS library allows you to issue commands to the Avalanche node APIs.
+CaminoJS is a JavaScript Library for interfacing with the Avalanche Platform. It is built using TypeScript and intended to support both browser and Node.js. The CaminoJS library allows you to issue commands to the Avalanche node APIs.
 
 The APIs currently supported by default are:
 
@@ -16,9 +16,9 @@ The APIs currently supported by default are:
 * Metrics API
 * PlatformVM API (P-Chain)
 
-We built AvalancheJS with ease of use in mind. With this library, any Javascript developer is able to interact with a node on the Avalanche Platform who has enabled their API endpoints for the developer's consumption. We keep the library up-to-date with the latest changes in the [Avalanche Platform Specification](https://docs.avax.network).
+We built CaminoJS with ease of use in mind. With this library, any Javascript developer is able to interact with a node on the Avalanche Platform who has enabled their API endpoints for the developer's consumption. We keep the library up-to-date with the latest changes in the [Avalanche Platform Specification](https://docs.avax.network).
 
-  Using AvalancheJS, developers can:
+  Using CaminoJS, developers can:
 
 * Locally manage private keys
 * Retrieve balances on addresses
@@ -33,7 +33,7 @@ We built AvalancheJS with ease of use in mind. With this library, any Javascript
 
 ### Requirements
 
-AvalancheJS requires Node.js LTS version 14.16.0 or higher to compile.
+CaminoJS requires Node.js LTS version 14.16.0 or higher to compile.
 
 ### Installation
 
@@ -47,7 +47,7 @@ You can also pull the repo down directly and build it from scratch:
 
 This will generate a pure Javascript library and place it in a folder named "web" in the project root. The "avalanche.js" file can then be dropped into any project as a pure javascript implementation of Avalanche.
 
-The AvalancheJS library can be imported into your existing Node.js project as follows:
+The CaminoJS library can be imported into your existing Node.js project as follows:
 
 ```js
 const avalanche = require("avalanche")
@@ -70,13 +70,13 @@ const bintools = BinTools.getInstance()
 The above lines import the libraries used in the tutorials. The libraries include:
 
 * Avalanche: Our javascript module.
-* BinTools: A singleton built into AvalancheJS that is used for dealing with binary data.
-* [BN](https://www.npmjs.com/package/bn.js): A bignumber module use by AvalancheJS.
+* BinTools: A singleton built into CaminoJS that is used for dealing with binary data.
+* [BN](https://www.npmjs.com/package/bn.js): A bignumber module use by CaminoJS.
 * [Buffer](https://www.npmjs.com/package/buffer): A Buffer library.
 
 ## Example 1 &mdash; Managing X-Chain Keys
 
-AvalancheJS comes with its own AVM Keychain. This KeyChain is used in the functions of the API, enabling them to sign using keys it's registered. The first step in this process is to create an instance of AvalancheJS connected to our Avalanche Platform endpoint of choice.
+CaminoJS comes with its own AVM Keychain. This KeyChain is used in the functions of the API, enabling them to sign using keys it's registered. The first step in this process is to create an instance of CaminoJS connected to our Avalanche Platform endpoint of choice.
 
 ```js
 import { Avalanche, BinTools, Buffer, BN } from "avalanche"
@@ -85,7 +85,7 @@ const bintools = BinTools.getInstance()
 
 const myNetworkID = 12345 //default is 1, we want to override that for our local network
 const avalanche = new Avalanche("localhost", 9650, "http", myNetworkID)
-const xchain = avalanche.XChain() //returns a reference to the X-Chain used by AvalancheJS
+const xchain = avalanche.XChain() //returns a reference to the X-Chain used by CaminoJS
 ```
 
 ### Accessing the KeyChain
@@ -163,7 +163,7 @@ const isValid = keypair.verify(message, signature) // returns a boolean
 
 ## Example 2 &mdash; Creating An Asset
 
-This example creates an asset in the X-Chain and publishes it to the Avalanche Platform. The first step in this process is to create an instance of AvalancheJS connected to our Avalanche Platform endpoint of choice.
+This example creates an asset in the X-Chain and publishes it to the Avalanche Platform. The first step in this process is to create an instance of CaminoJS connected to our Avalanche Platform endpoint of choice.
 
 ```js
 import { Avalanche, BinTools, Buffer, BN } from "avalanche"
@@ -171,12 +171,12 @@ import { InitialStates, SECPTransferOutput } from "avalanche/dist/apis/avm"
 
 const myNetworkID = 12345 // default is 1, we want to override that for our local network
 const avalanche = new Avalanche("localhost", 9650, "http", myNetworkID)
-const xchain = avalanche.XChain() // returns a reference to the X-Chain used by AvalancheJS
+const xchain = avalanche.XChain() // returns a reference to the X-Chain used by CaminoJS
 ```
 
 ### Describe the new asset
 
-The first steps in creating a new asset using AvalancheJS is to determine the qualities of the asset. We will give the asset a name, a ticker symbol, as well as a denomination.
+The first steps in creating a new asset using CaminoJS is to determine the qualities of the asset. We will give the asset a name, a ticker symbol, as well as a denomination.
 
 ```js
 // Name our new coin and give it a symbol
@@ -245,7 +245,7 @@ const signed = unsigned.sign(xchain) // returns a Tx class
 
 Now that we have a signed transaction ready to send to the network, let's issue it!
 
-Using the AvalancheJS X-Chain API, we going to call the `issueTx` function. This function can take either the Tx class returned in the previous step, a CB58 representation of the transaction, or a raw Buffer class with the data for the transaction. Examples of each are below:
+Using the CaminoJS X-Chain API, we going to call the `issueTx` function. This function can take either the Tx class returned in the previous step, a CB58 representation of the transaction, or a raw Buffer class with the data for the transaction. Examples of each are below:
 
 ```js
 // using the Tx class
@@ -298,7 +298,7 @@ const avalanche = new avalanche.Avalanche(
   "http",
   myNetworkID
 )
-const xchain = avalanche.XChain() // returns a reference to the X-Chain used by AvalancheJS
+const xchain = avalanche.XChain() // returns a reference to the X-Chain used by CaminoJS
 ```
 
 We're also assuming that the keystore contains a list of addresses used in this transaction.
@@ -386,13 +386,13 @@ if (newBalance.toNumber() != mybalance.sub(sendAmount).toNumber()) {
 }
 ```
 
-## Creating a new AvalancheJS build
+## Creating a new CaminoJS build
 
-First, all changes to the `master` branch of the AvalancheJS repo should be done solely via github pull requests. This is to ensure that only code which has been peer-reviewed ends up in `master`. Next, you need your username added to the [`avalanche` npm package](https://www.npmjs.com/package/avalanche) and also confirm that you enable 2fa on your npm account.
+First, all changes to the `master` branch of the CaminoJS repo should be done solely via github pull requests. This is to ensure that only code which has been peer-reviewed ends up in `master`. Next, you need your username added to the [`avalanche` npm package](https://www.npmjs.com/package/avalanche) and also confirm that you enable 2fa on your npm account.
 
-After all the desired changes have been peer-reviewed and merged into the `development` branch then create a final PR to merge `development` in to `master`. Name the PR the new AvalancheJS version name. Ex: `v3.0.4`. In the description list a changelog of the changes which are included in the PR.
+After all the desired changes have been peer-reviewed and merged into the `development` branch then create a final PR to merge `development` in to `master`. Name the PR the new CaminoJS version name. Ex: `v3.0.4`. In the description list a changelog of the changes which are included in the PR.
 
-When you merge the PR and the latest and greatest are on the `master` branch then run `yarn release:prepare`. This command removes the existing `dist/` and `node_modules/` directories in addition to removing the `yarn.lock` file. Next it installs the dependencies, builds AvalancheJS, bundles the build with webpack and runs the test suite. If all of this is successful then you are ready to push a new build to npm.
+When you merge the PR and the latest and greatest are on the `master` branch then run `yarn release:prepare`. This command removes the existing `dist/` and `node_modules/` directories in addition to removing the `yarn.lock` file. Next it installs the dependencies, builds CaminoJS, bundles the build with webpack and runs the test suite. If all of this is successful then you are ready to push a new build to npm.
 
 For this we use the [`np` lib](https://www.npmjs.com/package/np) to push a new build to npm. `np` will prompt you to answer if this is a PATCH, MINOR or MAJOR release and it will handle bumping the version in `package.json` for you. You will be prompted for your `OTP` which stands for "one time password." This is your 2fa code which you will get from having enabled 2fa on your npm account.
 
@@ -410,7 +410,7 @@ yarn build && yarn test
 ```
 
 If the E2E check does not pass, go into the 'checks' section of the PR.
-`https://github.com/ava-labs/avalanchejs/pull/<PR number>/checks`
+`https://github.com/chain4travel/caminojs/pull/<PR number>/checks`
 
 * Click on the `> E2E` tab on the left
 * Click 'Re-run jobs' on the right
