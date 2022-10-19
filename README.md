@@ -45,7 +45,7 @@ You can also pull the repo down directly and build it from scratch:
 
 `yarn build`
 
-This will generate a pure Javascript library and place it in a folder named "web" in the project root. The "avalanche.js" file can then be dropped into any project as a pure javascript implementation of Camino.
+This will generate a pure Javascript library and place it in a folder named "web" in the project root. The "camino.js" file can then be dropped into any project as a pure javascript implementation of Camino.
 
 The CaminoJS library can be imported into your existing Node.js project as follows:
 
