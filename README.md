@@ -2,7 +2,7 @@
 
 ## Overview
 
-CaminoJS is a JavaScript Library for interfacing with the Avalanche Platform. It is built using TypeScript and intended to support both browser and Node.js. The CaminoJS library allows you to issue commands to the Avalanche node APIs.
+CaminoJS is a JavaScript Library for interfacing with the Camino Platform. It is built using TypeScript and intended to support both browser and Node.js. The CaminoJS library allows you to issue commands to the Camino node APIs.
 
 The APIs currently supported by default are:
 
@@ -16,7 +16,7 @@ The APIs currently supported by default are:
 * Metrics API
 * PlatformVM API (P-Chain)
 
-We built CaminoJS with ease of use in mind. With this library, any Javascript developer is able to interact with a node on the Avalanche Platform who has enabled their API endpoints for the developer's consumption. We keep the library up-to-date with the latest changes in the [Avalanche Platform Specification](https://docs.avax.network).
+We built CaminoJS with ease of use in mind. With this library, any Javascript developer is able to interact with a node on the Camino Platform who has enabled their API endpoints for the developer's consumption. We keep the library up-to-date with the latest changes in the [Camino Platform Specification](https://docs.camino.foundation/).
 
   Using CaminoJS, developers can:
 
@@ -29,7 +29,7 @@ We built CaminoJS with ease of use in mind. With this library, any Javascript de
 * Add Validators and Delegators to the Primary Subnetwork by staking AVAX
 * Create a Subnetwork
 * Administer a local node
-* Retrieve Avalanche network information from a node
+* Retrieve Camino network information from a node
 
 ### Requirements
 
@@ -37,15 +37,15 @@ CaminoJS requires Node.js LTS version 14.16.0 or higher to compile.
 
 ### Installation
 
-Avalanche is available for install via `yarn`:
+Camino is available for install via `yarn`:
 
-`yarn add avalanche`
+`yarn add @c4tplatform/camino`
 
 You can also pull the repo down directly and build it from scratch:
 
 `yarn build`
 
-This will generate a pure Javascript library and place it in a folder named "web" in the project root. The "avalanche.js" file can then be dropped into any project as a pure javascript implementation of Avalanche.
+This will generate a pure Javascript library and place it in a folder named "web" in the project root. The "avalanche.js" file can then be dropped into any project as a pure javascript implementation of Camino.
 
 The CaminoJS library can be imported into your existing Node.js project as follows:
 
@@ -69,14 +69,14 @@ const bintools = BinTools.getInstance()
 
 The above lines import the libraries used in the tutorials. The libraries include:
 
-* Avalanche: Our javascript module.
+* Camino: Our javascript module.
 * BinTools: A singleton built into CaminoJS that is used for dealing with binary data.
 * [BN](https://www.npmjs.com/package/bn.js): A bignumber module use by CaminoJS.
 * [Buffer](https://www.npmjs.com/package/buffer): A Buffer library.
 
 ## Example 1 &mdash; Managing X-Chain Keys
 
-CaminoJS comes with its own AVM Keychain. This KeyChain is used in the functions of the API, enabling them to sign using keys it's registered. The first step in this process is to create an instance of CaminoJS connected to our Avalanche Platform endpoint of choice.
+CaminoJS comes with its own AVM Keychain. This KeyChain is used in the functions of the API, enabling them to sign using keys it's registered. The first step in this process is to create an instance of CaminoJS connected to our Camino Platform endpoint of choice.
 
 ```js
 import { Avalanche, BinTools, Buffer, BN } from "avalanche"
@@ -163,7 +163,7 @@ const isValid = keypair.verify(message, signature) // returns a boolean
 
 ## Example 2 &mdash; Creating An Asset
 
-This example creates an asset in the X-Chain and publishes it to the Avalanche Platform. The first step in this process is to create an instance of CaminoJS connected to our Avalanche Platform endpoint of choice.
+This example creates an asset in the X-Chain and publishes it to the Camino Platform. The first step in this process is to create an instance of CaminoJS connected to our Camino Platform endpoint of choice.
 
 ```js
 import { Avalanche, BinTools, Buffer, BN } from "avalanche"
@@ -286,7 +286,7 @@ The X-Chain uses the TxID of the transaction which created the asset as the uniq
 
 ## Example 3 &mdash; Sending An Asset
 
-This example sends an asset in the X-Chain to a single recipient. The first step in this process is to create an instance of Avalanche connected to our Avalanche Platform endpoint of choice.
+This example sends an asset in the X-Chain to a single recipient. The first step in this process is to create an instance of Camino connected to our Camino Platform endpoint of choice.
 
 ```js
 import { Avalanche, BinTools, Buffer, BN } from "avalanche"
@@ -388,7 +388,7 @@ if (newBalance.toNumber() != mybalance.sub(sendAmount).toNumber()) {
 
 ## Creating a new CaminoJS build
 
-First, all changes to the `master` branch of the CaminoJS repo should be done solely via github pull requests. This is to ensure that only code which has been peer-reviewed ends up in `master`. Next, you need your username added to the [`avalanche` npm package](https://www.npmjs.com/package/avalanche) and also confirm that you enable 2fa on your npm account.
+First, all changes to the `master` branch of the CaminoJS repo should be done solely via github pull requests. This is to ensure that only code which has been peer-reviewed ends up in `master`. Next, you need your username added to the [`camino` npm package](https://www.npmjs.com/package/@c4tplatform/camino) and also confirm that you enable 2fa on your npm account.
 
 After all the desired changes have been peer-reviewed and merged into the `development` branch then create a final PR to merge `development` in to `master`. Name the PR the new CaminoJS version name. Ex: `v3.0.4`. In the description list a changelog of the changes which are included in the PR.
 
@@ -396,7 +396,7 @@ When you merge the PR and the latest and greatest are on the `master` branch the
 
 For this we use the [`np` lib](https://www.npmjs.com/package/np) to push a new build to npm. `np` will prompt you to answer if this is a PATCH, MINOR or MAJOR release and it will handle bumping the version in `package.json` for you. You will be prompted for your `OTP` which stands for "one time password." This is your 2fa code which you will get from having enabled 2fa on your npm account.
 
-After this is successful you can confirm that the version number was bumped for the npm [`avalanche` npm package](https://www.npmjs.com/package/avalanche). Once you confirm that then the final step is to merge `master` in to the `development` branch. This ensures that the newly bumped version gets added to any future dev work which branches off of `development`.
+After this is successful you can confirm that the version number was bumped for the npm [`camino` npm package](https://www.npmjs.com/package/@c4tplatform/camino). Once you confirm that then the final step is to merge `master` in to the `development` branch. This ensures that the newly bumped version gets added to any future dev work which branches off of `development`.
 
 ### Repo Dependency Updates
 
