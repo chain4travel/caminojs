@@ -4,7 +4,7 @@ We can do the end-to-end testing for the latest CaminoJS by setting up a local C
 
 ## Setup Local Camino Network
 
-For testing end to end, you need to have a local network running. This can easily be achieved by using Camino Network Runner. You can follow the steps [here](https://docs.avax.network/quickstart/network-runner) to setup a local network.
+For testing end to end, you need to have a local network running. This can easily be achieved by using Camino Network Runner. You can follow the steps [here](https://github.com/chain4travel/camino-network-runner) to setup a local network.
 
 ## Setup Environment Variables
 

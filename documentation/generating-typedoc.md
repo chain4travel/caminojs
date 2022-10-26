@@ -41,8 +41,8 @@ First, if any new files were generated in `README.md` then rename the newly gene
 
 ## Copy to Docs Repo
 
-Now copy the `api.md` file into the `/path/to/docs/apis/tools/avalanchejs/` directory of your local `avalanche-docs/` repo.
+Now copy the `api.md` file into the `/path/to/docs/apis/tools/avalanchejs/` directory of your local `camino-docs/` repo.
 
 Next copy 3 directories, `classes/`, `interfaces/` and `modules/` into the `/path/to/avalanchejs-docs/` directory of your local `avalanchejs-docs/` repo.
 
-Confirm that everything worked by running `yarn start` and viewing the new CaminoJS docs on `localhost`. If that is successful next run `yarn build` to confirm that docusaurus is able to properly build. Once that is successful, branch off of `master`, commit your changes and push them on your new feature branch to the remote `avalanche-docs` repo and create a PR.
+Confirm that everything worked by running `yarn start` and viewing the new CaminoJS docs on `localhost`. If that is successful next run `yarn build` to confirm that docusaurus is able to properly build. Once that is successful, branch off of `master`, commit your changes and push them on your new feature branch to the remote `camino-docs` repo and create a PR.
