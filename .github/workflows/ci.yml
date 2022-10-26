@@ -28,7 +28,16 @@ jobs:
       matrix:
         node-version: [16]
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out chain4travel/caminojs
+        uses: actions/checkout@v2
+        with:
+          repository: 'chain4travel/caminojs'
+      - name: Check out ${{ github.event.inputs.caminojsRepo }} ${{ github.event.inputs.caminojsBranch }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ github.event.inputs.caminojsRepo }}
+          ref: ${{ github.event.inputs.caminojsBranch }}
       - uses: actions/setup-node@v2
         with:
           cache: yarn

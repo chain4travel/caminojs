@@ -27,10 +27,16 @@ jobs:
   e2e:
     runs-on: ubuntu-18.04
     steps:
-      - name: Checkout CaminoJS
+      - name: Check out chain4travel/caminojs
         uses: actions/checkout@v2
         with:
           repository: 'chain4travel/caminojs'
+      - name: Check out ${{ github.event.inputs.caminojsRepo }} ${{ github.event.inputs.caminojsBranch }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ github.event.inputs.caminojsRepo }}
+          ref: ${{ github.event.inputs.caminojsBranch }}
       - name: Install dependencies
         run: sudo apt update && sudo apt install zstd git build-essential nodejs -y
       - name: Install NodeJS dependencies
