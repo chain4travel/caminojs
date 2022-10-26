@@ -1,6 +1,21 @@
 name: E2E
-on: push
-
+on: 
+  push:
+    branches:
+      - chain4travel
+  pull_request:
+    branches:
+      - chain4travel
+  workflow_dispatch:
+    inputs:
+      caminojsRepo:
+        description: 'caminojs github repository'
+        required: true
+        default: 'chain4travel/caminojs'
+      caminojsBranch:
+        description: 'caminojs branch'
+        required: true
+        default: 'chain4travel'      
 env:
   GOPATH: /home/runner/go
   CAMPATH: src/github.com/chain4travel
