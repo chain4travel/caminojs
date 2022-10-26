@@ -1,10 +1,10 @@
 # E2E Testing
 
-We can do the end-to-end testing for the latest AvalancheJS by setting up a local Avalanche network and running the `e2e_tests` in the root directory.
+We can do the end-to-end testing for the latest CaminoJS by setting up a local Camino network and running the `e2e_tests` in the root directory.
 
-## Setup Local Avalanche Network
+## Setup Local Camino Network
 
-For testing end to end, you need to have a local network running. This can easily be achieved by using Avalanche Network Runner. You can follow the steps [here](https://docs.avax.network/quickstart/network-runner) to setup a local network.
+For testing end to end, you need to have a local network running. This can easily be achieved by using Camino Network Runner. You can follow the steps [here](https://docs.avax.network/quickstart/network-runner) to setup a local network.
 
 ## Setup Environment Variables
 
