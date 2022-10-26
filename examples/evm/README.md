@@ -1,6 +1,6 @@
 # EVM
 
-Example scripts for the Avalanche [EVM](https://docs.avax.network/build/avalanchego-apis/contract-chain-c-chain-api)
+Example scripts for the Avalanche [EVM](https://docs.avax.network/build/caminogo-apis/contract-chain-c-chain-api)
 
 * [buildExportTx-xchain-ant.ts](./buildExportTx-xchain-ant.ts)
 * [buildExportTx-xchain-avax.ts](./buildExportTx-xchain-avax.ts)

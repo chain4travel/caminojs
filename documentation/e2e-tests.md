@@ -11,8 +11,8 @@ For testing end to end, you need to have a local network running. This can easil
 You need to add IP and PORT of the node running the local network to your environment variables. Run the following command according to your setup:
 
 ```bash
-AVALANCHEGO_IP=0.0.0.0
-AVALANCHEGO_PORT=9650
+CAMINOGO_IP=0.0.0.0
+CAMINOGO_PORT=9650
 ```
 
 ## Run Tests

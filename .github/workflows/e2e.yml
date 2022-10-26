@@ -47,6 +47,6 @@ jobs:
           go run ./examples/local/fivenodenetwork/main.go &
       - name: CaminoJS E2E Test
         env:
-          AVALANCHEGO_IP: localhost
-          AVALANCHEGO_PORT: 9650
+          CAMINOGO_IP: localhost
+          CAMINOGO_PORT: 9650
         run: sleep 60 && yarn test -i --roots e2e_tests
