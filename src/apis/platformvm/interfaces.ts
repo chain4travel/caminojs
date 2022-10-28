@@ -48,8 +48,7 @@ export interface GetConfigurationResponse {
   maxStakeDuration: number
   minValidatorStake: BN
   maxValidatorStake: BN
-  minDelegationFee: BN
-  minDelegatorStake: BN
+  minDepositAmount: BN
   minConsumptionRate: number
   maxConsumptionRate: number
   supplyCap: BN
@@ -81,13 +80,13 @@ export interface AddValidatorParams {
   delegationFeeRate?: string | undefined
 }
 
-export interface AddDelegatorParams {
+export interface AddDepositParams {
   username: string
   password: string
   nodeID: string
   startTime: number
   endTime: number
-  stakeAmount: string
+  depositAmount: string
   rewardAddress: string
 }
 
@@ -210,7 +209,7 @@ export interface GetTxStatusResponse {
 
 export interface GetMinStakeResponse {
   minValidatorStake: BN
-  minDelegatorStake: BN
+  minDepositAmount: BN
 }
 
 export interface GetMaxStakeAmountParams {

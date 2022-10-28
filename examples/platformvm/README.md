@@ -2,9 +2,9 @@
 
 Example scripts for the Avalanche [PlatformVM RPC](https://docs.avax.network/build/avalanchego-apis/platform-chain-p-chain-api)
 
-* [addDelegatorTx.ts](./addDelegatorTx.ts)
+* [addDepositTx.ts](./addDepositTx.ts)
 * [addValidatorTx.ts](./addValidatorTx.ts)
-* [buildAddDelegatorTx.ts](./buildAddDelegatorTx.ts)
+* [buildAddDepositTx.ts](./buildAddDepositTx.ts)
 * [buildAddValidatorTx.ts](./buildAddValidatorTx.ts)
 * [buildCreateSubnetTx.ts](./buildCreateSubnetTx.ts)
 * [buildExportTx.ts](./buildExportTx.ts)

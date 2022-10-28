@@ -31,7 +31,6 @@ const asOf: BN = UnixNow()
 const nodeID: string = "NodeID-DueWyGi3B9jtKfa9mPoecd4YSDJ1ftF69"
 const startTime: BN = UnixNow().add(new BN(60 * 1))
 const endTime: BN = startTime.add(new BN(26300000))
-const delegationFee: number = 10
 
 const main = async (): Promise<any> => {
   const stakeAmount: any = await pchain.getMinStake()
@@ -48,7 +47,6 @@ const main = async (): Promise<any> => {
     endTime,
     stakeAmount.minValidatorStake,
     pAddressStrings,
-    delegationFee,
     locktime,
     threshold,
     memo,

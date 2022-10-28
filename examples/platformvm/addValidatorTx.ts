@@ -48,7 +48,6 @@ const memo: Buffer = Buffer.from(
 const nodeID: string = "NodeID-DueWyGi3B9jtKfa9mPoecd4YSDJ1ftF69"
 const startTime: BN = UnixNow().add(new BN(60 * 1))
 const endTime: BN = startTime.add(new BN(26300000))
-const delegationFee: number = 10
 
 const main = async (): Promise<any> => {
   const stakeAmount: any = await pchain.getMinStake()
@@ -73,11 +72,6 @@ const main = async (): Promise<any> => {
     locktime,
     threshold
   )
-  const stakeTransferableOutput: TransferableOutput = new TransferableOutput(
-    avaxAssetID,
-    stakeSECPTransferOutput
-  )
-  stakeOuts.push(stakeTransferableOutput)
 
   const rewardOutputOwners: SECPOwnerOutput = new SECPOwnerOutput(
     pAddresses,
@@ -120,9 +114,7 @@ const main = async (): Promise<any> => {
     startTime,
     endTime,
     stakeAmount.minValidatorStake,
-    stakeOuts,
-    rewardOwners,
-    delegationFee
+    rewardOwners
   )
   const unsignedTx: UnsignedTx = new UnsignedTx(addValidatorTx)
   const tx: Tx = unsignedTx.sign(pKeychain)

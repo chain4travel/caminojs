@@ -334,12 +334,12 @@ describe("PlatformVMAPI", (): void => {
 
   test("getMinStake", async (): Promise<void> => {
     const minStake: BN = new BN("2000000000000", 10)
-    const minDelegate: BN = new BN("25000000000", 10)
+    const minDeposit: BN = new BN("25000000000", 10)
     const result: Promise<GetMinStakeResponse> = api.getMinStake()
     const payload: object = {
       result: {
         minValidatorStake: "2000000000000",
-        minDelegatorStake: "25000000000"
+        minDepositAmount: "25000000000"
       }
     }
     const responseObj: HttpResponse = {
@@ -353,8 +353,8 @@ describe("PlatformVMAPI", (): void => {
     expect(response["minValidatorStake"].toString(10)).toBe(
       minStake.toString(10)
     )
-    expect(response["minDelegatorStake"].toString(10)).toBe(
-      minDelegate.toString(10)
+    expect(response["minDepositAmount"].toString(10)).toBe(
+      minDeposit.toString(10)
     )
   })
 
@@ -460,14 +460,14 @@ describe("PlatformVMAPI", (): void => {
     expect(response).toBe(utx)
   })
 
-  test("addDelegator 1", async (): Promise<void> => {
+  test("addDeposit 1", async (): Promise<void> => {
     const nodeID: string = "abcdef"
     const startTime = new Date(1985, 5, 9, 12, 59, 43, 9)
     const endTime: Date = new Date(1982, 3, 1, 12, 58, 33, 7)
     const stakeAmount: BN = new BN(13)
     const rewardAddress: string = "fedcba"
     const utx: string = "valid"
-    const result: Promise<string> = api.addDelegator(
+    const result: Promise<string> = api.addDeposit(
       username,
       password,
       nodeID,
@@ -1451,21 +1451,21 @@ describe("PlatformVMAPI", (): void => {
 
         });
     */
-    test("buildAddDelegatorTx 1", async (): Promise<void> => {
+    test("buildAddDepositTx 1", async (): Promise<void> => {
       const addrbuff1 = addrs1.map((a) => platformvm.parseAddress(a))
       const addrbuff2 = addrs2.map((a) => platformvm.parseAddress(a))
       const addrbuff3 = addrs3.map((a) => platformvm.parseAddress(a))
-      const amount: BN = avalanche.getNetwork().P.minDelegationStake
+      const amount: BN = avalanche.getNetwork().P.minDepositAmount
 
       const locktime: BN = new BN(54321)
       const threshold: number = 2
 
       platformvm.setMinStake(
         avalanche.getNetwork().P.minStake,
-        avalanche.getNetwork().P.minDelegationStake
+        avalanche.getNetwork().P.minDepositAmount
       )
 
-      const txu1: UnsignedTx = await platformvm.buildAddDelegatorTx(
+      const txu1: UnsignedTx = await platformvm.buildAddDepositTx(
         set,
         addrs3,
         addrs1,
@@ -1481,7 +1481,7 @@ describe("PlatformVMAPI", (): void => {
         UnixNow()
       )
 
-      const txu2: UnsignedTx = set.buildAddDelegatorTx(
+      const txu2: UnsignedTx = set.buildAddDepositTx(
         networkID,
         bintools.cb58Decode(blockchainID),
         assetID,
@@ -1526,7 +1526,7 @@ describe("PlatformVMAPI", (): void => {
 
       expect(tx4.toBuffer().toString("hex")).toBe(checkTx)
 
-      serialzeit(tx1, "AddDelegatorTx")
+      serialzeit(tx1, "AddDepositTx")
     })
 
     test("buildAddValidatorTx sort StakeableLockOuts 1", async (): Promise<void> => {
@@ -1578,9 +1578,8 @@ describe("PlatformVMAPI", (): void => {
       const stakeAmount: BN = avalanche.getNetwork().P.minStake
       platformvm.setMinStake(
         stakeAmount,
-        avalanche.getNetwork().P.minDelegationStake
+        avalanche.getNetwork().P.minDepositAmount
       )
-      const delegationFeeRate: number = new BN(2).toNumber()
       const codecID: number = 0
       const txid: Buffer = bintools.cb58Decode(
         "auhMFs24ffc2BRWKw6i7Qngcs8jSQUS9Ei2XwJsUpEq4sTVib"
@@ -1618,8 +1617,7 @@ describe("PlatformVMAPI", (): void => {
         startTime,
         endTime,
         stakeAmount,
-        addrs3,
-        delegationFeeRate
+        addrs3
       )
       const tx = txu1.getTransaction() as AddValidatorTx
       const ins: TransferableInput[] = tx.getIns()
@@ -1682,6 +1680,7 @@ describe("PlatformVMAPI", (): void => {
       // confirm tx stake amount matches stakeAmount
       expect(tx.getStakeAmount().toString()).toEqual(stakeAmount.toString())
 
+      /*
       const stakeOuts: TransferableOutput[] = tx.getStakeOuts()
       // confirm only 1 stakeOut
       expect(stakeOuts.length).toBe(1)
@@ -1699,6 +1698,7 @@ describe("PlatformVMAPI", (): void => {
       slo2.getAmount()
       // confirm stakeOut stake amount matches stakeAmount
       expect(slo2.getAmount().toString()).toEqual(stakeAmount.toString())
+      */
     })
 
     test("buildAddValidatorTx sort StakeableLockOuts 2", async (): Promise<void> => {
@@ -1754,9 +1754,8 @@ describe("PlatformVMAPI", (): void => {
       const stakeAmount: BN = new BN("10000003000000000")
       platformvm.setMinStake(
         stakeAmount,
-        avalanche.getNetwork().P.minDelegationStake
+        avalanche.getNetwork().P.minDepositAmount
       )
-      const delegationFeeRate: number = new BN(2).toNumber()
       const codecID: number = 0
       const txid: Buffer = bintools.cb58Decode(
         "auhMFs24ffc2BRWKw6i7Qngcs8jSQUS9Ei2XwJsUpEq4sTVib"
@@ -1794,8 +1793,7 @@ describe("PlatformVMAPI", (): void => {
         startTime,
         endTime,
         stakeAmount,
-        addrs3,
-        delegationFeeRate
+        addrs3
       )
       const tx = txu1.getTransaction() as AddValidatorTx
       const ins: TransferableInput[] = tx.getIns()
@@ -1838,7 +1836,7 @@ describe("PlatformVMAPI", (): void => {
         ao2.getAmount().sub(stakeAmount.sub(ao1.getAmount())).toString()
       )
 
-      const slo = output.getOutput() as StakeableLockOut
+      /*const slo = output.getOutput() as StakeableLockOut
       // confirm output stakeablelock time matches the output w/ the lesser stakeablelock since the other was consumed
       // expect(slo.getStakeableLocktime().toString()).toEqual(
       //   stakeableLockOut1.getStakeableLocktime().toString()
@@ -1872,6 +1870,7 @@ describe("PlatformVMAPI", (): void => {
       expect(slo2.getStakeableLocktime().toString()).toEqual(
         stakeableLockOut2.getStakeableLocktime().toString()
       )
+      */
     })
 
     test("buildAddValidatorTx sort StakeableLockOuts 3", async (): Promise<void> => {
@@ -1935,9 +1934,8 @@ describe("PlatformVMAPI", (): void => {
       const stakeAmount: BN = new BN("10000003000000000")
       platformvm.setMinStake(
         stakeAmount,
-        avalanche.getNetwork().P.minDelegationStake
+        avalanche.getNetwork().P.minDepositAmount
       )
-      const delegationFeeRate: number = new BN(2).toNumber()
       const codecID: number = 0
       const txid0: Buffer = bintools.cb58Decode(
         "auhMFs24ffc2BRWKw6i7Qngcs8jSQUS9Ei2XwJsUpEq4sTVib"
@@ -1986,8 +1984,7 @@ describe("PlatformVMAPI", (): void => {
         startTime,
         endTime,
         stakeAmount,
-        addrs3,
-        delegationFeeRate
+        addrs3
       )
       const tx = txu1.getTransaction() as AddValidatorTx
       const ins: TransferableInput[] = tx.getIns()
@@ -2049,6 +2046,7 @@ describe("PlatformVMAPI", (): void => {
       // confirm tx stake amount matches stakeAmount
       expect(tx.getStakeAmount().toString()).toEqual(stakeAmount.toString())
 
+      /*
       const stakeOuts: TransferableOutput[] = tx.getStakeOuts()
       // confirm 2 stakeOuts
       expect(stakeOuts.length).toBe(2)
@@ -2064,6 +2062,7 @@ describe("PlatformVMAPI", (): void => {
       expect(slo2.getStakeableLocktime().toString()).toEqual(
         stakeableLockOut2.getStakeableLocktime().toString()
       )
+      */
     })
 
     test("buildAddValidatorTx 1", async (): Promise<void> => {
@@ -2077,7 +2076,7 @@ describe("PlatformVMAPI", (): void => {
 
       platformvm.setMinStake(
         avalanche.getNetwork().P.minStake,
-        avalanche.getNetwork().P.minDelegationStake
+        avalanche.getNetwork().P.minDepositAmount
       )
 
       const txu1: UnsignedTx = await platformvm.buildAddValidatorTx(
@@ -2090,7 +2089,6 @@ describe("PlatformVMAPI", (): void => {
         endTime,
         amount,
         addrs3,
-        0.1334556,
         locktime,
         threshold,
         new UTF8Payload("hello world"),
@@ -2111,7 +2109,6 @@ describe("PlatformVMAPI", (): void => {
         locktime,
         threshold,
         addrbuff3,
-        0.1335,
         new BN(0),
         assetID,
         new UTF8Payload("hello world").getPayload(),
@@ -2146,20 +2143,20 @@ describe("PlatformVMAPI", (): void => {
       serialzeit(tx1, "AddValidatorTx")
     })
 
-    test("buildAddDelegatorTx 2", async (): Promise<void> => {
+    test("buildAddDepositTx 2", async (): Promise<void> => {
       const addrbuff1 = addrs1.map((a) => platformvm.parseAddress(a))
       const addrbuff2 = addrs2.map((a) => platformvm.parseAddress(a))
       const addrbuff3 = addrs3.map((a) => platformvm.parseAddress(a))
-      const amount: BN = avalanche.getNetwork().P.minDelegationStake
+      const amount: BN = avalanche.getNetwork().P.minDepositAmount
       const locktime: BN = new BN(54321)
       const threshold: number = 2
 
       platformvm.setMinStake(
         avalanche.getNetwork().P.minStake,
-        avalanche.getNetwork().P.minDelegationStake
+        avalanche.getNetwork().P.minDepositAmount
       )
 
-      const txu1: UnsignedTx = await platformvm.buildAddDelegatorTx(
+      const txu1: UnsignedTx = await platformvm.buildAddDepositTx(
         lset,
         addrs3,
         addrs1,
@@ -2175,7 +2172,7 @@ describe("PlatformVMAPI", (): void => {
         UnixNow()
       )
 
-      const txu2: UnsignedTx = lset.buildAddDelegatorTx(
+      const txu2: UnsignedTx = lset.buildAddDepositTx(
         networkID,
         bintools.cb58Decode(blockchainID),
         assetID,
@@ -2220,7 +2217,7 @@ describe("PlatformVMAPI", (): void => {
 
       expect(tx4.toBuffer().toString("hex")).toBe(checkTx)
 
-      serialzeit(tx1, "AddDelegatorTx")
+      serialzeit(tx1, "AddDepositTx")
     })
 
     test("buildAddValidatorTx 2", async (): Promise<void> => {
@@ -2244,7 +2241,6 @@ describe("PlatformVMAPI", (): void => {
         endTime,
         amount,
         addrs3,
-        0.1334556,
         locktime,
         threshold,
         new UTF8Payload("hello world"),
@@ -2265,7 +2261,6 @@ describe("PlatformVMAPI", (): void => {
         locktime,
         threshold,
         addrbuff3,
-        0.1335,
         new BN(0),
         assetID,
         new UTF8Payload("hello world").getPayload(),
@@ -2368,7 +2363,6 @@ describe("PlatformVMAPI", (): void => {
         endTime,
         amount,
         addrs3,
-        0.1334556,
         locktime,
         threshold,
         new UTF8Payload("hello world"),
@@ -2381,9 +2375,9 @@ describe("PlatformVMAPI", (): void => {
       const txu1Outs: TransferableOutput[] = (
         txu1.getTransaction() as AddValidatorTx
       ).getOuts()
-      const txu1Stake: TransferableOutput[] = (
-        txu1.getTransaction() as AddValidatorTx
-      ).getStakeOuts()
+      //const txu1Stake: TransferableOutput[] = (
+      //  txu1.getTransaction() as AddValidatorTx
+      //).getStakeOuts()
       const txu1Total: TransferableOutput[] = (
         txu1.getTransaction() as AddValidatorTx
       ).getTotalOuts()
@@ -2404,13 +2398,13 @@ describe("PlatformVMAPI", (): void => {
         )
       }
 
-      let staketotal: BN = new BN(0)
+      //let staketotal: BN = new BN(0)
 
-      for (let i: number = 0; i < txu1Stake.length; i++) {
-        staketotal = staketotal.add(
-          (txu1Stake[i].getOutput() as AmountOutput).getAmount()
-        )
-      }
+      //for (let i: number = 0; i < txu1Stake.length; i++) {
+      //  staketotal = staketotal.add(
+      //    (txu1Stake[i].getOutput() as AmountOutput).getAmount()
+      //  )
+      //}
 
       let totaltotal: BN = new BN(0)
 
@@ -2422,8 +2416,8 @@ describe("PlatformVMAPI", (): void => {
 
       expect(intotal.toString(10)).toBe("4000000000")
       expect(outtotal.toString(10)).toBe("1000000000")
-      expect(staketotal.toString(10)).toBe("3000000000")
-      expect(totaltotal.toString(10)).toBe("4000000000")
+      //expect(staketotal.toString(10)).toBe("3000000000")
+      expect(totaltotal.toString(10)).toBe("1000000000")
     })
 
     test("buildCreateSubnetTx1", async (): Promise<void> => {

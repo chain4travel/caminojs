@@ -25,7 +25,7 @@ const pAddressStrings: string[] = pchain.keyChain().getAddressStrings()
 const threshold: number = 1
 const locktime: BN = new BN(0)
 const memo: Buffer = Buffer.from(
-  "PlatformVM utility method buildAddDelegatorTx to add a delegator to the primary subnet"
+  "PlatformVM utility method buildAddDpositTx to add a deposit to the primary subnet"
 )
 const asOf: BN = UnixNow()
 const nodeID: string = "NodeID-DueWyGi3B9jtKfa9mPoecd4YSDJ1ftF69"
@@ -37,7 +37,7 @@ const main = async (): Promise<any> => {
   const platformVMUTXOResponse: any = await pchain.getUTXOs(pAddressStrings)
   const utxoSet: UTXOSet = platformVMUTXOResponse.utxos
 
-  const unsignedTx: UnsignedTx = await pchain.buildAddDelegatorTx(
+  const unsignedTx: UnsignedTx = await pchain.buildAddDepositTx(
     utxoSet,
     pAddressStrings,
     pAddressStrings,
@@ -45,7 +45,7 @@ const main = async (): Promise<any> => {
     nodeID,
     startTime,
     endTime,
-    stakeAmount.minDelegatorStake,
+    stakeAmount.minDepositAmount,
     pAddressStrings,
     locktime,
     threshold,

@@ -33,7 +33,7 @@ export class PlatformVMConstants {
 
   static ADDSUBNETVALIDATORTX: number = 13
 
-  static ADDDELEGATORTX: number = 14
+  static ADDDEPOSITTX: number = 14
 
   static CREATECHAINTX: number = 15
 

@@ -14,7 +14,6 @@ import { DefaultNetworkID } from "../../utils/constants"
 import { bufferToNodeIDString } from "../../utils/helperfunctions"
 import { AmountOutput, ParseableOutput } from "./outputs"
 import { Serialization, SerializedEncoding } from "../../utils/serialization"
-import { DelegationFeeError } from "../../utils/errors"
 
 /**
  * @ignore
@@ -238,11 +237,11 @@ export abstract class WeightedValidatorTx extends ValidatorTx {
 }
 
 /**
- * Class representing an unsigned AddDelegatorTx transaction.
+ * Class representing an unsigned AddDepositTx transaction.
  */
-export class AddDelegatorTx extends WeightedValidatorTx {
-  protected _typeName = "AddDelegatorTx"
-  protected _typeID = PlatformVMConstants.ADDDELEGATORTX
+export class AddDepositTx extends WeightedValidatorTx {
+  protected _typeName = "AddDepositTx"
+  protected _typeID = PlatformVMConstants.ADDDEPOSITTX
 
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields: object = super.serialize(encoding)
@@ -267,7 +266,7 @@ export class AddDelegatorTx extends WeightedValidatorTx {
   protected rewardOwners: ParseableOutput = undefined
 
   /**
-   * Returns the id of the [[AddDelegatorTx]]
+   * Returns the id of the [[AddDepositTx]]
    */
   getTxType(): number {
     return this._typeID
@@ -335,7 +334,7 @@ export class AddDelegatorTx extends WeightedValidatorTx {
   }
 
   /**
-   * Returns a {@link https://github.com/feross/buffer|Buffer} representation of the [[AddDelegatorTx]].
+   * Returns a {@link https://github.com/feross/buffer|Buffer} representation of the [[AddDepositTx]].
    */
   toBuffer(): Buffer {
     const superbuff: Buffer = super.toBuffer()
@@ -357,17 +356,17 @@ export class AddDelegatorTx extends WeightedValidatorTx {
   }
 
   clone(): this {
-    let newbase: AddDelegatorTx = new AddDelegatorTx()
+    let newbase: AddDepositTx = new AddDepositTx()
     newbase.fromBuffer(this.toBuffer())
     return newbase as this
   }
 
   create(...args: any[]): this {
-    return new AddDelegatorTx(...args) as this
+    return new AddDepositTx(...args) as this
   }
 
   /**
-   * Class representing an unsigned AddDelegatorTx transaction.
+   * Class representing an unsigned AddDepositTx transaction.
    *
    * @param networkID Optional. Networkid, [[DefaultNetworkID]]
    * @param blockchainID Optional. Blockchainid, default Buffer.alloc(32, 16)
@@ -378,7 +377,6 @@ export class AddDelegatorTx extends WeightedValidatorTx {
    * @param startTime Optional. The Unix time when the validator starts validating the Primary Network.
    * @param endTime Optional. The Unix time when the validator stops validating the Primary Network (and staked AVAX is returned).
    * @param stakeAmount Optional. The amount of nAVAX the validator is staking.
-   * @param stakeOuts Optional. The outputs used in paying the stake.
    * @param rewardOwners Optional. The [[ParseableOutput]] containing a [[SECPOwnerOutput]] for the rewards.
    */
   constructor(
@@ -412,7 +410,7 @@ export class AddDelegatorTx extends WeightedValidatorTx {
   }
 }
 
-export class AddValidatorTx extends AddDelegatorTx {
+export class AddValidatorTx extends WeightedValidatorTx {
   protected _typeName = "AddValidatorTx"
   protected _typeID = PlatformVMConstants.ADDVALIDATORTX
 
@@ -420,30 +418,16 @@ export class AddValidatorTx extends AddDelegatorTx {
     let fields: object = super.serialize(encoding)
     return {
       ...fields,
-      delegationFee: serialization.encoder(
-        this.getDelegationFeeBuffer(),
-        encoding,
-        "Buffer",
-        "decimalString",
-        4
-      )
+      rewardOwners: this.rewardOwners.serialize(encoding)
     }
   }
   deserialize(fields: object, encoding: SerializedEncoding = "hex") {
     super.deserialize(fields, encoding)
-    let dbuff: Buffer = serialization.decoder(
-      fields["delegationFee"],
-      encoding,
-      "decimalString",
-      "Buffer",
-      4
-    )
-    this.delegationFee =
-      dbuff.readUInt32BE(0) / AddValidatorTx.delegatorMultiplier
+    this.rewardOwners = new ParseableOutput()
+    this.rewardOwners.deserialize(fields["rewardOwners"], encoding)
   }
 
-  protected delegationFee: number = 0
-  private static delegatorMultiplier: number = 10000
+  protected rewardOwners: ParseableOutput = undefined
 
   /**
    * Returns the id of the [[AddValidatorTx]]
@@ -453,37 +437,35 @@ export class AddValidatorTx extends AddDelegatorTx {
   }
 
   /**
-   * Returns the delegation fee (represents a percentage from 0 to 100);
+   * Returns a {@link https://github.com/indutny/bn.js/|BN} for the stake amount.
    */
-  getDelegationFee(): number {
-    return this.delegationFee
+  getStakeAmount(): BN {
+    return this.getWeight()
   }
 
   /**
-   * Returns the binary representation of the delegation fee as a {@link https://github.com/feross/buffer|Buffer}.
+   * Returns a {@link https://github.com/feross/buffer|Buffer} for the reward address.
    */
-  getDelegationFeeBuffer(): Buffer {
-    let dBuff: Buffer = Buffer.alloc(4)
-    let buffnum: number =
-      parseFloat(this.delegationFee.toFixed(4)) *
-      AddValidatorTx.delegatorMultiplier
-    dBuff.writeUInt32BE(buffnum, 0)
-    return dBuff
+  getRewardOwners(): ParseableOutput {
+    return this.rewardOwners
   }
 
   fromBuffer(bytes: Buffer, offset: number = 0): number {
     offset = super.fromBuffer(bytes, offset)
-    let dbuff: Buffer = bintools.copyFrom(bytes, offset, offset + 4)
-    offset += 4
-    this.delegationFee =
-      dbuff.readUInt32BE(0) / AddValidatorTx.delegatorMultiplier
+    this.rewardOwners = new ParseableOutput()
+    offset = this.rewardOwners.fromBuffer(bytes, offset)
     return offset
   }
 
+  /**
+   * Returns a {@link https://github.com/feross/buffer|Buffer} representation of the [[AddDepositTx]].
+   */
   toBuffer(): Buffer {
-    let superBuff: Buffer = super.toBuffer()
-    let feeBuff: Buffer = this.getDelegationFeeBuffer()
-    return Buffer.concat([superBuff, feeBuff])
+    const superbuff: Buffer = super.toBuffer()
+    let bsize: number = superbuff.length
+    let ro: Buffer = this.rewardOwners.toBuffer()
+    bsize += ro.length
+    return Buffer.concat([ro], bsize)
   }
 
   /**
@@ -498,12 +480,7 @@ export class AddValidatorTx extends AddDelegatorTx {
    * @param startTime Optional. The Unix time when the validator starts validating the Primary Network.
    * @param endTime Optional. The Unix time when the validator stops validating the Primary Network (and staked AVAX is returned).
    * @param stakeAmount Optional. The amount of nAVAX the validator is staking.
-   * @param stakeOuts Optional. The outputs used in paying the stake.
    * @param rewardOwners Optional. The [[ParseableOutput]] containing the [[SECPOwnerOutput]] for the rewards.
-   * @param delegationFee Optional. The percent fee this validator charges when others delegate stake to them.
-   * Up to 4 decimal places allowed; additional decimal places are ignored. Must be between 0 and 100, inclusive.
-   * For example, if delegationFeeRate is 1.2345 and someone delegates to this validator, then when the delegation
-   * period is over, 1.2345% of the reward goes to the validator and the rest goes to the delegator.
    */
   constructor(
     networkID: number = DefaultNetworkID,
@@ -515,9 +492,7 @@ export class AddValidatorTx extends AddDelegatorTx {
     startTime: BN = undefined,
     endTime: BN = undefined,
     stakeAmount: BN = undefined,
-    stakeOuts: TransferableOutput[] = undefined,
-    rewardOwners: ParseableOutput = undefined,
-    delegationFee: number = undefined
+    rewardOwners: ParseableOutput = undefined
   ) {
     super(
       networkID,
@@ -528,18 +503,8 @@ export class AddValidatorTx extends AddDelegatorTx {
       nodeID,
       startTime,
       endTime,
-      stakeAmount,
-      stakeOuts,
-      rewardOwners
+      stakeAmount
     )
-    if (typeof delegationFee === "number") {
-      if (delegationFee >= 0 && delegationFee <= 100) {
-        this.delegationFee = parseFloat(delegationFee.toFixed(4))
-      } else {
-        throw new DelegationFeeError(
-          "AddValidatorTx.constructor -- delegationFee must be in the range of 0 and 100, inclusively."
-        )
-      }
-    }
+    this.rewardOwners = rewardOwners
   }
 }

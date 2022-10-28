@@ -33,7 +33,7 @@ import {
   AssetAmount
 } from "../../common/assetamount"
 import { Output } from "../../common/output"
-import { AddDelegatorTx, AddValidatorTx } from "./validationtx"
+import { AddDepositTx, AddValidatorTx } from "./validationtx"
 import { CreateSubnetTx } from "./createsubnettx"
 import { Serialization, SerializedEncoding } from "../../utils/serialization"
 import {
@@ -976,7 +976,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
   }
 
   /**
-   * Class representing an unsigned [[AddDelegatorTx]] transaction.
+   * Class representing an unsigned [[AddDepositTx]] transaction.
    *
    * @param networkID Networkid, [[DefaultNetworkID]]
    * @param blockchainID Blockchainid, default undefined
@@ -999,7 +999,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
    *
    * @returns An unsigned transaction created from the passed in parameters.
    */
-  buildAddDelegatorTx = (
+  buildAddDepositTx = (
     networkID: number = DefaultNetworkID,
     blockchainID: Buffer,
     avaxAssetID: Buffer,
@@ -1022,7 +1022,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
     if (rewardThreshold > rewardAddresses.length) {
       /* istanbul ignore next */
       throw new ThresholdError(
-        "Error - UTXOSet.buildAddDelegatorTx: reward threshold is greater than number of addresses"
+        "Error - UTXOSet.buildAddDepositTx: reward threshold is greater than number of addresses"
       )
     }
 
@@ -1038,7 +1038,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
     const now: BN = UnixNow()
     if (startTime.lt(now) || endTime.lte(startTime)) {
       throw new TimeError(
-        "UTXOSet.buildAddDelegatorTx -- startTime must be in the future and endTime must come after startTime"
+        "UTXOSet.buildAddDepositTx -- startTime must be in the future and endTime must come after startTime"
       )
     }
 
@@ -1077,7 +1077,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
       rewardThreshold
     )
 
-    const UTx: AddDelegatorTx = new AddDelegatorTx(
+    const UTx: AddDepositTx = new AddDepositTx(
       networkID,
       blockchainID,
       outs,
@@ -1132,7 +1132,6 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
     rewardLocktime: BN,
     rewardThreshold: number,
     rewardAddresses: Buffer[],
-    delegationFee: number,
     fee: BN = undefined,
     feeAssetID: Buffer = undefined,
     memo: Buffer = undefined,
@@ -1147,12 +1146,6 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
     if (startTime.lt(now) || endTime.lte(startTime)) {
       throw new TimeError(
         "UTXOSet.buildAddValidatorTx -- startTime must be in the future and endTime must come after startTime"
-      )
-    }
-
-    if (delegationFee > 100 || delegationFee < 0) {
-      throw new TimeError(
-        "UTXOSet.buildAddValidatorTx -- startTime must be in the range of 0 to 100, inclusively"
       )
     }
 
@@ -1201,9 +1194,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
       startTime,
       endTime,
       stakeAmount,
-      stakeOuts,
-      new ParseableOutput(rewardOutputOwners),
-      delegationFee
+      new ParseableOutput(rewardOutputOwners)
     )
     return new UnsignedTx(UTx)
   }

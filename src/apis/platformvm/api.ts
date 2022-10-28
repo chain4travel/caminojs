@@ -44,7 +44,7 @@ import {
   ListAddressesParams,
   SampleValidatorsParams,
   AddValidatorParams,
-  AddDelegatorParams,
+  AddDepositParams,
   CreateSubnetParams,
   ExportAVAXParams,
   ExportKeyParams,
@@ -95,7 +95,7 @@ export class PlatformVMAPI extends JRPCAPI {
 
   protected minValidatorStake: BN = undefined
 
-  protected minDelegatorStake: BN = undefined
+  protected minDepositAmount: BN = undefined
 
   /**
    * Gets the alias for the blockchainID if it exists, otherwise returns `undefined`.
@@ -563,11 +563,6 @@ export class PlatformVMAPI extends JRPCAPI {
    * @param stakeAmount The amount of nAVAX the validator is staking as
    * a {@link https://github.com/indutny/bn.js/|BN}
    * @param rewardAddress The address the validator reward will go to, if there is one.
-   * @param delegationFeeRate Optional. A {@link https://github.com/indutny/bn.js/|BN} for the percent fee this validator
-   * charges when others delegate stake to them. Up to 4 decimal places allowed additional decimal places are ignored.
-   * Must be between 0 and 100, inclusive. For example, if delegationFeeRate is 1.2345 and someone delegates to this
-   * validator, then when the delegation period is over, 1.2345% of the reward goes to the validator and the rest goes
-   * to the delegator.
    *
    * @returns Promise for a base58 string of the unsigned transaction.
    */
@@ -578,8 +573,7 @@ export class PlatformVMAPI extends JRPCAPI {
     startTime: Date,
     endTime: Date,
     stakeAmount: BN,
-    rewardAddress: string,
-    delegationFeeRate: BN = undefined
+    rewardAddress: string
   ): Promise<string> => {
     const params: AddValidatorParams = {
       username,
@@ -589,9 +583,6 @@ export class PlatformVMAPI extends JRPCAPI {
       endTime: endTime.getTime() / 1000,
       stakeAmount: stakeAmount.toString(10),
       rewardAddress
-    }
-    if (typeof delegationFeeRate !== "undefined") {
-      params.delegationFeeRate = delegationFeeRate.toString(10)
     }
     const response: RequestResponseData = await this.callMethod(
       "platform.addValidator",
@@ -643,40 +634,40 @@ export class PlatformVMAPI extends JRPCAPI {
   }
 
   /**
-   * Add a delegator to the Primary Network.
+   * Add a deposit to the Primary Network.
    *
    * @param username The username of the Keystore user
    * @param password The password of the Keystore user
    * @param nodeID The node ID of the delegatee
-   * @param startTime Javascript Date object for when the delegator starts delegating
-   * @param endTime Javascript Date object for when the delegator starts delegating
-   * @param stakeAmount The amount of nAVAX the delegator is staking as
+   * @param startTime Javascript Date object for when the deposit starts delegating
+   * @param endTime Javascript Date object for when the deposit starts delegating
+   * @param stakeAmount The amount of nAVAX the deposit is staking as
    * a {@link https://github.com/indutny/bn.js/|BN}
    * @param rewardAddress The address of the account the staked AVAX and validation reward
    * (if applicable) are sent to at endTime
    *
    * @returns Promise for an array of validator"s stakingIDs.
    */
-  addDelegator = async (
+  addDeposit = async (
     username: string,
     password: string,
     nodeID: string,
     startTime: Date,
     endTime: Date,
-    stakeAmount: BN,
+    depositAmount: BN,
     rewardAddress: string
   ): Promise<string> => {
-    const params: AddDelegatorParams = {
+    const params: AddDepositParams = {
       username,
       password,
       nodeID,
       startTime: startTime.getTime() / 1000,
       endTime: endTime.getTime() / 1000,
-      stakeAmount: stakeAmount.toString(10),
+      depositAmount: depositAmount.toString(10),
       rewardAddress
     }
     const response: RequestResponseData = await this.callMethod(
-      "platform.addDelegator",
+      "platform.addDeposit",
       params
     )
     return response.data.result.txID
@@ -906,21 +897,21 @@ export class PlatformVMAPI extends JRPCAPI {
     if (
       refresh !== true &&
       typeof this.minValidatorStake !== "undefined" &&
-      typeof this.minDelegatorStake !== "undefined"
+      typeof this.minDepositAmount !== "undefined"
     ) {
       return {
         minValidatorStake: this.minValidatorStake,
-        minDelegatorStake: this.minDelegatorStake
+        minDepositAmount: this.minDepositAmount
       }
     }
     const response: RequestResponseData = await this.callMethod(
       "platform.getMinStake"
     )
     this.minValidatorStake = new BN(response.data.result.minValidatorStake, 10)
-    this.minDelegatorStake = new BN(response.data.result.minDelegatorStake, 10)
+    this.minDepositAmount = new BN(response.data.result.minDepositAmount, 10)
     return {
       minValidatorStake: this.minValidatorStake,
-      minDelegatorStake: this.minDelegatorStake
+      minDepositAmount: this.minDepositAmount
     }
   }
 
@@ -980,17 +971,17 @@ export class PlatformVMAPI extends JRPCAPI {
   /**
    * Sets the minimum stake cached in this class.
    * @param minValidatorStake A {@link https://github.com/indutny/bn.js/|BN} to set the minimum stake amount cached in this class.
-   * @param minDelegatorStake A {@link https://github.com/indutny/bn.js/|BN} to set the minimum delegation amount cached in this class.
+   * @param minDepositAmount A {@link https://github.com/indutny/bn.js/|BN} to set the minimum deposit amount cached in this class.
    */
   setMinStake = (
     minValidatorStake: BN = undefined,
-    minDelegatorStake: BN = undefined
+    minDepositAmount: BN = undefined
   ): void => {
     if (typeof minValidatorStake !== "undefined") {
       this.minValidatorStake = minValidatorStake
     }
-    if (typeof minDelegatorStake !== "undefined") {
-      this.minDelegatorStake = minDelegatorStake
+    if (typeof minDepositAmount !== "undefined") {
+      this.minDepositAmount = minDepositAmount
     }
   }
 
@@ -1505,8 +1496,8 @@ export class PlatformVMAPI extends JRPCAPI {
   }
 
   /**
-   * Helper function which creates an unsigned [[AddDelegatorTx]]. For more granular control, you may create your own
-   * [[UnsignedTx]] manually and import the [[AddDelegatorTx]] class directly.
+   * Helper function which creates an unsigned [[AddDepositTx]]. For more granular control, you may create your own
+   * [[UnsignedTx]] manually and import the [[AddDepositTx]] class directly.
    *
    * @param utxoset A set of UTXOs that the transaction is built on
    * @param toAddresses An array of addresses as {@link https://github.com/feross/buffer|Buffer} who received the staked tokens at the end of the staking period
@@ -1524,7 +1515,7 @@ export class PlatformVMAPI extends JRPCAPI {
    *
    * @returns An unsigned transaction created from the passed in parameters.
    */
-  buildAddDelegatorTx = async (
+  buildAddDepositTx = async (
     utxoset: UTXOSet,
     toAddresses: string[],
     fromAddresses: string[],
@@ -1541,29 +1532,29 @@ export class PlatformVMAPI extends JRPCAPI {
   ): Promise<UnsignedTx> => {
     const to: Buffer[] = this._cleanAddressArray(
       toAddresses,
-      "buildAddDelegatorTx"
+      "buildAddDepositTx"
     ).map((a: string): Buffer => bintools.stringToAddress(a))
     const from: Buffer[] = this._cleanAddressArray(
       fromAddresses,
-      "buildAddDelegatorTx"
+      "buildAddDepositTx"
     ).map((a: string): Buffer => bintools.stringToAddress(a))
     const change: Buffer[] = this._cleanAddressArray(
       changeAddresses,
-      "buildAddDelegatorTx"
+      "buildAddDepositTx"
     ).map((a: string): Buffer => bintools.stringToAddress(a))
     const rewards: Buffer[] = this._cleanAddressArray(
       rewardAddresses,
-      "buildAddDelegatorTx"
+      "buildAddDepositTx"
     ).map((a: string): Buffer => bintools.stringToAddress(a))
 
     if (memo instanceof PayloadBase) {
       memo = memo.getPayload()
     }
 
-    const minStake: BN = (await this.getMinStake())["minDelegatorStake"]
+    const minStake: BN = (await this.getMinStake())["minDepositAmount"]
     if (stakeAmount.lt(minStake)) {
       throw new StakeError(
-        "PlatformVMAPI.buildAddDelegatorTx -- stake amount must be at least " +
+        "PlatformVMAPI.buildAddDepositTx -- deposit amount must be at least " +
           minStake.toString(10)
       )
     }
@@ -1573,11 +1564,11 @@ export class PlatformVMAPI extends JRPCAPI {
     const now: BN = UnixNow()
     if (startTime.lt(now) || endTime.lte(startTime)) {
       throw new TimeError(
-        "PlatformVMAPI.buildAddDelegatorTx -- startTime must be in the future and endTime must come after startTime"
+        "PlatformVMAPI.buildAddDepositTx -- startTime must be in the future and endTime must come after startTime"
       )
     }
 
-    const builtUnsignedTx: UnsignedTx = utxoset.buildAddDelegatorTx(
+    const builtUnsignedTx: UnsignedTx = utxoset.buildAddDepositTx(
       this.core.getNetworkID(),
       bintools.cb58Decode(this.blockchainID),
       avaxAssetID,
@@ -1636,7 +1627,6 @@ export class PlatformVMAPI extends JRPCAPI {
     endTime: BN,
     stakeAmount: BN,
     rewardAddresses: string[],
-    delegationFee: number,
     rewardLocktime: BN = new BN(0),
     rewardThreshold: number = 1,
     memo: PayloadBase | Buffer = undefined,
@@ -1671,16 +1661,6 @@ export class PlatformVMAPI extends JRPCAPI {
       )
     }
 
-    if (
-      typeof delegationFee !== "number" ||
-      delegationFee > 100 ||
-      delegationFee < 0
-    ) {
-      throw new DelegationFeeError(
-        "PlatformVMAPI.buildAddValidatorTx -- delegationFee must be a number between 0 and 100"
-      )
-    }
-
     const avaxAssetID: Buffer = await this.getAVAXAssetID()
 
     const now: BN = UnixNow()
@@ -1704,7 +1684,6 @@ export class PlatformVMAPI extends JRPCAPI {
       rewardLocktime,
       rewardThreshold,
       rewards,
-      delegationFee,
       new BN(0),
       avaxAssetID,
       memo,
@@ -1958,8 +1937,7 @@ export class PlatformVMAPI extends JRPCAPI {
       maxStakeDuration: new BN(r.maxStakeDuration).div(NanoBN).toNumber(),
       minValidatorStake: new BN(r.minValidatorStake),
       maxValidatorStake: new BN(r.maxValidatorStake),
-      minDelegationFee: new BN(r.minDelegationFee),
-      minDelegatorStake: new BN(r.minDelegatorStake),
+      minDepositAmount: new BN(r.minDepositAmount),
       minConsumptionRate: parseInt(r.minConsumptionRate) / rewardPercentDenom,
       maxConsumptionRate: parseInt(r.maxConsumptionRate) / rewardPercentDenom,
       supplyCap: new BN(r.supplyCap)
