@@ -27,11 +27,15 @@ const serialization: Serialization = Serialization.getInstance()
  * @returns An instance of an [[Output]]-extended class.
  */
 export const SelectOutputClass = (outputid: number, ...args: any[]): Output => {
-  if (outputid == PlatformVMConstants.SECPXFEROUTPUTID) {
+  if (PlatformVMConstants.Is(outputid, PlatformVMConstants.SECPXFEROUTPUTIDS)) {
     return new SECPTransferOutput(...args)
-  } else if (outputid == PlatformVMConstants.SECPOWNEROUTPUTID) {
+  } else if (
+    PlatformVMConstants.Is(outputid, PlatformVMConstants.SECPOWNEROUTPUTIDS)
+  ) {
     return new SECPOwnerOutput(...args)
-  } else if (outputid == PlatformVMConstants.STAKEABLELOCKOUTID) {
+  } else if (
+    PlatformVMConstants.Is(outputid, PlatformVMConstants.STAKEABLELOCKOUTIDS)
+  ) {
     return new StakeableLockOut(...args)
   }
   throw new OutputIdError(
@@ -112,7 +116,9 @@ export abstract class AmountOutput extends StandardAmountOutput {
  */
 export class SECPTransferOutput extends AmountOutput {
   protected _typeName = "SECPTransferOutput"
-  protected _typeID = PlatformVMConstants.SECPXFEROUTPUTID
+  protected _typeID = PlatformVMConstants.Get(
+    PlatformVMConstants.SECPXFEROUTPUTIDS
+  )
 
   //serialize and deserialize both are inherited
 
@@ -139,7 +145,9 @@ export class SECPTransferOutput extends AmountOutput {
  */
 export class StakeableLockOut extends AmountOutput {
   protected _typeName = "StakeableLockOut"
-  protected _typeID = PlatformVMConstants.STAKEABLELOCKOUTID
+  protected _typeID = PlatformVMConstants.Get(
+    PlatformVMConstants.STAKEABLELOCKOUTIDS
+  )
 
   //serialize and deserialize both are inherited
 
@@ -293,7 +301,9 @@ export class StakeableLockOut extends AmountOutput {
  */
 export class SECPOwnerOutput extends Output {
   protected _typeName = "SECPOwnerOutput"
-  protected _typeID = PlatformVMConstants.SECPOWNEROUTPUTID
+  protected _typeID = PlatformVMConstants.Get(
+    PlatformVMConstants.SECPOWNEROUTPUTIDS
+  )
 
   //serialize and deserialize both are inherited
 

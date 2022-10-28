@@ -53,6 +53,7 @@ import {
   GetBalanceResponse,
   GetUTXOsResponse
 } from "src/apis/platformvm/interfaces"
+import { PlatformVMConstants } from "src/apis/platformvm"
 
 /**
  * @ignore
@@ -2481,6 +2482,67 @@ describe("PlatformVMAPI", (): void => {
       expect(tx4.toBuffer().toString("hex")).toBe(checkTx)
 
       serialzeit(tx1, "CreateSubnetTx")
+    })
+
+    test("buildAddValidatorTx 4", async (): Promise<void> => {
+      const addrbuff1 = addrs1.map((a) => platformvm.parseAddress(a))
+      const addrbuff2 = addrs2.map((a) => platformvm.parseAddress(a))
+      const addrbuff3 = addrs3.map((a) => platformvm.parseAddress(a))
+      const amount: BN = ONEAVAX.mul(new BN(25))
+
+      const locktime: BN = new BN(54321)
+      const threshold: number = 2
+
+      platformvm.setMinStake(ONEAVAX.mul(new BN(25)), ONEAVAX.mul(new BN(25)))
+
+      var txu: UnsignedTx = await platformvm.buildAddValidatorTx(
+        lset,
+        addrs3,
+        addrs1,
+        addrs2,
+        nodeID,
+        startTime,
+        endTime,
+        amount,
+        addrs3,
+        locktime,
+        threshold,
+        new UTF8Payload("hello world"),
+        UnixNow()
+      )
+      var vtx = txu.getTransaction() as AddValidatorTx
+      expect(
+        PlatformVMConstants.Is(
+          vtx.getTypeID(),
+          PlatformVMConstants.ADDVALIDATORTXS
+        )
+      ).toBeTruthy
+
+      PlatformVMConstants.LATESTCODEC = 1
+
+      txu = await platformvm.buildAddValidatorTx(
+        lset,
+        addrs3,
+        addrs1,
+        addrs2,
+        nodeID,
+        startTime,
+        endTime,
+        amount,
+        addrs3,
+        locktime,
+        threshold,
+        new UTF8Payload("hello world"),
+        UnixNow()
+      )
+      vtx = txu.getTransaction() as AddValidatorTx
+      console.log(vtx.getTypeID())
+      expect(
+        PlatformVMConstants.Is(
+          vtx.getTypeID(),
+          PlatformVMConstants.ADDVALIDATORTXS
+        )
+      ).toBeTruthy
     })
 
     test("buildCreateSubnetTx2", async (): Promise<void> => {

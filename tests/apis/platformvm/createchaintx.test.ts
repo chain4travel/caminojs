@@ -23,7 +23,9 @@ describe("CreateChainTx", (): void => {
 
   test("getTypeID", async (): Promise<void> => {
     const createChainTxTypeID: number = createChainTx.getTypeID()
-    expect(createChainTxTypeID).toBe(PlatformVMConstants.CREATECHAINTX)
+    expect(createChainTxTypeID).toBe(
+      PlatformVMConstants.Get(PlatformVMConstants.CREATECHAINTXS)
+    )
   })
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
@@ -97,7 +99,9 @@ describe("CreateChainTx", (): void => {
 
     test("getTypeID", async (): Promise<void> => {
       const subnetAuthTypeID: number = sa.getTypeID()
-      expect(subnetAuthTypeID).toBe(PlatformVMConstants.SUBNETAUTH)
+      expect(subnetAuthTypeID).toBe(
+        PlatformVMConstants.Get(PlatformVMConstants.SUBNETAUTHS)
+      )
     })
 
     test("getNumAddressIndices", async (): Promise<void> => {

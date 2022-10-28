@@ -31,17 +31,23 @@ const bintools: BinTools = BinTools.getInstance()
  * @returns An instance of an [[BaseTx]]-extended class.
  */
 export const SelectTxClass = (txtype: number, ...args: any[]): BaseTx => {
-  if (txtype === PlatformVMConstants.BASETX) {
+  if (PlatformVMConstants.Is(txtype, PlatformVMConstants.BASETXS)) {
     return new BaseTx(...args)
-  } else if (txtype === PlatformVMConstants.IMPORTTX) {
+  } else if (PlatformVMConstants.Is(txtype, PlatformVMConstants.IMPORTTXS)) {
     return new ImportTx(...args)
-  } else if (txtype === PlatformVMConstants.EXPORTTX) {
+  } else if (PlatformVMConstants.Is(txtype, PlatformVMConstants.EXPORTTXS)) {
     return new ExportTx(...args)
-  } else if (txtype === PlatformVMConstants.ADDDEPOSITTX) {
+  } else if (
+    PlatformVMConstants.Is(txtype, PlatformVMConstants.ADDDEPOSITTXS)
+  ) {
     return new AddDepositTx(...args)
-  } else if (txtype === PlatformVMConstants.ADDVALIDATORTX) {
+  } else if (
+    PlatformVMConstants.Is(txtype, PlatformVMConstants.ADDVALIDATORTXS)
+  ) {
     return new AddValidatorTx(...args)
-  } else if (txtype === PlatformVMConstants.CREATESUBNETTX) {
+  } else if (
+    PlatformVMConstants.Is(txtype, PlatformVMConstants.CREATESUBNETTXS)
+  ) {
     return new CreateSubnetTx(...args)
   }
   /* istanbul ignore next */

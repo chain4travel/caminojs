@@ -29,9 +29,11 @@ const serialization: Serialization = Serialization.getInstance()
  * @returns An instance of an [[Input]]-extended class.
  */
 export const SelectInputClass = (inputid: number, ...args: any[]): Input => {
-  if (inputid === PlatformVMConstants.SECPINPUTID) {
+  if (PlatformVMConstants.Is(inputid, PlatformVMConstants.SECPINPUTIDS)) {
     return new SECPTransferInput(...args)
-  } else if (inputid === PlatformVMConstants.STAKEABLELOCKINID) {
+  } else if (
+    PlatformVMConstants.Is(inputid, PlatformVMConstants.STAKEABLELOCKINIDS)
+  ) {
     return new StakeableLockIn(...args)
   }
   /* istanbul ignore next */
@@ -112,7 +114,7 @@ export abstract class AmountInput extends StandardAmountInput {
 
 export class SECPTransferInput extends AmountInput {
   protected _typeName = "SECPTransferInput"
-  protected _typeID = PlatformVMConstants.SECPINPUTID
+  protected _typeID = PlatformVMConstants.Get(PlatformVMConstants.SECPINPUTIDS)
 
   //serialize and deserialize both are inherited
 
@@ -123,7 +125,8 @@ export class SECPTransferInput extends AmountInput {
     return this._typeID
   }
 
-  getCredentialID = (): number => PlatformVMConstants.SECPCREDENTIAL
+  getCredentialID = (): number =>
+    PlatformVMConstants.Get(PlatformVMConstants.SECPCREDENTIALS)
 
   create(...args: any[]): this {
     return new SECPTransferInput(...args) as this
@@ -141,7 +144,9 @@ export class SECPTransferInput extends AmountInput {
  */
 export class StakeableLockIn extends AmountInput {
   protected _typeName = "StakeableLockIn"
-  protected _typeID = PlatformVMConstants.STAKEABLELOCKINID
+  protected _typeID = PlatformVMConstants.Get(
+    PlatformVMConstants.STAKEABLELOCKINIDS
+  )
 
   //serialize and deserialize both are inherited
 
@@ -206,7 +211,8 @@ export class StakeableLockIn extends AmountInput {
     return this._typeID
   }
 
-  getCredentialID = (): number => PlatformVMConstants.SECPCREDENTIAL
+  getCredentialID = (): number =>
+    PlatformVMConstants.Get(PlatformVMConstants.SECPCREDENTIALS)
 
   /**
    * Popuates the instance from a {@link https://github.com/feross/buffer|Buffer} representing the [[StakeableLockIn]] and returns the size of the output.

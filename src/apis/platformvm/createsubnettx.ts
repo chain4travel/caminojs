@@ -13,7 +13,9 @@ import { SubnetOwnerError } from "../../utils/errors"
 
 export class CreateSubnetTx extends BaseTx {
   protected _typeName = "CreateSubnetTx"
-  protected _typeID = PlatformVMConstants.CREATESUBNETTX
+  protected _typeID = PlatformVMConstants.Get(
+    PlatformVMConstants.CREATESUBNETTXS
+  )
 
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields: object = super.serialize(encoding)

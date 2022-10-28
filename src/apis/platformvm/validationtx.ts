@@ -241,7 +241,7 @@ export abstract class WeightedValidatorTx extends ValidatorTx {
  */
 export class AddDepositTx extends WeightedValidatorTx {
   protected _typeName = "AddDepositTx"
-  protected _typeID = PlatformVMConstants.ADDDEPOSITTX
+  protected _typeID = PlatformVMConstants.Get(PlatformVMConstants.ADDDEPOSITTXS)
 
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields: object = super.serialize(encoding)
@@ -412,7 +412,9 @@ export class AddDepositTx extends WeightedValidatorTx {
 
 export class AddValidatorTx extends WeightedValidatorTx {
   protected _typeName = "AddValidatorTx"
-  protected _typeID = PlatformVMConstants.ADDVALIDATORTX
+  protected _typeID = PlatformVMConstants.Get(
+    PlatformVMConstants.ADDVALIDATORTXS
+  )
 
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields: object = super.serialize(encoding)

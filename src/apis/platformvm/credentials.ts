@@ -18,7 +18,7 @@ export const SelectCredentialClass = (
   credid: number,
   ...args: any[]
 ): Credential => {
-  if (credid === PlatformVMConstants.SECPCREDENTIAL) {
+  if (PlatformVMConstants.Is(credid, PlatformVMConstants.SECPCREDENTIALS)) {
     return new SECPCredential(...args)
   }
   /* istanbul ignore next */
@@ -27,7 +27,9 @@ export const SelectCredentialClass = (
 
 export class SECPCredential extends Credential {
   protected _typeName = "SECPCredential"
-  protected _typeID = PlatformVMConstants.SECPCREDENTIAL
+  protected _typeID = PlatformVMConstants.Get(
+    PlatformVMConstants.SECPCREDENTIALS
+  )
 
   //serialize and deserialize both are inherited
 

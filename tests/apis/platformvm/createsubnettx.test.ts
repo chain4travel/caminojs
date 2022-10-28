@@ -18,7 +18,9 @@ describe("CreateSubnetTx", (): void => {
 
   test("getTypeID", async (): Promise<void> => {
     const createSubnetTxTypeID: number = createSubnetTx.getTypeID()
-    expect(createSubnetTxTypeID).toBe(PlatformVMConstants.CREATESUBNETTX)
+    expect(createSubnetTxTypeID).toBe(
+      PlatformVMConstants.Get(PlatformVMConstants.CREATESUBNETTXS)
+    )
   })
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
@@ -39,12 +41,16 @@ describe("CreateSubnetTx", (): void => {
 
     test("getTypeID", async (): Promise<void> => {
       const subnetOwnersTypeID: number = subnetOwners.getTypeID()
-      expect(subnetOwnersTypeID).toBe(PlatformVMConstants.SECPOWNEROUTPUTID)
+      expect(subnetOwnersTypeID).toBe(
+        PlatformVMConstants.Get(PlatformVMConstants.SECPOWNEROUTPUTIDS)
+      )
     })
 
     test("getOutputID", async (): Promise<void> => {
       const outputID: number = subnetOwners.getOutputID()
-      expect(outputID).toBe(PlatformVMConstants.SECPOWNEROUTPUTID)
+      expect(outputID).toBe(
+        PlatformVMConstants.Get(PlatformVMConstants.SECPOWNEROUTPUTIDS)
+      )
     })
 
     test("get addresses", async (): Promise<void> => {

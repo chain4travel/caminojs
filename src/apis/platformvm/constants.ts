@@ -6,48 +6,43 @@
 export class PlatformVMConstants {
   static LATESTCODEC: number = 0
 
-  static SECPFXID: number = 0
+  static SECPFXIDS: number[] = [0]
 
-  static SECPXFEROUTPUTID: number = 7
+  static SECPXFEROUTPUTIDS: number[] = [7]
 
-  static SUBNETAUTHID: number = 10
+  static SUBNETAUTHIDS: number[] = [10]
 
-  static SECPOWNEROUTPUTID: number = 11
+  static SECPOWNEROUTPUTIDS: number[] = [11]
 
-  static STAKEABLELOCKOUTID: number = 22
+  static STAKEABLELOCKOUTIDS: number[] = [22]
 
-  static SECPINPUTID: number = 5
+  static SECPINPUTIDS: number[] = [5]
 
-  static STAKEABLELOCKINID: number = 21
+  static STAKEABLELOCKINIDS: number[] = [21]
 
-  static LOCKEDSTAKEABLES: number[] = [
-    PlatformVMConstants.STAKEABLELOCKINID,
-    PlatformVMConstants.STAKEABLELOCKOUTID
-  ]
+  static BASETXS: number[] = [0]
 
-  static BASETX: number = 0
+  static SUBNETAUTHS: number[] = [10]
 
-  static SUBNETAUTH: number = 10
+  static ADDVALIDATORTXS: number[] = [12, 12]
 
-  static ADDVALIDATORTX: number = 12
+  static ADDSUBNETVALIDATORTXS: number[] = [13]
 
-  static ADDSUBNETVALIDATORTX: number = 13
+  static ADDDEPOSITTXS: number[] = [14]
 
-  static ADDDEPOSITTX: number = 14
+  static CREATECHAINTXS: number[] = [15]
 
-  static CREATECHAINTX: number = 15
+  static CREATESUBNETTXS: number[] = [16]
 
-  static CREATESUBNETTX: number = 16
+  static IMPORTTXS: number[] = [17]
 
-  static IMPORTTX: number = 17
+  static EXPORTTXS: number[] = [18]
 
-  static EXPORTTX: number = 18
+  static ADVANCETIMETXS: number[] = [19]
 
-  static ADVANCETIMETX: number = 19
+  static REWARDVALIDATORTXS: number[] = [20]
 
-  static REWARDVALIDATORTX: number = 20
-
-  static SECPCREDENTIAL: number = 9
+  static SECPCREDENTIALS: number[] = [9]
 
   static ASSETIDLEN: number = 32
 
@@ -58,4 +53,20 @@ export class PlatformVMConstants {
   static ASSETNAMELEN: number = 128
 
   static ADDRESSLENGTH: number = 20
+
+  // Get the latest possible version
+  static Get(n: number[]): number {
+    const v =
+      PlatformVMConstants.LATESTCODEC < n.length
+        ? PlatformVMConstants.LATESTCODEC
+        : n.length - 1
+    return n[v as number] | (v << 16)
+  }
+
+  // Check if id matches entries in n[], respecting version of id
+  static Is(id: number, n: number[]): boolean {
+    const v = (id >> 16) as number
+    const res = v < n.length ? n[v as number] : n[n.length - 1]
+    return res === id
+  }
 }

@@ -25,7 +25,7 @@ const bintools: BinTools = BinTools.getInstance()
  */
 export class BaseTx extends StandardBaseTx<KeyPair, KeyChain> {
   protected _typeName = "BaseTx"
-  protected _typeID = PlatformVMConstants.CREATESUBNETTX
+  protected _typeID = PlatformVMConstants.Get(PlatformVMConstants.BASETXS)
 
   deserialize(fields: object, encoding: SerializedEncoding = "hex") {
     super.deserialize(fields, encoding)
@@ -61,7 +61,7 @@ export class BaseTx extends StandardBaseTx<KeyPair, KeyChain> {
    * Returns the id of the [[BaseTx]]
    */
   getTxType(): number {
-    return PlatformVMConstants.BASETX
+    return this._typeID
   }
 
   /**

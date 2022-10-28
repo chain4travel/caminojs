@@ -26,7 +26,9 @@ const serialization: Serialization = Serialization.getInstance()
  */
 export class CreateChainTx extends BaseTx {
   protected _typeName = "CreateChainTx"
-  protected _typeID = PlatformVMConstants.CREATECHAINTX
+  protected _typeID = PlatformVMConstants.Get(
+    PlatformVMConstants.CREATECHAINTXS
+  )
 
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields: object = super.serialize(encoding)
@@ -66,7 +68,7 @@ export class CreateChainTx extends BaseTx {
    * Returns the id of the [[CreateChainTx]]
    */
   getTxType(): number {
-    return PlatformVMConstants.CREATECHAINTX
+    return this._typeID
   }
 
   /**
@@ -252,7 +254,7 @@ export class CreateChainTx extends BaseTx {
   }
 
   getCredentialID(): number {
-    return PlatformVMConstants.SECPCREDENTIAL
+    return PlatformVMConstants.Get(PlatformVMConstants.SECPCREDENTIALS)
   }
 
   /**

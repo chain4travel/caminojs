@@ -26,7 +26,7 @@ describe("AddSubnetValidatorTx", (): void => {
   test("getTypeID", async (): Promise<void> => {
     const addSubnetValidatorTxTypeID: number = addSubnetValidatorTx.getTypeID()
     expect(addSubnetValidatorTxTypeID).toBe(
-      PlatformVMConstants.ADDSUBNETVALIDATORTX
+      PlatformVMConstants.Get(PlatformVMConstants.ADDSUBNETVALIDATORTXS)
     )
   })
 
@@ -79,7 +79,9 @@ describe("AddSubnetValidatorTx", (): void => {
 
     test("getTypeID", async (): Promise<void> => {
       const subnetAuthTypeID: number = sa.getTypeID()
-      expect(subnetAuthTypeID).toBe(PlatformVMConstants.SUBNETAUTH)
+      expect(subnetAuthTypeID).toBe(
+        PlatformVMConstants.Get(PlatformVMConstants.SUBNETAUTHS)
+      )
     })
 
     test("getNumAddressIndices", async (): Promise<void> => {

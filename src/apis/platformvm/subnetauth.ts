@@ -14,7 +14,7 @@ const bintools: BinTools = BinTools.getInstance()
 
 export class SubnetAuth extends Serializable {
   protected _typeName = "SubnetAuth"
-  protected _typeID = PlatformVMConstants.SUBNETAUTH
+  protected _typeID = PlatformVMConstants.Get(PlatformVMConstants.SUBNETAUTHS)
 
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields: object = super.serialize(encoding)

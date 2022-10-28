@@ -93,7 +93,9 @@ describe("Inputs", (): void => {
     input = new SECPTransferInput(amount)
     xferinput = new TransferableInput(txid, txidx, asset, input)
     expect(xferinput.getUTXOID()).toBe(u.getUTXOID())
-    expect(input.getInputID()).toBe(PlatformVMConstants.SECPINPUTID)
+    expect(input.getInputID()).toBe(
+      PlatformVMConstants.Get(PlatformVMConstants.SECPINPUTIDS)
+    )
 
     input.addSignatureIdx(0, addrs2[0])
     input.addSignatureIdx(1, addrs2[1])

@@ -25,7 +25,7 @@ const serialization: Serialization = Serialization.getInstance()
  */
 export class ExportTx extends BaseTx {
   protected _typeName = "ExportTx"
-  protected _typeID = PlatformVMConstants.EXPORTTX
+  protected _typeID = PlatformVMConstants.Get(PlatformVMConstants.EXPORTTXS)
 
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields: object = super.serialize(encoding)
@@ -66,7 +66,7 @@ export class ExportTx extends BaseTx {
    * Returns the id of the [[ExportTx]]
    */
   getTxType(): number {
-    return PlatformVMConstants.EXPORTTX
+    return PlatformVMConstants.Get(PlatformVMConstants.EXPORTTXS)
   }
 
   /**

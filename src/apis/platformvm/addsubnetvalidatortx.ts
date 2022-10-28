@@ -27,7 +27,9 @@ const serialization: Serialization = Serialization.getInstance()
  */
 export class AddSubnetValidatorTx extends BaseTx {
   protected _typeName = "AddSubnetValidatorTx"
-  protected _typeID = PlatformVMConstants.ADDSUBNETVALIDATORTX
+  protected _typeID = PlatformVMConstants.Get(
+    PlatformVMConstants.ADDSUBNETVALIDATORTXS
+  )
 
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields: object = super.serialize(encoding)
@@ -66,7 +68,7 @@ export class AddSubnetValidatorTx extends BaseTx {
    * Returns the id of the [[AddSubnetValidatorTx]]
    */
   getTxType(): number {
-    return PlatformVMConstants.ADDSUBNETVALIDATORTX
+    return this._typeID
   }
 
   /**
@@ -217,7 +219,7 @@ export class AddSubnetValidatorTx extends BaseTx {
   }
 
   getCredentialID(): number {
-    return PlatformVMConstants.SECPCREDENTIAL
+    return PlatformVMConstants.Get(PlatformVMConstants.SECPCREDENTIALS)
   }
 
   /**
