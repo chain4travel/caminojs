@@ -27,7 +27,7 @@ export const TestXBlockchainID =
 export const TestCBlockchainID =
   "2CA6j5zYzasynPsFeNoqWkmTCt3VScMvXUZHbfDJ8k3oGzAPtU"
 export const TestCChainID = 42112
-
+export const KopernikusNetworkID = 1002
 export const DummyBlockchainID =
   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 export const DummyPlatformChainID: string =
