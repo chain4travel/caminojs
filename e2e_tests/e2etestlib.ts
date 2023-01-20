@@ -14,7 +14,7 @@ export const getAvalanche = (): Avalanche => {
     process.env.CAMINOGO_IP,
     parseInt(process.env.CAMINOGO_PORT),
     "http",
-    parseInt(process.env.NETWORK_ID),
+    parseInt(process.env.NETWORK_ID)
   )
   return avalanche
 }
@@ -29,13 +29,20 @@ export enum Matcher {
 }
 
 export const createTests = (tests_spec: any[]): void => {
-  for (const [testName, promise, preprocess, matcher, expected, timeout = -1] of tests_spec) {
+  for (const [
+    testName,
+    promise,
+    preprocess,
+    matcher,
+    expected,
+    timeout = -1
+  ] of tests_spec) {
     test(testName, async (): Promise<void> => {
-        if (timeout > 0) {
-            jest.setTimeout(timeout * 2)
-            await new Promise(res => setTimeout(res, timeout));
-            jest.setTimeout(5000)// default jest timeout
-        }
+      if (timeout > 0) {
+        jest.setTimeout(timeout * 2)
+        await new Promise((res) => setTimeout(res, timeout))
+        jest.setTimeout(5000) // default jest timeout
+      }
       if (matcher == Matcher.toBe) {
         expect(preprocess(await promise())).toBe(expected())
       }

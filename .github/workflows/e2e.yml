@@ -51,20 +51,26 @@ jobs:
       - name: Clone and Build Camino Node
         run: |
           cd $GOPATH/$CAMPATH
-          git clone https://github.com/chain4travel/camino-node --depth 1 -bv0.3.1-alpha1
+          git clone https://github.com/chain4travel/camino-node --depth 1
           cd camino-node
           ./scripts/build.sh
       - name: Checkout Camino Network Runner
         run: |
           cd $GOPATH/$CAMPATH
-          git clone https://github.com/chain4travel/camino-network-runner --depth 1 -bv0.2.1-alpha1
+          git clone https://github.com/chain4travel/camino-network-runner --depth 1
       - name: Starting Camino Network Runner
         run: |
           cd $GOPATH/$CAMPATH
           cd camino-network-runner
           CAMINO_NODE_PATH=$GOPATH/$CAMPATH/camino-node/build/camino-node go run ./examples/local/fivenodenetwork/main.go &
-      - name: CaminoJS E2E Test
+      - name: CaminoJS E2E Avax Tests
         env:
           CAMINOGO_IP: localhost
           CAMINOGO_PORT: 9650
-        run: sleep 60 && yarn test -i --roots e2e_tests
+        run: sleep 60 && yarn test -i --roots e2e_tests --testPathIgnorePatterns=e2e_tests/camino
+      - name: Restarting Camino Network Runner with Kopernikus Configuration
+        run: |
+          ./scripts/kopernikus-network.sh stop
+          ./scripts/kopernikus-network.sh start $GOPATH/$CAMPATH/camino-node/build/camino-node
+      - name: CaminoJS E2E Camino Tests
+        run: sleep 60 && yarn test -i --roots e2e_tests/camino
