@@ -17,7 +17,8 @@ describe("Camino-XChain", (): void => {
   const badUser: string = "asdfasdfsa"
   const badPass: string = "pass"
   const memo: string = "hello world"
-  const adminAddress: string = "X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
+  const adminAddress: string =
+    "X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
   const key: string =
     "PrivateKey-vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"
 
@@ -129,7 +130,7 @@ describe("Camino-XChain", (): void => {
       () => xchain.listAddresses(user, passwd),
       (x) => x.sort(),
       Matcher.toEqual,
-      () => [adminAddress,addrB.value, addrC.value].sort()
+      () => [adminAddress, addrB.value, addrC.value].sort()
     ],
     [
       "exportKey",
@@ -182,7 +183,9 @@ describe("Camino-XChain", (): void => {
     [
       "mint",
       () =>
-        xchain.mint(user, passwd, 1500, asset.value, addrB.value, [adminAddress]),
+        xchain.mint(user, passwd, 1500, asset.value, addrB.value, [
+          adminAddress
+        ]),
       (x) => x,
       Matcher.toThrow,
       () =>
@@ -210,7 +213,6 @@ describe("Camino-XChain", (): void => {
       () => ["Camino", "CAM"]
     ]
   ]
-
 
   createTests(tests_spec)
 })

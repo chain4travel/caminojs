@@ -172,49 +172,49 @@ const AvaxMainNetwork: Network = {
   }
 }
 const KopernikusNetwork: Network = {
-    hrp: "kopernikus",
-    X: {
-        blockchainID: "2oYMBNV4eNHyqk2fjjV5nVQLDbtmNJzq5s3qs3Lo6ftnC6FByM",
-        alias: XChainAlias,
-        vm: XChainVMName,
-        avaxAssetID: "FvwEAhmxKfeiG8SnEvq42hc6whRyY3EFYAvebMqDNDGCgxN5Z",
-        avaxAssetAlias: "CAM",
-        txFee: MILLIAVAX,
-        creationTxFee: CENTIAVAX,
-        mintTxFee: MILLIAVAX
-    },
-    P: {
-        blockchainID: DefaultPlatformChainID,
-        alias: PChainAlias,
-        vm: PChainVMName,
-        txFee: MILLIAVAX,
-        creationTxFee: CENTIAVAX,
-        createSubnetTx: ONEAVAX,
-        createChainTx: ONEAVAX,
-        minConsumption: 0.1,
-        maxConsumption: 0.12,
-        maxStakingDuration: new BN(31536000),
-        maxSupply: new BN(720000000).mul(ONEAVAX),
-        minStake: ONEAVAX.mul(new BN(2000)),
-        minStakeDuration: 2 * 7 * 24 * 60 * 60, //one day
-        maxStakeDuration: 365 * 24 * 60 * 60, // one year
-        minDelegationStake: ONEAVAX.mul(new BN(25)),
-        minDelegationFee: new BN(2),
-        verifyNodeSignature: true,
-        lockModeBondDeposit: true
-    },
-    C: {
-        blockchainID: "2q9e4r6Mu3U68nU1fYjgbR6JvwrRx36CohpAX5UQxse55x1Q5",
-        alias: CChainAlias,
-        vm: CChainVMName,
-        txBytesGas: 1,
-        costPerSignature: 1000,
-        txFee: MILLIAVAX,
-        gasPrice: GWEI.mul(new BN(225)),
-        minGasPrice: GWEI.mul(new BN(25)),
-        maxGasPrice: GWEI.mul(new BN(1000)),
-        chainID: 502
-    }
+  hrp: "kopernikus",
+  X: {
+    blockchainID: "2oYMBNV4eNHyqk2fjjV5nVQLDbtmNJzq5s3qs3Lo6ftnC6FByM",
+    alias: XChainAlias,
+    vm: XChainVMName,
+    avaxAssetID: "FvwEAhmxKfeiG8SnEvq42hc6whRyY3EFYAvebMqDNDGCgxN5Z",
+    avaxAssetAlias: "CAM",
+    txFee: MILLIAVAX,
+    creationTxFee: CENTIAVAX,
+    mintTxFee: MILLIAVAX
+  },
+  P: {
+    blockchainID: DefaultPlatformChainID,
+    alias: PChainAlias,
+    vm: PChainVMName,
+    txFee: MILLIAVAX,
+    creationTxFee: CENTIAVAX,
+    createSubnetTx: ONEAVAX,
+    createChainTx: ONEAVAX,
+    minConsumption: 0.1,
+    maxConsumption: 0.12,
+    maxStakingDuration: new BN(31536000),
+    maxSupply: new BN(720000000).mul(ONEAVAX),
+    minStake: ONEAVAX.mul(new BN(2000)),
+    minStakeDuration: 2 * 7 * 24 * 60 * 60, //one day
+    maxStakeDuration: 365 * 24 * 60 * 60, // one year
+    minDelegationStake: ONEAVAX.mul(new BN(25)),
+    minDelegationFee: new BN(2),
+    verifyNodeSignature: true,
+    lockModeBondDeposit: true
+  },
+  C: {
+    blockchainID: "2q9e4r6Mu3U68nU1fYjgbR6JvwrRx36CohpAX5UQxse55x1Q5",
+    alias: CChainAlias,
+    vm: CChainVMName,
+    txBytesGas: 1,
+    costPerSignature: 1000,
+    txFee: MILLIAVAX,
+    gasPrice: GWEI.mul(new BN(225)),
+    minGasPrice: GWEI.mul(new BN(25)),
+    maxGasPrice: GWEI.mul(new BN(1000)),
+    chainID: 502
+  }
 }
 
 /**
@@ -226,7 +226,7 @@ class Networks {
   constructor() {
     this.registerNetwork(DefaultNetworkID, AvaxMainNetwork)
     this.registerNetwork(TestNetworkID, TestNetwork)
-      this.registerNetwork(KopernikusNetworkID, KopernikusNetwork)
+    this.registerNetwork(KopernikusNetworkID, KopernikusNetwork)
   }
 
   registerNetwork(networkID: number, network: Network): void {
