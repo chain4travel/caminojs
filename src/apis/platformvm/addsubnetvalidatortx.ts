@@ -60,6 +60,7 @@ export class AddSubnetValidatorTx extends BaseTx {
   protected subnetID: Buffer = Buffer.alloc(32)
   protected subnetAuth: SubnetAuth
   protected sigCount: Buffer = Buffer.alloc(4)
+  protected nodeSigIdx: SigIdx = undefined
   protected sigIdxs: SigIdx[] = [] // idxs of subnet auth signers
 
   /**
@@ -209,13 +210,23 @@ export class AddSubnetValidatorTx extends BaseTx {
     this.sigCount.writeUInt32BE(this.sigIdxs.length, 0)
   }
 
+  setNodeSignatureIdx(addressIdx: number, address: Buffer): void {
+    this.nodeSigIdx = new SigIdx()
+    const b: Buffer = Buffer.alloc(4)
+    b.writeUInt32BE(addressIdx, 0)
+    this.nodeSigIdx.fromBuffer(b)
+    this.nodeSigIdx.setSource(address)
+  }
+
   /**
    * Returns the array of [[SigIdx]] for this [[Input]]
    */
   getSigIdxs(): SigIdx[] {
     return this.sigIdxs
   }
-
+  getNodeSigIdx(): SigIdx {
+    return this.nodeSigIdx
+  }
   getCredentialID(): number {
     return PlatformVMConstants.SECPCREDENTIAL
   }
@@ -224,7 +235,7 @@ export class AddSubnetValidatorTx extends BaseTx {
    * Takes the bytes of an [[UnsignedTx]] and returns an array of [[Credential]]s
    *
    * @param msg A Buffer for the [[UnsignedTx]]
-   * @param kc An [[KeyChain]] used in signing
+   * @param kc A [[KeyChain]] used in signing
    *
    * @returns An array of [[Credential]]s
    */
@@ -240,7 +251,20 @@ export class AddSubnetValidatorTx extends BaseTx {
       cred.addSignature(sig)
     }
     creds.push(cred)
+
+    // sign with node sig
+    this.signWithNodeSig(kc, msg, creds)
     return creds
+  }
+
+  private signWithNodeSig(kc: KeyChain, msg: Buffer, creds: Credential[]) {
+    const cred: Credential = SelectCredentialClass(this.getCredentialID())
+    const keypair: KeyPair = kc.getKey(this.getNodeSigIdx().getSource())
+    const signval: Buffer = keypair.sign(msg)
+    const sig: Signature = new Signature()
+    sig.fromBuffer(signval)
+    cred.addSignature(sig)
+    creds.push(cred)
   }
 
   /**

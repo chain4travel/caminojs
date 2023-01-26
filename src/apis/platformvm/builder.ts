@@ -453,6 +453,7 @@ export class Builder {
     memo: Buffer = undefined,
     asOf: BN = zero,
     subnetAuthCredentials: [number, Buffer][] = [],
+    nodeCredentials: [number, Buffer],
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
     let ins: TransferableInput[] = []
@@ -479,7 +480,7 @@ export class Builder {
         aad,
         asOf,
         zero,
-        "Stake"
+        this.caminoEnabled ? "Unlocked" : "Stake"
       )
       if (typeof minSpendableErr === "undefined") {
         ins = aad.getInputs()
@@ -508,6 +509,10 @@ export class Builder {
           subnetAuthCredential[1]
         )
       }
+    )
+    addSubnetValidatorTx.setNodeSignatureIdx(
+      nodeCredentials[0],
+      nodeCredentials[1]
     )
     return new UnsignedTx(addSubnetValidatorTx)
   }
