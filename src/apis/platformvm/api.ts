@@ -2150,6 +2150,7 @@ export class PlatformVMAPI extends JRPCAPI {
     rewardsOwner: OutputOwners = undefined,
     memo: PayloadBase | Buffer = undefined,
     asOf: BN = ZeroBN,
+    amountToLock: BN,
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
     const from: Buffer[] = this._cleanAddressArray(
@@ -2184,6 +2185,7 @@ export class PlatformVMAPI extends JRPCAPI {
       avaxAssetID,
       memo,
       asOf,
+      amountToLock,
       changeThreshold
     )
 

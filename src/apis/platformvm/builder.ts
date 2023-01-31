@@ -1231,6 +1231,7 @@ export class Builder {
     feeAssetID: Buffer = undefined,
     memo: Buffer = undefined,
     asOf: BN = zero,
+    amountToLock: BN,
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
     let ins: TransferableInput[] = []
@@ -1245,13 +1246,13 @@ export class Builder {
         changeThreshold
       )
 
-      aad.addAssetAmount(feeAssetID, zero, fee)
+      aad.addAssetAmount(feeAssetID, amountToLock, fee)
 
       const minSpendableErr: Error = await this.spender.getMinimumSpendable(
         aad,
         asOf,
         zero,
-        "Unlocked"
+        "Deposit"
       )
       if (typeof minSpendableErr === "undefined") {
         ins = aad.getInputs()

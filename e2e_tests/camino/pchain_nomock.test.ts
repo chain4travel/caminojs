@@ -4,7 +4,10 @@ import BN from "bn.js"
 import { Tx, UnsignedTx, UTXOSet } from "../../src/apis/platformvm"
 import { UnixNow } from "../../src/utils"
 import { Buffer } from "buffer/"
+import { OutputOwners } from "../../src/common"
+import BinTools from "../../src/utils/bintools"
 
+const bintools: BinTools = BinTools.getInstance()
 const adminAddress = "X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
 const adminNodePrivateKey =
   "PrivateKey-vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"
@@ -19,19 +22,8 @@ const user: string = "avalancheJspChainUser"
 const passwd: string = "avalancheJsP@ssw4rd"
 const user2: string = "avalancheJspChainUser2"
 const passwd2: string = "avalancheJsP@ssw4rd2"
-let avalanche = getAvalanche()
 
-let keystore: KeystoreAPI
-let tx = { value: "" }
-let xChain: any
-let pChain: any
-let createdSubnetID = { value: "" }
-let pAddresses: any
-let pAddressStrings: string[]
-let pAddressB: string
-let xAddressB: string
-let pKeychain: any
-let startTime = UnixNow().add(new BN(60 * 1))
+const startTime = UnixNow().add(new BN(60 * 1))
 const endTime: BN = startTime.add(new BN(26300000))
 const delegationFee: number = 10
 const threshold: number = 1
@@ -39,6 +31,24 @@ const locktime: BN = new BN(0)
 const memo: Buffer = Buffer.from(
   "PlatformVM utility method buildAddValidatorTx to add a validator to the primary subnet"
 )
+
+const sumAllValues = function (map: Map<string, string>): number {
+  return Object.values(map).reduce(
+    // @ts-ignore
+    (acc, val) => acc + val,
+    0
+  )
+}
+
+let avalanche = getAvalanche()
+let keystore: KeystoreAPI
+let tx = { value: "" }
+let xChain, pChain, pKeychain, pAddresses: any
+let createdSubnetID = { value: "" }
+let pAddressStrings: string[]
+let pAddressB, xAddressB: string
+let balanceOutputs = { value: new Map() }
+
 beforeAll(async () => {
   await avalanche.fetchNetworkSettings()
   keystore = new KeystoreAPI(avalanche)
@@ -159,13 +169,6 @@ describe("Camino-PChain-Add-Validator", (): void => {
       Matcher.toBe,
       () => "P" + addrBAddress.substring(1)
     ],
-    // [
-    //     "importKey",
-    //     () => pChain.importKey(user2, passwd2, node2PrivateKey),
-    //     (x) => x,
-    //     Matcher.toBe,
-    //     () => pAddressStrings[2]
-    // ],
     [
       "importKey",
       () => pChain.importKey(user, passwd, adminNodePrivateKey),
@@ -366,5 +369,164 @@ describe("Camino-PChain-Add-Validator", (): void => {
     ]
   ]
 
+  createTests(tests_spec)
+})
+
+describe("Camino-PChain-Deposit", (): void => {
+  const amountToLock = new BN(1000)
+  const maxDuration = 31536000
+  const inactiveDepositOfferID: string =
+    "k5VaqN4kFtcKQWfjyJpk4YA8VBwW7TyeRicDGsdzRNRNSG1R1"
+  const minDurationOfInactiveDepositOffer: number = 31536000
+  const depositOfferID: string =
+    "2vGw1ZaUWWGxhAm69Dt13zw5sUvmtCbzVTvvzPp34Ch5qEznBg"
+  const depositDuration: number = 60
+  // @ts-ignore
+  const tests_spec: any = [
+    [
+      "Issue depositTx with inactive offer",
+      () =>
+        (async function () {
+          const unsignedTx: UnsignedTx = await pChain.buildDepositTx(
+            undefined,
+            [pAddressStrings[1]],
+            [pAddressStrings[1]],
+            inactiveDepositOfferID,
+            minDurationOfInactiveDepositOffer,
+            new OutputOwners([pAddresses[1]], new BN(10000), 1),
+            memo,
+            new BN(0),
+            amountToLock
+          )
+          const tx: Tx = unsignedTx.sign(pKeychain)
+          return pChain.issueTx(tx)
+        })(),
+      (x) => x,
+      Matcher.toThrow,
+      () => "couldn't issue tx: deposit offer inactive"
+    ],
+    [
+      "Issue depositTx with duration < minDuration",
+      () =>
+        (async function () {
+          const unsignedTx: UnsignedTx = await pChain.buildDepositTx(
+            undefined,
+            [pAddressStrings[1]],
+            [pAddressStrings[1]],
+            depositOfferID,
+            depositDuration - 1,
+            new OutputOwners([pAddresses[1]], new BN(10000), 1),
+            memo,
+            new BN(0),
+            amountToLock
+          )
+          const tx: Tx = unsignedTx.sign(pKeychain)
+          return pChain.issueTx(tx)
+        })(),
+      (x) => x,
+      Matcher.toThrow,
+      () =>
+        "couldn't issue tx: deposit duration is less than deposit offer minmum duration"
+    ],
+    [
+      "Issue depositTx with duration > maxDuration",
+      () =>
+        (async function () {
+          const unsignedTx: UnsignedTx = await pChain.buildDepositTx(
+            undefined,
+            [pAddressStrings[1]],
+            [pAddressStrings[1]],
+            depositOfferID,
+            maxDuration + 1,
+            new OutputOwners([pAddresses[1]], new BN(10000), 1),
+            memo,
+            new BN(0),
+            amountToLock
+          )
+          const tx: Tx = unsignedTx.sign(pKeychain)
+          return pChain.issueTx(tx)
+        })(),
+      (x) => x,
+      Matcher.toThrow,
+      () =>
+        "couldn't issue tx: deposit duration is greater than deposit offer maximum duration"
+    ],
+    [
+      "Get deposited amounts",
+      () => pChain.getBalance({ address: pAddressStrings[1] }),
+      (x) => x,
+      Matcher.Get,
+      () => balanceOutputs
+    ],
+    [
+      "Issue depositTx with insufficient unlocked funds",
+      () =>
+        (async function () {
+          const unsignedTx: UnsignedTx = await pChain.buildDepositTx(
+            undefined,
+            [pAddressStrings[1]],
+            [pAddressStrings[1]],
+            depositOfferID,
+            maxDuration,
+            new OutputOwners([pAddresses[1]], new BN(10000), 1),
+            memo,
+            new BN(0),
+            sumAllValues(balanceOutputs.value["unlockedOutputs"]) + 1
+          )
+          const tx: Tx = unsignedTx.sign(pKeychain)
+          return pChain.issueTx(tx)
+        })(),
+      (x) => x,
+      Matcher.toThrow,
+      () => "couldn't create transferables: insufficient balance"
+    ],
+    [
+      "Issue depositTx",
+      () =>
+        (async function () {
+          const unsignedTx: UnsignedTx = await pChain.buildDepositTx(
+            undefined,
+            [pAddressStrings[1]],
+            [pAddressStrings[1]],
+            depositOfferID,
+            depositDuration,
+            new OutputOwners([pAddresses[1]], new BN(10000), 1),
+            memo,
+            new BN(0),
+            amountToLock
+          )
+          const tx: Tx = unsignedTx.sign(pKeychain)
+          return pChain.issueTx(tx)
+        })(),
+      (x) => x,
+      Matcher.Get,
+      () => tx
+    ],
+    [
+      "verify tx has been committed",
+      () => {
+        return pChain.getTxStatus(tx.value)
+      },
+      (x) => x.status,
+      Matcher.toBe,
+      () => "Committed",
+      3000
+    ],
+    [
+      "Verify deposited amounts haven been appropriately increased ",
+      () => pChain.getBalance({ address: pAddressStrings[1] }),
+      (x) =>
+        Object.values(x.depositedOutputs).reduce(
+          // @ts-ignore
+          (acc, val) => new BN(acc).add(new BN(val)),
+          0
+        ),
+      Matcher.toEqual,
+      () =>
+        new BN(sumAllValues(balanceOutputs.value["depositedOutputs"])).add(
+          amountToLock
+        )
+    ]
+  ]
   createTests(tests_spec)
 })
