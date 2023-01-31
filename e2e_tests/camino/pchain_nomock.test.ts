@@ -22,6 +22,7 @@ const user: string = "avalancheJspChainUser"
 const passwd: string = "avalancheJsP@ssw4rd"
 const user2: string = "avalancheJspChainUser2"
 const passwd2: string = "avalancheJsP@ssw4rd2"
+const avalanche = getAvalanche()
 
 const startTime = UnixNow().add(new BN(60 * 1))
 const endTime: BN = startTime.add(new BN(26300000))
@@ -40,7 +41,6 @@ const sumAllValues = function (map: Map<string, string>): number {
   )
 }
 
-let avalanche = getAvalanche()
 let keystore: KeystoreAPI
 let tx = { value: "" }
 let xChain, pChain, pKeychain, pAddresses: any
