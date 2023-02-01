@@ -32,10 +32,9 @@ const memo: Buffer = Buffer.from(
   "PlatformVM utility method buildAddValidatorTx to add a validator to the primary subnet"
 )
 
-const sumAllValues = function (map: Map<string, string>): number {
+const sumAllValues = function (map: Map<string, string>): BN {
   return Object.values(map).reduce(
-    // @ts-ignore
-    (acc, val) => acc + val,
+    (acc, val) => new BN(acc).add(new BN(val)),
     0
   )
 }
@@ -452,7 +451,7 @@ describe("Camino-PChain-Deposit", (): void => {
         "couldn't issue tx: deposit duration is greater than deposit offer maximum duration"
     ],
     [
-      "Get deposited amounts",
+      "Get balance outputs",
       () => pChain.getBalance({ address: pAddressStrings[1] }),
       (x) => x,
       Matcher.Get,
@@ -471,7 +470,7 @@ describe("Camino-PChain-Deposit", (): void => {
             new OutputOwners([pAddresses[1]], new BN(10000), 1),
             memo,
             new BN(0),
-            sumAllValues(balanceOutputs.value["unlockedOutputs"]) + 1
+            sumAllValues(balanceOutputs.value["unlockedOutputs"]).add(new BN(1))
           )
           const tx: Tx = unsignedTx.sign(pKeychain)
           return pChain.issueTx(tx)
@@ -515,17 +514,53 @@ describe("Camino-PChain-Deposit", (): void => {
     [
       "Verify deposited amounts haven been appropriately increased ",
       () => pChain.getBalance({ address: pAddressStrings[1] }),
-      (x) =>
-        Object.values(x.depositedOutputs).reduce(
-          // @ts-ignore
-          (acc, val) => new BN(acc).add(new BN(val)),
-          0
-        ),
+      (x) => sumAllValues(x.depositedOutputs),
       Matcher.toEqual,
       () =>
-        new BN(sumAllValues(balanceOutputs.value["depositedOutputs"])).add(
-          amountToLock
-        )
+        sumAllValues(balanceOutputs.value["depositedOutputs"]).add(amountToLock)
+    ],
+    [
+      "Get balance outputs",
+      () => pChain.getBalance({ address: pAddressStrings[1] }),
+      (x) => x,
+      Matcher.Get,
+      () => balanceOutputs
+    ],
+    [
+      "Attempt an invalid unlockDepositTx",
+      () =>
+        (async function () {
+          const unsignedTx: UnsignedTx = await pChain.buildUnlockDepositTx(
+            undefined,
+            [pAddressStrings[1]],
+            [pAddressStrings[1]],
+            memo,
+            new BN(0)
+          )
+          const tx: Tx = unsignedTx.sign(pKeychain)
+          return pChain.issueTx(tx)
+        })(),
+      (x) => x,
+      Matcher.Get,
+      () => tx
+    ],
+
+    [
+      "verify tx has been committed",
+      () => {
+        return pChain.getTxStatus(tx.value)
+      },
+      (x) => x.status,
+      Matcher.toBe,
+      () => "Committed",
+      3000
+    ],
+    [
+      "Verify deposited amounts haven NOT increased further",
+      () => pChain.getBalance({ address: pAddressStrings[1] }),
+      (x) => sumAllValues(x.depositedOutputs),
+      Matcher.toEqual,
+      () => sumAllValues(balanceOutputs.value["depositedOutputs"])
     ]
   ]
   createTests(tests_spec)
