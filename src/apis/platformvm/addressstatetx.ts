@@ -22,7 +22,7 @@ export const ADDRESSSTATECONSORTIUM: number = 34
 export const ADDRESSSTATEREGISTERNODE: number = 38
 
 /**
- * Class representing an unsigned AdressStateTx transaction.
+ * Class representing an unsigned AddressStateTx transaction.
  */
 export class AddressStateTx extends BaseTx {
   protected _typeName = "AddressStateTx"

@@ -61,8 +61,8 @@ const InitAvalanche = async () => {
   privKey = "PrivateKey-24b2s6EqkBp9bFG5S3Xxi4bjdxFqeRk56ck7QdQArVbwKkAvxz"
   // X-local1aekly2mwnsz6lswd6u0jqvd9u6yddt5884pyuc
   xKeychain.importKey(privKey)
-  xAddresses = xchain.keyChain().getAddresses()
-  xAddressStrings = xchain.keyChain().getAddressStrings()
+  xAddresses = xKeychain.getAddresses()
+  xAddressStrings = xKeychain.getAddressStrings()
   avaxAssetID = avalanche.getNetwork().X.avaxAssetID
   avaxAssetIDBuf = bintools.cb58Decode(avaxAssetID)
   fee = xchain.getDefaultTxFee()

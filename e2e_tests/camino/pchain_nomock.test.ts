@@ -1,14 +1,34 @@
 import { createTests, getAvalanche, Matcher } from "../e2etestlib"
 import { KeystoreAPI } from "src/apis/keystore/api"
 import BN from "bn.js"
-import { Tx, UnsignedTx, UTXOSet } from "../../src/apis/platformvm"
-import { UnixNow } from "../../src/utils"
+import {
+  CreateSubnetTx,
+  KeyPair,
+  SECPCredential,
+  SECPOwnerOutput,
+  TransferableInput,
+  TransferableOutput,
+  Tx,
+  UnsignedTx,
+  UTXOSet
+} from "../../src/apis/platformvm"
+import { DefaultNetworkID, UnixNow, UTF8Payload } from "../../src/utils"
 import { Buffer } from "buffer/"
-import { OutputOwners } from "../../src/common"
+import { Credential, OutputOwners, Signature } from "../../src/common"
 import BinTools from "../../src/utils/bintools"
+import createHash from "create-hash"
+import { GetBalanceResponse } from "../../src/apis/avm/interfaces"
+import {
+  AmountOutput,
+  UTXO,
+  SECPTransferInput,
+  SECPTransferOutput
+} from "../../src/apis/platformvm"
 
 const bintools: BinTools = BinTools.getInstance()
+const multisigAlias = "X-kopernikus1fq0jc8svlyazhygkj0s36qnl6s0km0h3uuc99w"
 const adminAddress = "X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
+const adminPAddress = "P-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
 const adminNodePrivateKey =
   "PrivateKey-vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"
 const adminNodeId = "NodeID-AK7sPBsZM9rQwse23aLhEEBPHZD5gkLrL"
@@ -40,6 +60,7 @@ const sumAllValues = function (map: Map<string, string>): BN {
 }
 
 let avalanche = getAvalanche()
+let assetId: string
 let keystore: KeystoreAPI
 let tx = { value: "" }
 let xChain, pChain, pKeychain, pAddresses: any
@@ -61,6 +82,7 @@ beforeAll(async () => {
   pAddressStrings = pKeychain.getAddressStrings()
   pAddressB = pAddressStrings[1]
   xAddressB = "X" + pAddressB.substring(1)
+  assetId = avalanche.getNetwork().X.avaxAssetID
 })
 
 describe("Camino-PChain-Add-Validator", (): void => {
@@ -320,9 +342,7 @@ describe("Camino-PChain-Add-Validator", (): void => {
     [
       "createSubnet",
       () => pChain.createSubnet(user2, passwd2, [pAddressStrings[1]], 1),
-      (x) => {
-        return x
-      },
+      (x) => x,
       Matcher.Get,
       () => createdSubnetID
     ],
@@ -380,7 +400,6 @@ describe("Camino-PChain-Deposit", (): void => {
   const depositOfferID: string =
     "2vGw1ZaUWWGxhAm69Dt13zw5sUvmtCbzVTvvzPp34Ch5qEznBg"
   const depositDuration: number = 60
-  // @ts-ignore
   const tests_spec: any = [
     [
       "Issue depositTx with inactive offer",
@@ -503,9 +522,7 @@ describe("Camino-PChain-Deposit", (): void => {
     ],
     [
       "verify tx has been committed",
-      () => {
-        return pChain.getTxStatus(tx.value)
-      },
+      () => pChain.getTxStatus(tx.value),
       (x) => x.status,
       Matcher.toBe,
       () => "Committed",
@@ -547,9 +564,7 @@ describe("Camino-PChain-Deposit", (): void => {
 
     [
       "verify tx has been committed",
-      () => {
-        return pChain.getTxStatus(tx.value)
-      },
+      () => pChain.getTxStatus(tx.value),
       (x) => x.status,
       Matcher.toBe,
       () => "Committed",
@@ -561,6 +576,109 @@ describe("Camino-PChain-Deposit", (): void => {
       (x) => sumAllValues(x.depositedOutputs),
       Matcher.toEqual,
       () => sumAllValues(balanceOutputs.value["depositedOutputs"])
+    ]
+  ]
+  createTests(tests_spec)
+})
+
+describe("Camino-PChain-Multisig", (): void => {
+  const tests_spec: any = [
+    [
+      "createSubnet",
+      () =>
+        (async function () {
+          let ins: TransferableInput[] = []
+          let outs: TransferableOutput[] = []
+
+          const getBalanceResponse: GetBalanceResponse =
+            await xChain.getBalance(adminAddress, assetId)
+          const balance: BN = new BN(getBalanceResponse.balance)
+          const secpTransferOutput: SECPTransferOutput = new SECPTransferOutput(
+            balance.sub(xChain.getDefaultTxFee()),
+            [pKeychain[0]],
+            locktime,
+            threshold
+          )
+          // Uncomment for codecID 00 01
+          //   secpTransferOutput.setCodecID(codecID)
+          const transferableOutput: TransferableOutput = new TransferableOutput(
+            bintools.cb58Decode(assetId),
+            secpTransferOutput
+          )
+          outs.push(transferableOutput)
+
+          const avmUTXOResponse: any = await xChain.getUTXOs([adminAddress])
+          const utxoSet: UTXOSet = avmUTXOResponse.utxos
+          const utxos: UTXO[] = utxoSet.getAllUTXOs()
+          utxos.forEach((utxo: UTXO): void => {
+            const amountOutput: AmountOutput = utxo.getOutput() as AmountOutput
+            const amt: BN = amountOutput.getAmount().clone()
+            const txid: Buffer = utxo.getTxID()
+            const outputidx: Buffer = utxo.getOutputIdx()
+
+            const secpTransferInput: SECPTransferInput = new SECPTransferInput(
+              amt
+            )
+            // Uncomment for codecID 00 01
+            // secpTransferInput.setCodecID(codecID)
+            secpTransferInput.addSignatureIdx(0, pKeychain[0])
+
+            const input: TransferableInput = new TransferableInput(
+              txid,
+              outputidx,
+              bintools.cb58Decode(assetId),
+              secpTransferInput
+            )
+            ins.push(input)
+          })
+
+          const owners: Buffer[] = [
+            bintools.stringToAddress("P" + multisigAlias.substring(1))
+          ]
+
+          const subnetOwners: SECPOwnerOutput = new SECPOwnerOutput(
+            owners,
+            locktime,
+            1
+          )
+          const createSubnetTx: CreateSubnetTx = new CreateSubnetTx(
+            DefaultNetworkID,
+            bintools.cb58Decode(this.blockchainID),
+            outs,
+            ins,
+            memo,
+            subnetOwners
+          )
+
+          const unsignedTx: UnsignedTx = new UnsignedTx(createSubnetTx)
+          const creds: Credential[] = [new SECPCredential()]
+          const keypair: KeyPair = pKeychain.getKey(pAddresses[0])
+          const txbuff = this.toBuffer()
+          const msg: Buffer = Buffer.from(
+            createHash("sha256").update(txbuff).digest()
+          )
+          const signval: Buffer = keypair.sign(msg)
+          const sig: Signature = new Signature()
+          sig.fromBuffer(signval)
+          creds[0].addSignature(sig)
+
+          // const tx: Tx = unsignedTx.sign(pKeychain)
+          return pChain.issueTx(new Tx(unsignedTx, creds))
+        })(),
+      (x) => x,
+      Matcher.Get,
+      () => tx
+    ],
+    [
+      "verify tx has been committed",
+      () => {
+        console.log(tx)
+        return pChain.getTxStatus(tx.value)
+      },
+      (x) => x.status,
+      Matcher.toBe,
+      () => "Committed",
+      3000
     ]
   ]
   createTests(tests_spec)

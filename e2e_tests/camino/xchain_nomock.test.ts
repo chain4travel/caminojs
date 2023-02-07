@@ -2,27 +2,37 @@ import { getAvalanche, createTests, Matcher } from "../e2etestlib"
 import { KeystoreAPI } from "src/apis/keystore/api"
 import BN from "bn.js"
 
+const adminAddress = "X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
+const adminNodePrivateKey =
+  "PrivateKey-vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"
+const user: string = "avalancheJspChainUser"
+const passwd: string = "avalancheJsP@ssw4rd"
+
+let avalanche = getAvalanche()
+let keystore: KeystoreAPI
+let xChain, pChain, pKeychain, pAddresses: any
+let pAddressStrings: string[]
+
+beforeAll(async () => {
+  await avalanche.fetchNetworkSettings()
+  keystore = new KeystoreAPI(avalanche)
+  xChain = avalanche.XChain()
+  pChain = avalanche.PChain()
+  pKeychain = pChain.keyChain()
+  pKeychain.importKey(adminNodePrivateKey)
+  pAddresses = pKeychain.getAddresses()
+  pAddressStrings = pKeychain.getAddressStrings()
+})
+
 describe("Camino-XChain", (): void => {
   let tx = { value: "" }
   let asset = { value: "" }
   let addrB = { value: "" }
   let addrC = { value: "" }
-
-  const avalanche = getAvalanche()
-  const xchain = avalanche.XChain()
-  const keystore = new KeystoreAPI(avalanche)
-
-  const user: string = "avalancheJsXChainUser"
-  const passwd: string = "avalancheJsP1ssw4rd"
   const badUser: string = "asdfasdfsa"
   const badPass: string = "pass"
   const memo: string = "hello world"
-  const adminAddress: string =
-    "X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
-  const key: string =
-    "PrivateKey-vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"
 
-  // test_name        response_promise                            resp_fn          matcher           expected_value/obtained_value
   const tests_spec: any = [
     [
       "createUser",
@@ -35,14 +45,14 @@ describe("Camino-XChain", (): void => {
     ],
     [
       "createaddrB",
-      () => xchain.createAddress(user, passwd),
+      () => xChain.createAddress(user, passwd),
       (x) => x,
       Matcher.Get,
       () => addrB
     ],
     [
       "createaddrC",
-      () => xchain.createAddress(user, passwd),
+      () => xChain.createAddress(user, passwd),
       (x) => x,
       Matcher.Get,
       () => addrC
@@ -50,7 +60,7 @@ describe("Camino-XChain", (): void => {
     [
       "incorrectUser",
       () =>
-        xchain.send(
+        xChain.send(
           badUser,
           passwd,
           "CAM",
@@ -68,7 +78,7 @@ describe("Camino-XChain", (): void => {
     [
       "incorrectPass",
       () =>
-        xchain.send(
+        xChain.send(
           user,
           badPass,
           "CAM",
@@ -85,7 +95,7 @@ describe("Camino-XChain", (): void => {
     ],
     [
       "importKey",
-      () => xchain.importKey(user, passwd, key),
+      () => xChain.importKey(user, passwd, adminNodePrivateKey),
       (x) => x,
       Matcher.toBe,
       () => adminAddress
@@ -93,7 +103,7 @@ describe("Camino-XChain", (): void => {
     [
       "send",
       () =>
-        xchain.send(
+        xChain.send(
           user,
           passwd,
           "CAM",
@@ -110,7 +120,7 @@ describe("Camino-XChain", (): void => {
     [
       "sendMultiple",
       () =>
-        xchain.sendMultiple(
+        xChain.sendMultiple(
           user,
           passwd,
           [
@@ -127,14 +137,14 @@ describe("Camino-XChain", (): void => {
     ],
     [
       "listAddrs",
-      () => xchain.listAddresses(user, passwd),
+      () => xChain.listAddresses(user, passwd),
       (x) => x.sort(),
       Matcher.toEqual,
       () => [adminAddress, addrB.value, addrC.value].sort()
     ],
     [
       "exportKey",
-      () => xchain.exportKey(user, passwd, addrB.value),
+      () => xChain.exportKey(user, passwd, addrB.value),
       (x) => x,
       Matcher.toMatch,
       () => /PrivateKey-\w*/
@@ -142,7 +152,7 @@ describe("Camino-XChain", (): void => {
     [
       "export",
       () =>
-        xchain.export(
+        xChain.export(
           user,
           passwd,
           "C" + addrB.value.substring(1),
@@ -155,7 +165,7 @@ describe("Camino-XChain", (): void => {
     ],
     [
       "import",
-      () => xchain.import(user, passwd, addrB.value, "P"),
+      () => xChain.import(user, passwd, addrB.value, "P"),
       (x) => x,
       Matcher.toThrow,
       () => "problem issuing transaction: no import inputs"
@@ -163,7 +173,7 @@ describe("Camino-XChain", (): void => {
     [
       "createFixed",
       () =>
-        xchain.createFixedCapAsset(user, passwd, "Camino", "CAM", 0, [
+        xChain.createFixedCapAsset(user, passwd, "Camino", "CAM", 0, [
           { address: adminAddress, amount: "10000" }
         ]),
       (x) => x,
@@ -173,7 +183,7 @@ describe("Camino-XChain", (): void => {
     [
       "createVar",
       () =>
-        xchain.createVariableCapAsset(user, passwd, "Camino", "CAM", 0, [
+        xChain.createVariableCapAsset(user, passwd, "Camino", "CAM", 0, [
           { minters: [adminAddress], threshold: 1 }
         ]),
       (x) => x,
@@ -183,7 +193,7 @@ describe("Camino-XChain", (): void => {
     [
       "mint",
       () =>
-        xchain.mint(user, passwd, 1500, asset.value, addrB.value, [
+        xChain.mint(user, passwd, 1500, asset.value, addrB.value, [
           adminAddress
         ]),
       (x) => x,
@@ -193,21 +203,21 @@ describe("Camino-XChain", (): void => {
     ],
     [
       "getTx",
-      () => xchain.getTx(tx.value),
+      () => xChain.getTx(tx.value),
       (x) => x,
       Matcher.toMatch,
       () => /\w+/
     ],
     [
       "getTxStatus",
-      () => xchain.getTxStatus(tx.value),
+      () => xChain.getTxStatus(tx.value),
       (x) => x,
       Matcher.toBe,
       () => "Processing"
     ],
     [
       "getAssetDesc",
-      () => xchain.getAssetDescription(asset.value),
+      () => xChain.getAssetDescription(asset.value),
       (x) => [x.name, x.symbol],
       Matcher.toEqual,
       () => ["Camino", "CAM"]
