@@ -13,7 +13,18 @@ module.exports = {
     "^.+\\.(ts|tsx)$": "ts-jest"
   },
   transformIgnorePatterns: ["<rootDir>/node_modules/"],
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
+  moduleFileExtensions: [
+    "js",
+    "ts",
+    "json",
+    "jsx",
+    "tsx",
+    "node"
+  ],
+  transform: {
+    "^.+\\.tsx?$": "ts-jest"
+  },
+
   moduleDirectories: ["node_modules", "src"],
   collectCoverage: true,
   coverageReporters: ["html"],
