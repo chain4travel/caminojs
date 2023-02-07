@@ -66,10 +66,10 @@
     "jest-mock-axios": "4.5.0",
     "prettier": "2.7.1",
     "terser-webpack-plugin": "5.3.5",
-    "ts-jest": "26.5.6",
+    "ts-jest": "^26.5.6",
     "ts-loader": "9.3.1",
-    "typedoc": "^0.18.0",
-    "typedoc-plugin-external-module-name": "^4.0.3",
+    "typedoc": "^0.23.24",
+    "typedoc-plugin-external-module-name": "^2.1.0",
     "typedoc-plugin-markdown": "^2.4.0",
     "typescript": "4.7.4",
     "webpack": "5.74.0",
@@ -94,6 +94,7 @@
     "randombytes": "^2.1.0",
     "store2": "2.14.2",
     "stream-browserify": "3.0.0",
+    "web3": "^1.8.2",
     "ws": "8.8.1",
     "xss": "1.0.14"
   },
@@ -108,5 +109,9 @@
   "directories": {
     "example": "examples",
     "test": "tests"
+  },
+  "types": "./dist/index.d.ts",
+  "bugs": {
+    "url": "https://github.com/chain4travel/caminojs/issues"
   }
 }
