@@ -12,7 +12,9 @@ module.exports = {
   transform: {
     "^.+\\.(ts|tsx)$": "ts-jest"
   },
-  transformIgnorePatterns: ["<rootDir>/node_modules/"],
+  transformIgnorePatterns: [
+    "<rootDir>/node_modules/(?!ethereum-cryptography|keccak)"
+  ],
   moduleFileExtensions: [
     "js",
     "ts",
@@ -24,8 +26,8 @@ module.exports = {
   transform: {
     "^.+\\.tsx?$": "ts-jest"
   },
-
-  moduleDirectories: ["node_modules", "src"],
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
+  moduleDirectories: ["node_modules", "<rootDir>/src"],
   collectCoverage: true,
   coverageReporters: ["html"],
   modulePathIgnorePatterns: ["node_modules"],
