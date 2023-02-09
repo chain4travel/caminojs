@@ -20,25 +20,22 @@ beforeAll(async () => {
   const fs = require("fs")
   const path = require("path")
 
-  const filePath = path.join(__dirname, "CaminoAdmin.abi")
+  const filePath = path.join(__dirname, "abi/CaminoAdmin.abi")
 
-  ABI = JSON.parse(fs.readFileSync(filePath, "utf8"))
+  // ABI = JSON.parse(fs.readFileSync(filePath, "utf8"))
+  ABI = [{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"addr","type":"address"},{"indexed":false,"internalType":"uint256","name":"role","type":"uint256"}],"name":"DropRole","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"newGasFee","type":"uint256"}],"name":"GasFeeSet","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":false,"internalType":"uint256","name":"oldState","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"newState","type":"uint256"}],"name":"KycStateChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"addr","type":"address"},{"indexed":false,"internalType":"uint256","name":"role","type":"uint256"}],"name":"SetRole","type":"event"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"bool","name":"remove","type":"bool"},{"internalType":"uint256","name":"state","type":"uint256"}],"name":"applyKycState","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getBaseFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"bytes4","name":"signature","type":"bytes4"}],"name":"getBlacklistState","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"getKycState","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"addr","type":"address"}],"name":"getRoles","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"addr","type":"address"},{"internalType":"uint256","name":"role","type":"uint256"}],"name":"grantRole","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"addr","type":"address"},{"internalType":"uint256","name":"role","type":"uint256"}],"name":"hasRole","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"addr","type":"address"},{"internalType":"uint256","name":"role","type":"uint256"}],"name":"revokeRole","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"setBaseFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"bytes4","name":"signature","type":"bytes4"},{"internalType":"uint256","name":"state","type":"uint256"}],"name":"setBlacklistState","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newImplementation","type":"address"}],"name":"upgrade","outputs":[],"stateMutability":"nonpayable","type":"function"}]
   const contractAddr = "0x010000000000000000000000000000000000000b"
   contract = new web3.eth.Contract(ABI, contractAddr) // ABI is the compiled smart contract ABI
 })
 
 describe("CChain", (): void => {
-  const user: string = "avalancheJsCChainUser"
-  const passwd: string = "avalancheJsP@ssw4rd"
-  const badUser: string = "asdfasdfsa"
-  const badPass: string = "pass"
-  const memo: string = "hello world"
-  const cchain: EVMAPI = avalanche.CChain()
-  const whaleAddr: string = "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC"
   const adminAddress: string =
-    "X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
+    "0x0000000000000000000000000000000000000000" // must start with 0x
   const key: string =
     "PrivateKey-vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"
+
+
+  // contract.methods.grantRole(adminAddress, 1).call()
 
   const tests_spec: any = [
     [
@@ -46,33 +43,15 @@ describe("CChain", (): void => {
       () => contract.methods.getBaseFee().call(),
       (x) => x,
       Matcher.toEqual,
+      () => "0"
+    ],
+    [
+      "test call",
+      () => contract.methods.getRoles(adminAddress).call(),
+      (x) => x,
+      Matcher.toEqual,
       () => "expected result"
     ]
-    // [
-    //     "createUser",
-    //     () => keystore.createUser(user, passwd),
-    //     (x) => x,
-    //     Matcher.toEqual,
-    //     () => {
-    //         return {}
-    //     }
-    // ],
-    // [
-    //     "importKey",
-    //     () => cchain.importKey(user, passwd, key),
-    //     (x) => x,
-    //     Matcher.toBe,
-    //     () => whaleAddr
-    // ],
-    // [
-    //     "deleteUser",
-    //     () => keystore.deleteUser(user, passwd),
-    //     (x) => x,
-    //     Matcher.toEqual,
-    //     () => {
-    //         return {}
-    //     }
-    // ],
   ]
 
   createTests(tests_spec)
