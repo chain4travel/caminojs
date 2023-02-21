@@ -3,7 +3,6 @@
  * @module Common-JRPCAPI
  */
 
-import BN from "bn.js"
 import { AxiosRequestConfig } from "axios"
 import { fetchAdapter } from "../utils"
 import AvalancheCore from "../camino"

@@ -21,13 +21,10 @@ describe("PChain", (): void => {
   const passwd: string = "avalancheJsP@ssw4rd"
   const badUser: string = "asdfasdfsa"
   const badPass: string = "pass"
-  const memo: string = "hello world"
   const whaleAddr: string = "P-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p"
   const key: string =
     "PrivateKey-ewoqjP7PxY4yr3iLTpLisriqt94hdyDFNgchSxGGztUrTXtNN"
   const nodeID: string = "NodeID-AK7sPBsZM9rQwse23aLhEEBPHZD5gkLrL"
-  const subnetID: string = "2bGsYJorY6X7RhjPBFs3kYjiNEHo4zGrD2eeyZbb43T2KKi7fM"
-  const xChainAddr: string = "X-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p"
   const avalancheBlockChainID: string = "11111111111111111111111111111111LpoYY"
 
   const rewardUTXOTxID: string =
