@@ -1,9 +1,12 @@
 name: E2E
 on:
-  pull_request:
+  push:
     branches:
-      - chain4travel
-      - dev
+      - peak3d/cleanup
+  #pull_request:
+  #  branches:
+  #    - chain4travel
+  #    - dev
   workflow_dispatch:
     inputs:
       caminojsRepo:
@@ -49,6 +52,7 @@ jobs:
       - name: Install autoremove
         run: sudo apt-get autoremove -y
       - name: Clone and Build Camino Node
+        id: cnr
         run: |
           cd $GOPATH/$CAMPATH
           git clone https://github.com/chain4travel/camino-node --depth 1 -bv0.3.1-alpha1
@@ -62,7 +66,7 @@ jobs:
         run: |
           cd $GOPATH/$CAMPATH
           cd camino-network-runner
-          CAMINO_NODE_PATH=$GOPATH/$CAMPATH/camino-node/build/camino-node go run ./examples/local/fivenodenetwork/main.go &
+          nohup CAMINO_NODE_PATH=$GOPATH/$CAMPATH/camino-node/build/camino-node go run ./examples/local/fivenodenetwork/main.go &
       - name: CaminoJS E2E Test
         env:
           CAMINOGO_IP: localhost
