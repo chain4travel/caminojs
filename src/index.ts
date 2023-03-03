@@ -123,6 +123,7 @@ export default class Avalanche extends AvalancheCore {
   ) {
     super(host, port, protocol, networkID)
 
+    this.initCommonAPIs()
     if (networkID && networks.isPredefined(networkID)) {
       this.network = networks.getNetwork(networkID)
       this.networkID = networkID
@@ -156,7 +157,6 @@ export default class Avalanche extends AvalancheCore {
 
     const xchain = response.blockchains.find((b) => b["name"] === "X-Chain")
     const cchain = response.blockchains.find((b) => b["name"] === "C-Chain")
-
     const fees = await this.Info().getTxFee()
 
     this.network = {
@@ -210,14 +210,6 @@ export default class Avalanche extends AvalancheCore {
   }
 
   protected setupAPIs = (XChainID?: string, CChainID?: string): boolean => {
-    this.addAPI("admin", AdminAPI)
-    this.addAPI("auth", AuthAPI)
-    this.addAPI("health", HealthAPI)
-    this.addAPI("info", InfoAPI)
-    this.addAPI("index", IndexAPI)
-    this.addAPI("keystore", KeystoreAPI)
-    this.addAPI("metrics", MetricsAPI)
-
     this.addAPI("pchain", PlatformVMAPI)
     this.addAPI(
       "xchain",
@@ -233,6 +225,16 @@ export default class Avalanche extends AvalancheCore {
     )
 
     return true
+  }
+
+  protected initCommonAPIs = (): void => {
+    this.addAPI("admin", AdminAPI)
+    this.addAPI("auth", AuthAPI)
+    this.addAPI("health", HealthAPI)
+    this.addAPI("info", InfoAPI)
+    this.addAPI("index", IndexAPI)
+    this.addAPI("keystore", KeystoreAPI)
+    this.addAPI("metrics", MetricsAPI)
   }
 }
 
