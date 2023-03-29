@@ -613,7 +613,7 @@ export class PlatformVMAPI extends JRPCAPI {
         maxDuration: offer.maxDuration,
         unlockPeriodDuration: offer.unlockPeriodDuration,
         noRewardsPeriodDuration: offer.noRewardsPeriodDuration,
-        memo: Buffer.from(offer.memo.substring(2), "hex").toString(),
+        memo: offer.memo,
         flags: new BN(offer.flags)
       } as DepositOffer
     })

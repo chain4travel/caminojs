@@ -785,16 +785,23 @@ describe("Camino-PChain-Auto-Unlock-Deposit-Half-Amount", (): void => {
 
 function getOneMinuteDepositOffer(): DepositOffer {
   return depositOffers.find((offer) => {
-    return offer.memo == "presale1min"
+    return (
+      Buffer.from(offer.memo.substring(2), "hex").toString() == "presale1min"
+    )
   })
 }
 function getLockedPresale3yDepositOffer(): DepositOffer {
   return depositOffers.find((offer) => {
-    return offer.memo == "lockedpresale3y"
+    return (
+      Buffer.from(offer.memo.substring(2), "hex").toString() ==
+      "lockedpresale3y"
+    )
   })
 }
 function getTest1DepositOffer(): DepositOffer {
   return depositOffers.find((offer) => {
-    return offer.memo.includes("depositOffer test#1")
+    return Buffer.from(offer.memo.substring(2), "hex")
+      .toString()
+      .includes("depositOffer test#1")
   })
 }
