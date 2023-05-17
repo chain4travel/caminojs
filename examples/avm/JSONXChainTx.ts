@@ -1,14 +1,22 @@
-import { Avalanche, Buffer } from "../../src"
-import { AVMAPI, Tx } from "../../src/apis/avm"
+import { Avalanche, Buffer } from "caminojs/index"
+import { AVMAPI, Tx } from "caminojs/apis/avm"
+import { ExamplesConfig } from "../common/examplesConfig"
 
-const ip: string = "api.avax.network"
-const port: number = 443
-const protocol: string = "https"
-const networkID: number = 1
-const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID)
-const xchain: AVMAPI = avalanche.XChain()
+const config: ExamplesConfig = require("../common/examplesConfig.json")
+const avalanche: Avalanche = new Avalanche(
+  config.host,
+  config.port,
+  config.protocol,
+  config.networkID
+)
+let xchain: AVMAPI
 
+const InitAvalanche = async () => {
+  await avalanche.fetchNetworkSettings()
+  xchain = avalanche.XChain()
+}
 const main = async (): Promise<any> => {
+  await InitAvalanche()
   const txID: string = "2fJer7o3HpPYxqyHXo23G4HoPvfEqcUXYojMULi2mbBEoBFqoM"
   const hex = (await xchain.getTx(txID)) as string
   const buf: Buffer = new Buffer(hex.slice(2), "hex")

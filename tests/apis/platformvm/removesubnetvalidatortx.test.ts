@@ -13,7 +13,8 @@ describe("RemoveSubnetValidatorTx", (): void => {
     removeSubnetValidatorTxHex,
     "hex"
   )
-  const removeSubnetValidatorTx: RemoveSubnetValidatorTx = new RemoveSubnetValidatorTx()
+  const removeSubnetValidatorTx: RemoveSubnetValidatorTx =
+    new RemoveSubnetValidatorTx()
   removeSubnetValidatorTx.fromBuffer(removeSubnetValidatorTxBuf)
 
   test("getTypeName", async (): Promise<void> => {
@@ -23,7 +24,8 @@ describe("RemoveSubnetValidatorTx", (): void => {
   })
 
   test("getTypeID", async (): Promise<void> => {
-    const removeSubnetValidatorTxTypeID: number = removeSubnetValidatorTx.getTypeID()
+    const removeSubnetValidatorTxTypeID: number =
+      removeSubnetValidatorTx.getTypeID()
     expect(removeSubnetValidatorTxTypeID).toBe(
       PlatformVMConstants.REMOVESUBNETVALIDATORTX
     )

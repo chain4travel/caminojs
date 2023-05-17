@@ -32,14 +32,14 @@ export class ProofOfPossession {
   }
 
   /**
-  * Takes a {@link https://github.com/feross/buffer|Buffer} containing an [[ProofOfPossession]], parses it, populates the class, and returns the length of the [[ProofOfPossession]] in bytes.
-  *
-  * @param bytes A {@link https://github.com/feross/buffer|Buffer} containing a raw [[ProofOfPossession]]
-  *
-  * @returns The length of the raw [[ProofOfPossession]]
-  *
-  * @remarks assume not-checksummed
-  */
+   * Takes a {@link https://github.com/feross/buffer|Buffer} containing an [[ProofOfPossession]], parses it, populates the class, and returns the length of the [[ProofOfPossession]] in bytes.
+   *
+   * @param bytes A {@link https://github.com/feross/buffer|Buffer} containing a raw [[ProofOfPossession]]
+   *
+   * @returns The length of the raw [[ProofOfPossession]]
+   *
+   * @remarks assume not-checksummed
+   */
   fromBuffer(bytes: Buffer, offset: number = 0): number {
     this.publicKey = bintools.copyFrom(bytes, offset, offset + 48)
     offset += 48
@@ -51,16 +51,13 @@ export class ProofOfPossession {
   }
 
   /**
-  * Returns a {@link https://github.com/feross/buffer|Buffer} representation of the [[ProofOfPossession]]
-  */
+   * Returns a {@link https://github.com/feross/buffer|Buffer} representation of the [[ProofOfPossession]]
+   */
   toBuffer(): Buffer {
     let bsize: number = this.publicKey.length + this.signature.length
-  
-    const barr: Buffer[] = [
-      this.publicKey,
-      this.signature
-    ]
-  
+
+    const barr: Buffer[] = [this.publicKey, this.signature]
+
     return Buffer.concat(barr, bsize)
   }
 

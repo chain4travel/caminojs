@@ -1,4 +1,4 @@
-import { Avalanche, BinTools, BN, Buffer } from "avalanche/dist"
+import { Avalanche, BinTools, BN, Buffer } from "caminojs/index"
 import {
   PlatformVMAPI,
   KeyChain,
@@ -12,51 +12,64 @@ import {
   UnsignedTx,
   Tx,
   ImportTx
-} from "avalanche/dist/apis/platformvm"
-import {
-  PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey,
-  Defaults
-} from "avalanche/dist/utils"
+} from "caminojs/apis/platformvm"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
+import { ExamplesConfig } from "../common/examplesConfig"
 
-const ip: string = "localhost"
-const port: number = 9650
-const protocol: string = "http"
-const networkID: number = 1337
-const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID)
-const pchain: PlatformVMAPI = avalanche.PChain()
+const config: ExamplesConfig = require("../common/examplesConfig.json")
+const avalanche: Avalanche = new Avalanche(
+  config.host,
+  config.port,
+  config.protocol,
+  config.networkID
+)
 const bintools: BinTools = BinTools.getInstance()
-const pKeychain: KeyChain = pchain.keyChain()
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+
 // X-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p
-pKeychain.importKey(privKey)
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 
-// let privKey: string = "PrivateKey-24gdABgapjnsJfnYkfev6YPyQhTaCU72T9bavtDNTYivBLp2eW"
-// P-custom1u6eth2fg33ye63mnyu5jswtj326jaypvhyar45
-
-// privKey = "PrivateKey-R6e8f5QSa89DjpvL9asNdhdJ4u8VqzMJStPV8VVdDmLgPd8a4"
-// P-custom15s7p7mkdev0uajrd0pzxh88kr8ryccztnlmzvj
-
-privKey = "PrivateKey-rKsiN3X4NSJcPpWxMSh7WcuY653NGQ7tfADgQwDZ9yyUPPDG9"
 // P-custom1jwwk62ktygl0w29rsq2hq55amamhpvx82kfnte
-pKeychain.importKey(privKey)
-const pAddresses: Buffer[] = pchain.keyChain().getAddresses()
-const pAddressStrings: string[] = pchain.keyChain().getAddressStrings()
-const cChainID: string = Defaults.network[networkID].C.blockchainID
-const cChainIDBuf: Buffer = bintools.cb58Decode(cChainID)
-const pChainID: string = Defaults.network[networkID].P.blockchainID
-const pChainIDBuf: Buffer = bintools.cb58Decode(pChainID)
+const privKey2 = "PrivateKey-rKsiN3X4NSJcPpWxMSh7WcuY653NGQ7tfADgQwDZ9yyUPPDG9"
+
 const importedInputs: TransferableInput[] = []
 const outputs: TransferableOutput[] = []
 const inputs: TransferableInput[] = []
-const fee: BN = pchain.getDefaultTxFee()
 const threshold: number = 2
 const locktime: BN = new BN(0)
 const memo: Buffer = Buffer.from(
   "Import AVAX to the P-Chain from the C-Chain and consume a multisig atomic output and a create multisig output"
 )
 
+let pchain: PlatformVMAPI
+let pKeychain: KeyChain
+let pChainID: string
+let cChainID: string
+let pAddresses: Buffer[]
+let pAddressStrings: string[]
+let pChainIDBuf: Buffer
+let cChainIDBuf: Buffer
+let fee: BN
+const InitAvalanche = async () => {
+  await avalanche.fetchNetworkSettings()
+  pchain = avalanche.PChain()
+  pKeychain = pchain.keyChain()
+  pKeychain.importKey(privKey)
+  pKeychain.importKey(privKey2)
+
+  cChainID = avalanche.getNetwork().C.blockchainID
+  pAddresses = pchain.keyChain().getAddresses()
+  pAddressStrings = pchain.keyChain().getAddressStrings()
+  pChainID = avalanche.getNetwork().P.blockchainID
+  cChainID = avalanche.getNetwork().C.blockchainID
+
+  pChainIDBuf = bintools.cb58Decode(pChainID)
+  cChainIDBuf = bintools.cb58Decode(cChainID)
+
+  fee = pchain.getDefaultTxFee()
+}
+
 const main = async (): Promise<any> => {
+  await InitAvalanche()
   const avaxAssetID: Buffer = await pchain.getAVAXAssetID()
   const platformvmUTXOResponse: any = await pchain.getUTXOs(
     pAddressStrings,
@@ -99,7 +112,7 @@ const main = async (): Promise<any> => {
   outputs.push(transferableOutput)
 
   const importTx: ImportTx = new ImportTx(
-    networkID,
+    config.networkID,
     pChainIDBuf,
     outputs,
     inputs,

@@ -90,20 +90,22 @@ export class UTXO extends StandardUTXO {
    * @remarks
    * Default encoding format is cb58, if providing hex encoded string please specify format as 'hex'
    */
-  fromString(serialized: string, format: string = 'cb58'): number {
+  fromString(serialized: string, format: string = "cb58"): number {
     switch (format) {
       case "cb58": {
-         /* istanbul ignore next */
-        return this.fromBuffer(bintools.cb58Decode(serialized));
-      };
+        /* istanbul ignore next */
+        return this.fromBuffer(bintools.cb58Decode(serialized))
+      }
       case "hex": {
-        let decoded = serialization.decoder(serialized, 'hex', 'hex', 'cb58');
-        this.fromString(decoded);
-        return this.toBuffer().length;
-      };
+        let decoded = serialization.decoder(serialized, "hex", "hex", "cb58")
+        this.fromString(decoded)
+        return this.toBuffer().length
+      }
       default: {
-        throw new UnknownFormatError(`Specified format '${format}' is unknown, should be hex or cb58.`);
-      };
+        throw new UnknownFormatError(
+          `Specified format '${format}' is unknown, should be hex or cb58.`
+        )
+      }
     }
   }
 
@@ -115,18 +117,25 @@ export class UTXO extends StandardUTXO {
    * @remarks
    * Default encoding format to cb58, if you want a hex encoded output please specify format as 'hex'
    */
-  toString(format: string = 'cb58'): string {
+  toString(format: string = "cb58"): string {
     switch (format) {
       case "cb58": {
         /* istanbul ignore next */
         return bintools.cb58Encode(this.toBuffer())
-      };
+      }
       case "hex": {
-        return serialization.encoder(bintools.cb58Encode(this.toBuffer()), 'hex', 'cb58', 'hex');
-      };
+        return serialization.encoder(
+          bintools.cb58Encode(this.toBuffer()),
+          "hex",
+          "cb58",
+          "hex"
+        )
+      }
       default: {
-        throw new UnknownFormatError(`Specified format '${format}' is unknown, should be hex or cb58.`);
-      };
+        throw new UnknownFormatError(
+          `Specified format '${format}' is unknown, should be hex or cb58.`
+        )
+      }
     }
   }
 
