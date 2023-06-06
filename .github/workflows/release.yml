@@ -3,11 +3,13 @@ name: Push to release branch
 on:
   push:
     branches:
-      - release
-      - master
+      - chain4travel
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
   release:
     name: Release
+    needs: [ci]
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -28,5 +30,5 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_BRANCH: release
+          RELEASE_BRANCH: chain4travel
         run: yarn run semantic-release

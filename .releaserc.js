@@ -51,8 +51,7 @@ const gitSetting = [
   "@semantic-release/git",
   {
     assets: ["package.json"],
-    message:
-      "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+    message: "${nextRelease.version}: \n\n${nextRelease.notes}"
   }
 ]
 
@@ -68,7 +67,7 @@ const changelogGen = ["@semantic-release/changelog", {}]
 const releaseNotesGen = ["@semantic-release/release-notes-generator", {}]
 
 let plugins
-if (process.env && process.env.RELEASE_BRANCH === "release") {
+if (process.env && process.env.RELEASE_BRANCH === "chain4travel") {
   plugins = [
     commitAnalyzerSetting,
     githubSetting,
@@ -77,18 +76,12 @@ if (process.env && process.env.RELEASE_BRANCH === "release") {
     npmRelease,
     gitSetting
   ]
-} else {
-  plugins = [githubSetting, gitSetting]
 }
 
 module.exports = {
   branches: [
     {
-      name: "release"
-    },
-    {
-      name: "master",
-      prerelease: "alpha"
+      name: "chain4travel"
     }
   ],
   plugins

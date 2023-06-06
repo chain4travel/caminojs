@@ -53,7 +53,7 @@ jobs:
           TARGET_BRANCH: ${{ github.event.pull_request.base.ref || github.event.inputs.caminojsBranch }}
         run: |
           cd $GOPATH/$CAMPATH
-          git clone https://github.com/chain4travel/camino-node --depth 1 -b$TARGET_BRANCH
+          git clone https://github.com/chain4travel/camino-node -b$TARGET_BRANCH
           cd camino-node
           ./scripts/build.sh
       - name: Checkout Camino Network Runner
@@ -67,6 +67,7 @@ jobs:
         run: |
           cd $GOPATH/$CAMPATH
           cd camino-network-runner
+          git submodule update --init --recursive
           go run ./examples/local/e2enodenetwork/main.go  &>/tmp/cnr-e2e.log &
       - name: CaminoJS E2E Camino Tests
         env:
