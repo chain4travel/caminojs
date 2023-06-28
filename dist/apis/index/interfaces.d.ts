@@ -12,18 +12,18 @@ export interface BaseIndexResponse {
     encoding: string;
     index: string;
 }
-export declare type GetLastAcceptedParams = BaseIndexParams;
-export declare type GetLastAcceptedResponse = BaseIndexResponse;
-export declare type GetLastVertexParams = BaseIndexParams;
-export declare type GetLastVertexResponse = BaseIndexResponse;
+export type GetLastAcceptedParams = BaseIndexParams;
+export type GetLastAcceptedResponse = BaseIndexResponse;
+export type GetLastVertexParams = BaseIndexParams;
+export type GetLastVertexResponse = BaseIndexResponse;
 export interface GetContainerByIndexParams extends BaseIndexParams {
     index: string;
 }
-export declare type GetContainerByIndexResponse = BaseIndexResponse;
+export type GetContainerByIndexResponse = BaseIndexResponse;
 export interface GetContainerByIDParams extends BaseIndexParams {
     id: string;
 }
-export declare type GetContainerByIDResponse = BaseIndexResponse;
+export type GetContainerByIDResponse = BaseIndexResponse;
 export interface GetContainerRangeParams extends BaseIndexParams {
     startIndex: number;
     numToFetch: number;

@@ -12,6 +12,7 @@ export * from "./output";
 export * from "./restapi";
 export * from "./secp256k1";
 export * from "./tx";
+export * from "./upgradeversionid";
 export * from "./utils";
 export * from "./utxos";
 //# sourceMappingURL=index.d.ts.map

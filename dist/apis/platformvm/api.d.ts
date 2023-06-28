@@ -12,12 +12,12 @@ import { UnsignedTx, Tx } from "./tx";
 import { PayloadBase } from "../../utils/payload";
 import { UTXOSet } from "../platformvm/utxos";
 import { PersistanceOptions } from "../../utils/persistenceoptions";
-import { ClaimAmountParams, DepositOffer, GetRewardUTXOsResponse, GetStakeResponse, GetConfigurationResponse, Subnet, GetValidatorsAtResponse, GetBalanceResponse, GetUTXOsResponse, Blockchain, GetTxStatusResponse, GetMinStakeResponse, SpendReply, MultisigAliasReply, GetClaimablesResponse, GetDepositsResponse, OwnerParam } from "./interfaces";
+import { ClaimAmountParams, DepositOffer, GetRewardUTXOsResponse, GetStakeResponse, GetConfigurationResponse, Subnet, GetValidatorsAtResponse, GetBalanceResponse, GetUTXOsResponse, Blockchain, GetTxStatusResponse, GetMinStakeResponse, SpendReply, MultisigAliasReply, GetClaimablesResponse, GetDepositsResponse, OwnerParam, MultisigAliasParams, UpgradePhasesReply } from "./interfaces";
 import { GenesisData } from "../avm";
 import { Auth, LockMode, Builder, FromSigner } from "./builder";
 import { Network } from "../../utils/networks";
-declare type FromType = String[] | String[][];
-declare type NodeOwnerType = {
+type FromType = String[] | String[][];
+type NodeOwnerType = {
     address: string;
     auth: [number, string][];
 };
@@ -199,14 +199,11 @@ export declare class PlatformVMAPI extends JRPCAPI {
     /**
      * Gets the balance of a particular asset.
      *
-     * @param address The address to pull the asset balance from
+     * @param addresses The addresses to pull the asset balance from
      *
      * @returns Promise with the balance as a {@link https://github.com/indutny/bn.js/|BN} on the provided address.
      */
-    getBalance: (params: {
-        address?: string;
-        addresses?: string[];
-    }) => Promise<GetBalanceResponse>;
+    getBalance: (addresses: string[]) => Promise<GetBalanceResponse>;
     /**
      * List the addresses controlled by the user.
      *
@@ -270,6 +267,12 @@ export declare class PlatformVMAPI extends JRPCAPI {
      *
      */
     getPendingValidators: (subnetID?: Buffer | string, nodeIDs?: string[]) => Promise<object>;
+    /**
+     * Retrieves the current phases.
+     *
+     * @returns Returns a Promise of a UpgradePhasesReply.
+     */
+    getUpgradePhases: () => Promise<UpgradePhasesReply>;
     /**
      * Samples `Size` validators from the current validator set.
      *
@@ -681,12 +684,11 @@ export declare class PlatformVMAPI extends JRPCAPI {
      * @param genesisData Optional Byte representation of genesis state of the new chain
      * @param memo Optional contains arbitrary bytes, up to 256 bytes
      * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
-     * @param subnetAuth Optional. An Auth struct which contains the subnet Auth and the signers.
-     * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+     * @param subnetAuthCredentials Optional. An array of index and address to sign for each SubnetAuth.
      *
      * @returns An unsigned transaction created from the passed in parameters.
      */
-    buildCreateChainTx: (utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], subnetID?: string | Buffer, chainName?: string, vmID?: string, fxIDs?: string[], genesisData?: string | GenesisData, memo?: PayloadBase | Buffer, asOf?: BN, subnetAuth?: Auth, changeThreshold?: number) => Promise<UnsignedTx>;
+    buildCreateChainTx: (utxoset: UTXOSet, fromAddresses: string[], changeAddresses: string[], subnetID?: string | Buffer, chainName?: string, vmID?: string, fxIDs?: string[], genesisData?: string | GenesisData, memo?: PayloadBase | Buffer, asOf?: BN, subnetAuth?: Auth, changeThreshold?: number) => Promise<UnsignedTx>;
     /**
      * Helper function which creates an unsigned [[CaminoAddValidatorTx]]. For more granular control, you may create your own
      * [[UnsignedTx]] manually and import the [[CaminoAddValidatorTx]] class directly.
@@ -714,6 +716,7 @@ export declare class PlatformVMAPI extends JRPCAPI {
     /**
      * Build an unsigned [[AddressStateTx]].
      *
+     * @param version Optional. Transaction version number, default 0.
      * @param utxoset A set of UTXOs that the transaction is built on
      * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
      * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
@@ -726,7 +729,7 @@ export declare class PlatformVMAPI extends JRPCAPI {
      *
      * @returns An unsigned AddressStateTx created from the passed in parameters.
      */
-    buildAddressStateTx: (utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], address: string | Buffer, state: number, remove?: boolean, memo?: Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
+    buildAddressStateTx: (version: number, utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], address: string | Buffer, state: number, remove?: boolean, memo?: Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
     /**
      * Build an unsigned [[RegisterNodeTx]].
      *
@@ -747,19 +750,24 @@ export declare class PlatformVMAPI extends JRPCAPI {
     /**
      * Build an unsigned [[DepositTx]].
      *
+     * @param version Optional. Transaction version number, default 0.
      * @param utxoset A set of UTXOs that the transaction is built on
      * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
      * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
      * @param depositOfferID ID of the deposit offer.
      * @param depositDuration Duration of the deposit
      * @param rewardsOwner Optional The owners of the reward. If omitted, all inputs must have the same owner
+     * @param depositCreatorAddress Address that is authorized to create deposit with given offer. Could be empty, if offer owner is empty.
+     * @param depositCreatorAuth Auth for deposit creator address
+     * @param depositOfferOwnerSigs Signatures which recover to depositOfferOwner address(es)
+     * @param depositOfferOwnerAuth Auth for deposit offer owner
      * @param memo Optional contains arbitrary bytes, up to 256 bytes
      * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
      * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
      *
      * @returns An unsigned transaction created from the passed in parameters.
      */
-    buildDepositTx: (utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], depositOfferID: string | Buffer, depositDuration: number | Buffer, rewardsOwner: OutputOwners, memo: PayloadBase | Buffer, asOf: BN, amountToLock: BN, changeThreshold?: number) => Promise<UnsignedTx>;
+    buildDepositTx: (version: number, utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], depositOfferID: string | Buffer, depositDuration: number, rewardsOwner: OutputOwners, depositCreatorAddress: string | Buffer, depositCreatorAuth: [number, string | Buffer][], depositOfferOwnerSigs: Buffer[], depositOfferOwnerAuth: [number, string | Buffer][], memo: PayloadBase | Buffer, asOf: BN, amountToLock: BN, changeThreshold?: number) => Promise<UnsignedTx>;
     /**
      * Build an unsigned [[UnlockDepositTx]].
      *
@@ -788,6 +796,21 @@ export declare class PlatformVMAPI extends JRPCAPI {
      * @returns An unsigned transaction created from the passed in parameters.
      */
     buildClaimTx: (utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], memo: PayloadBase | Buffer, asOf: BN, changeThreshold: number, claimAmounts: ClaimAmountParams[], claimTo?: OutputOwners) => Promise<UnsignedTx>;
+    /**
+     * Build an unsigned [[MultisigAliasTx]].
+     *
+     * @param utxoset A set of UTXOs that the transaction is built on
+     * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+     * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+     * @param multisigAliasParams An object containing the parameters for the multisigAliasTx
+     * @param memo Optional contains arbitrary bytes, up to 256 bytes
+     * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+     * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+     *
+     * @returns An unsigned transaction created from the passed in parameters.
+     */
+    buildMultisigAliasTx: (utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], multisigAliasParams: MultisigAliasParams, memo?: PayloadBase | Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
+    buildAddDepositOfferTx: (utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], depositOffer: DepositOffer, depositOfferCreatorAddress: string, depositOfferCreatorAuth?: [number, string | Buffer][], memo?: PayloadBase | Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
     /**
      * @ignore
      */

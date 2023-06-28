@@ -138,6 +138,9 @@ export declare class SubnetThresholdError extends AvalancheError {
 export declare class SubnetAddressError extends AvalancheError {
     constructor(m: string);
 }
+export declare class UnknownFormatError extends AvalancheError {
+    constructor(m: string);
+}
 export interface ErrorResponseObject {
     code: number;
     message: string;

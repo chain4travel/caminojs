@@ -1,8 +1,8 @@
 import { Buffer } from "buffer/";
 import { Serialized } from "../common";
 export declare const SERIALIZATIONVERSION: number;
-export declare type SerializedType = "hex" | "BN" | "Buffer" | "bech32" | "nodeID" | "privateKey" | "cb58" | "base58" | "base64" | "decimalString" | "number" | "utf8";
-export declare type SerializedEncoding = "hex" | "cb58" | "base58" | "base64" | "decimalString" | "number" | "utf8" | "display";
+export type SerializedType = "hex" | "BN" | "Buffer" | "bech32" | "nodeID" | "privateKey" | "cb58" | "base58" | "base64" | "decimalString" | "number" | "utf8";
+export type SerializedEncoding = "hex" | "cb58" | "base58" | "base64" | "decimalString" | "number" | "utf8" | "display";
 export declare abstract class Serializable {
     protected _typeName: string;
     protected _typeID: number;

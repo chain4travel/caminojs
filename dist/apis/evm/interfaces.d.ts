@@ -31,7 +31,7 @@ export interface ImportAVAXParams extends CredsInterface {
     to: string;
     sourceChain: string;
 }
-export declare type ImportParams = ImportAVAXParams;
+export type ImportParams = ImportAVAXParams;
 export interface ImportKeyParams extends CredsInterface {
     privateKey: string;
 }

@@ -5,7 +5,7 @@
 import { Buffer } from "buffer/";
 import { TransferableOutput } from "./outputs";
 import { TransferableInput } from "./inputs";
-import { Credential, SigIdx } from "../../common";
+import { Credential, SigIdx } from "../../common/credentials";
 import { BaseTx } from "./basetx";
 import { SerializedEncoding } from "../../utils/serialization";
 import { SubnetAuth } from ".";

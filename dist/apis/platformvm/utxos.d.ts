@@ -20,23 +20,26 @@ export declare class UTXO extends StandardUTXO {
     deserialize(fields: object, encoding?: SerializedEncoding): void;
     fromBuffer(bytes: Buffer, offset?: number): number;
     /**
-     * Takes a base-58 string containing a [[UTXO]], parses it, populates the class, and returns the length of the StandardUTXO in bytes.
+     * Takes a base-58 or hex string containing a [[UTXO]], parses it, populates the class, and returns the length of the StandardUTXO in bytes.
      *
      * @param serialized A base-58 string containing a raw [[UTXO]]
+     * @param format The format of the encoded [[UTXO]] (cb58 or hex). Defaults to cb58 per existing codebase
      *
      * @returns The length of the raw [[UTXO]]
      *
      * @remarks
-     * unlike most fromStrings, it expects the string to be serialized in cb58 format
+     * Default encoding format is cb58, if providing hex encoded string please specify format as 'hex'
      */
-    fromString(serialized: string): number;
+    fromString(serialized: string, format?: string): number;
     /**
      * Returns a base-58 representation of the [[UTXO]].
      *
+     * @param format The format of the encoded [[UTXO]] (cb58 or hex). Defaults to cb58 per existing codebase
+     *
      * @remarks
-     * unlike most toStrings, this returns in cb58 serialization format
+     * Default encoding format to cb58, if you want a hex encoded output please specify format as 'hex'
      */
-    toString(): string;
+    toString(format?: string): string;
     clone(): this;
     create(codecID?: number, txid?: Buffer, outputidx?: Buffer | number, assetID?: Buffer, output?: BaseOutput): this;
 }

@@ -25,7 +25,7 @@ export interface iUTXOID {
     txID: string;
     outputIndex: number;
 }
-export declare type CreateAddressParams = CredsInterface;
+export type CreateAddressParams = CredsInterface;
 export interface CreateFixedCapAssetParams extends CredsInterface {
     name: string;
     symbol: string;
@@ -59,7 +59,7 @@ export interface ImportParams extends CredsInterface {
     to: string;
     sourceChain: string;
 }
-export declare type ListAddressesParams = CredsInterface;
+export type ListAddressesParams = CredsInterface;
 export interface GetAllBalancesParams {
     address: string;
 }

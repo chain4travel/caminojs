@@ -135,7 +135,7 @@ export interface GetBalanceResponseCamino {
     bondedDepositedOutputs: BalanceDict;
     utxoIDs: UTXOID[];
 }
-export declare type GetBalanceResponse = GetBalanceResponseAvax | GetBalanceResponseCamino;
+export type GetBalanceResponse = GetBalanceResponseAvax | GetBalanceResponseCamino;
 export interface CreateAddressParams {
     username: string;
     password: string;
@@ -215,6 +215,7 @@ export interface GetAllDepositOffersResponse {
     depositOffers: DepositOffer[];
 }
 export interface DepositOffer {
+    upgradeVersion: number;
     id: string;
     interestRateNominator: BN;
     start: BN;
@@ -228,6 +229,9 @@ export interface DepositOffer {
     noRewardsPeriodDuration: number;
     memo: string;
     flags: BN;
+    totalMaxRewardAmount: BN;
+    rewardedAmount: BN;
+    ownerAddress?: string;
 }
 export interface GetDepositsParams {
     depositTxIDs: string[];
@@ -266,6 +270,12 @@ export interface OwnerParam {
 export interface MultisigAliasReply extends Owner {
     memo: string;
 }
+export interface MultisigAliasParams {
+    id?: Buffer;
+    memo: string;
+    owners: OutputOwners;
+    auth: [number, Buffer][];
+}
 export interface SpendParams {
     from: string[] | string;
     signer: string[] | string;
@@ -288,5 +298,8 @@ export interface ClaimAmountParams {
     amount: BN;
     owners: OutputOwners;
     sigIdxs: number[];
+}
+export interface UpgradePhasesReply {
+    SunrisePhase: number;
 }
 //# sourceMappingURL=interfaces.d.ts.map

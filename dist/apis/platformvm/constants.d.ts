@@ -21,6 +21,7 @@ export declare class PlatformVMConstants {
     static EXPORTTX: number;
     static ADVANCETIMETX: number;
     static REWARDVALIDATORTX: number;
+    static REMOVESUBNETVALIDATORTX: number;
     static SECPCREDENTIAL: number;
     static CUSTOM_TYPE_ID: number;
     static LOCKEDINID: number;
@@ -36,6 +37,7 @@ export declare class PlatformVMConstants {
     static CLAIMTX: number;
     static REWARDSIMPORTTX: number;
     static SECPMULTISIGCREDENTIAL: number;
+    static ADDDEPOSITOFFERTX: number;
     static ASSETIDLEN: number;
     static BLOCKCHAINIDLEN: number;
     static SYMBOLMAXLEN: number;

@@ -5,21 +5,22 @@
 import BN from "bn.js";
 import { Buffer } from "buffer/";
 import { OutputOwners } from "../../common";
-import { AssetAmountDestination, ClaimAmountParams, UnsignedTx, UTXO } from ".";
+import { AssetAmountDestination, ClaimAmountParams, MultisigAliasParams, UnsignedTx, UTXO } from ".";
 import { GenesisData } from "../avm";
-export declare type LockMode = "Unlocked" | "Bond" | "Deposit" | "Stake";
+import { Offer } from "../../apis/platformvm/adddepositoffertx";
+export type LockMode = "Unlocked" | "Bond" | "Deposit" | "Stake";
 export interface MinimumSpendable {
     getMinimumSpendable(aad: AssetAmountDestination, asOf: BN, locktime: BN, lockMode: LockMode): Promise<Error>;
 }
-export declare type FromSigner = {
+export type FromSigner = {
     from: Buffer[];
     signer: Buffer[];
 };
-export declare type NodeOwner = {
+export type NodeOwner = {
     address: Buffer;
     auth: [number, Buffer][];
 };
-export declare type Auth = {
+export type Auth = {
     addresses: Buffer[];
     threshold: number;
     signer: [number, Buffer][];
@@ -236,6 +237,7 @@ export declare class Builder {
     /**
      * Build an unsigned [[AddressStateTx]].
      *
+     * @param version Optional. Transaction version number, default 0.
      * @param networkID Networkid, [[DefaultNetworkID]]
      * @param blockchainID Blockchainid, default undefined
      * @param fromSigner The addresses being used to send and verify the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
@@ -251,7 +253,7 @@ export declare class Builder {
      *
      * @returns An unsigned AddressStateTx created from the passed in parameters.
      */
-    buildAddressStateTx: (networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], address: Buffer, state: number, remove?: boolean, fee?: BN, feeAssetID?: Buffer, memo?: Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
+    buildAddressStateTx: (version: number, networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], address: Buffer, state: number, remove?: boolean, fee?: BN, feeAssetID?: Buffer, memo?: Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
     /**
      * Build an unsigned [[RegisterNodeTx]].
      *
@@ -275,6 +277,7 @@ export declare class Builder {
     /**
      * Build an unsigned [[DepositTx]].
      *
+     * @param version Optional. Transaction version number, default 0.
      * @param networkID Networkid, [[DefaultNetworkID]]
      * @param blockchainID Blockchainid, default undefined
      * @param fromSigner The addresses being used to send and verify the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
@@ -282,6 +285,10 @@ export declare class Builder {
      * @param depositOfferID ID of the deposit offer.
      * @param depositDuration Duration of the deposit
      * @param rewardsOwner Optional The owners of the reward. If omitted, all inputs must have the same owner
+     * @param depositCreatorAddress Address that is authorized to create deposit with given offer. Could be empty, if offer owner is empty.
+     * @param depositCreatorAuth Auth for deposit creator address
+     * @param depositOfferOwnerSigs Signatures which recover to depositOfferOwner address(es)
+     * @param depositOfferOwnerAuth Auth for deposit offer owner
      * @param fee Optional. The amount of fees to burn in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}
      * @param feeAssetID Optional. The assetID of the fees being burned
      * @param memo Optional contains arbitrary bytes, up to 256 bytes
@@ -290,7 +297,7 @@ export declare class Builder {
      *
      * @returns An unsigned DepositTx created from the passed in parameters.
      */
-    buildDepositTx: (networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], depositOfferID: string | Buffer, depositDuration: number | Buffer, rewardsOwner: OutputOwners, fee: BN, feeAssetID: Buffer, memo: Buffer, asOf: BN, amountToLock: BN, changeThreshold?: number) => Promise<UnsignedTx>;
+    buildDepositTx: (version: number, networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], depositOfferID: Buffer, depositDuration: number, rewardsOwner: OutputOwners, depositCreatorAddress: Buffer, depositCreatorAuth: [number, Buffer][], depositOfferOwnerSigs: Buffer[], depositOfferOwnerAuth: [number, Buffer][], fee: BN, feeAssetID: Buffer, memo: Buffer, asOf: BN, amountToLock: BN, changeThreshold?: number) => Promise<UnsignedTx>;
     /**
      * Build an unsigned [[UnlockDepositTx]].
      *
@@ -325,6 +332,40 @@ export declare class Builder {
      * @returns An unsigned ClaimTx created from the passed in parameters.
      */
     buildClaimTx: (networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], fee: BN, feeAssetID: Buffer, memo: Buffer, asOf: BN, changeThreshold: number, claimAmounts: ClaimAmountParams[], claimTo?: OutputOwners) => Promise<UnsignedTx>;
+    /**
+     * Build an unsigned [[MultisigAliasTx]].
+     *
+     * @param networkID Network ID, default [[DefaultNetworkID]]
+     * @param blockchainID Blockchain ID, default undefined
+     * @param fromSigner The addresses being used to send and verify the funds from the UTXOs
+     * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs
+     * @param multisigAliasParams Parameters of MultisigAliasTx. multisigAliasParams.ID must be empty if it's the new alias
+     * @param fee Optional amount of fees to burn in its smallest denomination, represented as BN
+     * @param feeAssetID Optional asset ID of the fees being burned
+     * @param memo Optional contains arbitrary bytes, up to 256 bytes
+     * @param asOf Optional timestamp to verify the transaction against, as BN
+     * @param changeThreshold Optional number of signatures required to spend the funds in the resultant change UTXO
+     *
+     * @returns An unsigned MultisigAliasTx created from the passed-in parameters.
+     */
+    buildMultisigAliasTx: (networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], multisigAliasParams: MultisigAliasParams, fee?: BN, feeAssetID?: Buffer, memo?: Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
     _feeCheck(fee: BN, feeAssetID: Buffer): boolean;
+    /**
+     * Build an unsigned [[AddDepositOfferTx]].
+     *
+     * @param networkID
+     * @param blockchainID
+     * @param fromSigner
+     * @param changeAddresses
+     * @param depositOffer
+     * @param depositOfferCreatorAddress
+     * @param depositOfferCreatorAuth
+     * @param fee
+     * @param feeAssetID
+     * @param memo
+     * @param asOf
+     * @param changeThreshold
+     */
+    buildAddDepositOfferTx: (networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], offer: Offer, depositOfferCreatorAddress: Buffer, depositOfferCreatorAuth?: [number, Buffer][], fee?: BN, feeAssetID?: Buffer, memo?: Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
 }
 //# sourceMappingURL=builder.d.ts.map

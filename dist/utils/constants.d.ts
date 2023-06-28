@@ -4,6 +4,7 @@
  */
 import BN from "bn.js";
 export declare const DefaultNetworkID = 1;
+export declare const DefaultTransactionVersionNumber: number;
 export declare const PrivateKeyPrefix: string;
 export declare const NodeIDPrefix: string;
 export declare const XChainAlias: string;
@@ -39,5 +40,5 @@ export declare const AVAXSTAKECAP: BN;
 /**
  * Rules used when merging sets
  */
-export declare type MergeRule = "intersection" | "differenceSelf" | "differenceNew" | "symDifference" | "union" | "unionMinusNew" | "unionMinusSelf" | "ERROR";
+export type MergeRule = "intersection" | "differenceSelf" | "differenceNew" | "symDifference" | "union" | "unionMinusNew" | "unionMinusSelf" | "ERROR";
 //# sourceMappingURL=constants.d.ts.map
