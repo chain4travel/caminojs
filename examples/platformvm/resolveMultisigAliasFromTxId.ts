@@ -3,7 +3,6 @@ import { ExamplesConfig } from "../common/examplesConfig"
 import { PlatformVMAPI } from "caminojs/apis/platformvm"
 import createHash from "create-hash"
 
-
 const config: ExamplesConfig = require("../common/examplesConfig.json")
 const avalanche: Avalanche = new Avalanche(
   config.host,
@@ -32,9 +31,9 @@ const main = async (): Promise<any> => {
   const aliasId: Buffer = Buffer.from(
     createHash("ripemd160").update(id).digest()
   )
-  
+
   const address = bintools.addressToString(hrp, "P", aliasId)
-  console.log(address);
+  console.log(address)
 }
 
 main()
