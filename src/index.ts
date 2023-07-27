@@ -31,11 +31,14 @@ import {
   MILLIAVAX,
   PChainAlias,
   PChainVMName,
+  TChainAlias,
+  TChainVMName,
   XChainAlias,
   XChainVMName
 } from "./utils/constants"
 import { DefaultPlatformChainID } from "./utils"
 import { GetConfigurationResponse } from "./apis/platformvm/interfaces"
+import { TouristicVMAPI } from "caminojs/apis/touristicvm/api"
 
 /**
  * CaminoJS is middleware for interacting with Camino node RPC APIs.
@@ -97,7 +100,7 @@ export default class Avalanche extends AvalancheCore {
    * Returns a reference to the PlatformVM RPC pointed at the P-Chain.
    */
   PChain = () => this.apis.pchain as PlatformVMAPI
-
+  TChain = () => this.apis.tchain as TouristicVMAPI
   /**
    * Creates a new Avalanche instance. Sets the address and port of the main Avalanche Client.
    *
@@ -136,6 +139,8 @@ export default class Avalanche extends AvalancheCore {
     // We need this to be able to make init calls
     const pAPI = this.apis["pchain"]
     const iAPI = this.apis["info"]
+    const tAPI = this.apis["tchain"]
+    this.addAPI("tchain", TouristicVMAPI)
     this.addAPI("pchain", PlatformVMAPI)
     this.addAPI("info", InfoAPI)
 
@@ -157,6 +162,7 @@ export default class Avalanche extends AvalancheCore {
     if (!response) {
       // restore apis
       this.apis["pchain"] = pAPI
+      this.apis["tchain"] = tAPI
       this.apis["info"] = iAPI
 
       throw new Error("Configuration required")
@@ -164,6 +170,7 @@ export default class Avalanche extends AvalancheCore {
 
     const xchain = response.blockchains.find((b) => b["name"] === "X-Chain")
     const cchain = response.blockchains.find((b) => b["name"] === "C-Chain")
+    const tchain = response.blockchains.find((b) => b["name"] === "T-Chain")
 
     const fees = await this.Info().getTxFee()
 
@@ -209,6 +216,13 @@ export default class Avalanche extends AvalancheCore {
         txBytesGas: 1,
         txFee: MILLIAVAX,
         vm: CChainVMName
+      },
+      T: {
+        alias: TChainAlias,
+        blockchainID: tchain["id"],
+        vm: TChainVMName,
+        txFee: fees.txFee,
+        maxSupply: response.supplyCap
       }
     }
 
@@ -226,6 +240,7 @@ export default class Avalanche extends AvalancheCore {
     this.addAPI("keystore", KeystoreAPI)
     this.addAPI("metrics", MetricsAPI)
 
+    this.addAPI("tchain", TouristicVMAPI)
     this.addAPI("pchain", PlatformVMAPI)
     this.addAPI(
       "xchain",

@@ -21,7 +21,9 @@ import {
   TestCBlockchainID,
   TestHRP,
   TestNetworkID,
-  TestXBlockchainID
+  TestXBlockchainID,
+  TChainAlias,
+  TChainVMName
 } from "./constants"
 
 export interface C {
@@ -72,12 +74,22 @@ export interface P {
   lockModeBondDeposit: boolean
 }
 
+export interface T {
+  blockchainID: string
+  alias: string
+  vm: string
+  maxSupply: BN
+  txFee?: BN | number
+  fee?: BN
+}
+
 export interface Network {
   preDefined?: boolean
   hrp: string
   C: C
   X: X
   P: P
+  T: T
 }
 
 export interface Chain {
@@ -86,6 +98,13 @@ export interface Chain {
 }
 
 const TestNetwork: Network = {
+  T: {
+    blockchainID: DefaultPlatformChainID,
+    alias: TChainAlias,
+    vm: TChainVMName,
+    txFee: MILLIAVAX,
+    maxSupply: new BN(720000000).mul(ONEAVAX)
+  },
   preDefined: true,
   hrp: TestHRP,
   X: {
@@ -177,7 +196,8 @@ const AvaxMainNetwork: Network = {
     minGasPrice: GWEI.mul(new BN(25)),
     maxGasPrice: GWEI.mul(new BN(1000)),
     chainID: 43114
-  }
+  },
+  T: undefined
 }
 
 /**

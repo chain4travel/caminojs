@@ -13,9 +13,12 @@ export const NodeIDPrefix: string = "NodeID-"
 export const XChainAlias: string = "X"
 export const CChainAlias: string = "C"
 export const PChainAlias: string = "P"
+export const TChainAlias: string = "T"
+
 export const XChainVMName: string = "avm"
 export const CChainVMName: string = "evm"
 export const PChainVMName: string = "platformvm"
+export const TChainVMName: string = "touristicvm"
 
 export const TestHRP = "local"
 export const TestNetworkID = 12345
