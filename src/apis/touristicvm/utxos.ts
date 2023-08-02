@@ -5,14 +5,9 @@
 import { Buffer } from "buffer/"
 import BinTools from "../../utils/bintools"
 import BN from "bn.js"
-import {
-  AmountOutput,
-  SelectOutputClass,
-  TransferableOutput,
-  SECPTransferOutput
-} from "./outputs"
+import { AmountOutput, SelectOutputClass, TransferableOutput } from "./outputs"
 import { SECPTransferInput, TransferableInput } from "./inputs"
-import { Output, OutputOwners } from "../../common/output"
+import { Output } from "../../common/output"
 import { UnixNow } from "../../utils/helperfunctions"
 import { StandardUTXO, StandardUTXOSet } from "../../common/utxos"
 import { BaseTx } from "./basetx"
@@ -25,11 +20,11 @@ import {
   UTXOError,
   AddressError,
   InsufficientFundsError,
-  ThresholdError,
-  SECPMintOutputError
+  ThresholdError
 } from "../../utils/errors"
 import { UnsignedTx } from "caminojs/apis/touristicvm/tx"
 import { TouristicVmConstants } from "caminojs/apis/touristicvm/constants"
+import { ImportTx } from "caminojs/apis/touristicvm/importtx"
 
 /**
  * @ignore
@@ -401,165 +396,165 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
     return new UnsignedTx(baseTx)
   }
 
-  // /**
-  //  * Creates an unsigned Secp mint transaction. For more granular control, you may create your own
-  //  * [[OperationTx]] manually (with their corresponding [[TransferableInput]]s, [[TransferableOutput]]s, and [[TransferOperation]]s).
-  //  *
-  //  * @param networkID The number representing NetworkID of the node
-  //  * @param blockchainID The {@link https://github.com/feross/buffer|Buffer} representing the BlockchainID for the transaction
-  //  * @param mintOwner A [[SECPMintOutput]] which specifies the new set of minters
-  //  * @param transferOwner A [[SECPTransferOutput]] which specifies where the minted tokens will go
-  //  * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
-  //  * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs
-  //  * @param mintUTXOID The UTXOID for the [[SCPMintOutput]] being spent to produce more tokens
-  //  * @param fee Optional. The amount of fees to burn in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}
-  //  * @param feeAssetID Optional. The assetID of the fees being burned.
-  //  * @param memo Optional contains arbitrary bytes, up to 256 bytes
-  //  * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
-  //  * @param changethreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
-  //  *
-  //  * @returns An unsigned transaction created from the passed in parameters.
-  //  */
-  // /**
-  //  * Creates an unsigned ImportTx transaction.
-  //  *
-  //  * @param networkID The number representing NetworkID of the node
-  //  * @param blockchainID The {@link https://github.com/feross/buffer|Buffer} representing the BlockchainID for the transaction
-  //  * @param toAddresses The addresses to send the funds
-  //  * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
-  //  * @param changeAddresses Optional. The addresses that can spend the change remaining from the spent UTXOs.
-  //  * @param importIns An array of [[TransferableInput]]s being imported
-  //  * @param sourceChain A {@link https://github.com/feross/buffer|Buffer} for the chainid where the imports are coming from.
-  //  * @param fee Optional. The amount of fees to burn in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}. Fee will come from the inputs first, if they can.
-  //  * @param feeAssetID Optional. The assetID of the fees being burned.
-  //  * @param memo Optional contains arbitrary bytes, up to 256 bytes
-  //  * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
-  //  * @param locktime Optional. The locktime field created in the resulting outputs
-  //  * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
-  //  * @param changethreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
-  //  *
-  //  * @returns An unsigned transaction created from the passed in parameters.
-  //  *
-  //  */
-  // buildImportTx = (
-  //   networkID: number,
-  //   blockchainID: Buffer,
-  //   toAddresses: Buffer[],
-  //   fromAddresses: Buffer[],
-  //   changeAddresses: Buffer[],
-  //   atomics: UTXO[],
-  //   sourceChain: Buffer = undefined,
-  //   fee: BN = undefined,
-  //   feeAssetID: Buffer = undefined,
-  //   memo: Buffer = undefined,
-  //   asOf: BN = UnixNow(),
-  //   locktime: BN = new BN(0),
-  //   toThreshold: number = 1,
-  //   changeThreshold: number = 1
-  // ): UnsignedTx => {
-  //   const zero: BN = new BN(0)
-  //   let ins: TransferableInput[] = []
-  //   let outs: TransferableOutput[] = []
-  //   if (typeof fee === "undefined") {
-  //     fee = zero.clone()
-  //   }
-  //
-  //   const importIns: TransferableInput[] = []
-  //   let feepaid: BN = new BN(0)
-  //   let feeAssetStr: string = feeAssetID.toString("hex")
-  //   for (let i: number = 0; i < atomics.length; i++) {
-  //     const utxo: UTXO = atomics[`${i}`]
-  //     const assetID: Buffer = utxo.getAssetID()
-  //     const output: AmountOutput = utxo.getOutput() as AmountOutput
-  //     let amt: BN = output.getAmount().clone()
-  //
-  //     let infeeamount = amt.clone()
-  //     let assetStr: string = assetID.toString("hex")
-  //     if (
-  //       typeof feeAssetID !== "undefined" &&
-  //       fee.gt(zero) &&
-  //       feepaid.lt(fee) &&
-  //       assetStr === feeAssetStr
-  //     ) {
-  //       feepaid = feepaid.add(infeeamount)
-  //       if (feepaid.gt(fee)) {
-  //         infeeamount = feepaid.sub(fee)
-  //         feepaid = fee.clone()
-  //       } else {
-  //         infeeamount = zero.clone()
-  //       }
-  //     }
-  //
-  //     const txid: Buffer = utxo.getTxID()
-  //     const outputidx: Buffer = utxo.getOutputIdx()
-  //     const input: SECPTransferInput = new SECPTransferInput(amt)
-  //     const xferin: TransferableInput = new TransferableInput(
-  //       txid,
-  //       outputidx,
-  //       assetID,
-  //       input
-  //     )
-  //     const from: Buffer[] = output.getAddresses()
-  //     const spenders: Buffer[] = output.getSpenders(from, asOf)
-  //     for (let j: number = 0; j < spenders.length; j++) {
-  //       const idx: number = output.getAddressIdx(spenders[`${j}`])
-  //       if (idx === -1) {
-  //         /* istanbul ignore next */
-  //         throw new AddressError(
-  //           "Error - UTXOSet.buildImportTx: no such " +
-  //             `address in output: ${spenders[`${j}`]}`
-  //         )
-  //       }
-  //       xferin.getInput().addSignatureIdx(idx, spenders[`${j}`])
-  //     }
-  //     importIns.push(xferin)
-  //
-  //     //add extra outputs for each amount (calculated from the imported inputs), minus fees
-  //     if (infeeamount.gt(zero)) {
-  //       const spendout: AmountOutput = SelectOutputClass(
-  //         output.getOutputID(),
-  //         infeeamount,
-  //         toAddresses,
-  //         locktime,
-  //         toThreshold
-  //       ) as AmountOutput
-  //       const xferout: TransferableOutput = new TransferableOutput(
-  //         assetID,
-  //         spendout
-  //       )
-  //       outs.push(xferout)
-  //     }
-  //   }
-  //
-  //   // get remaining fees from the provided addresses
-  //   let feeRemaining: BN = fee.sub(feepaid)
-  //   if (feeRemaining.gt(zero) && this._feeCheck(feeRemaining, feeAssetID)) {
-  //     const aad: AssetAmountDestination = new AssetAmountDestination(
-  //       toAddresses,
-  //       toThreshold,
-  //       fromAddresses,
-  //       changeAddresses,
-  //       changeThreshold
-  //     )
-  //     aad.addAssetAmount(feeAssetID, zero, feeRemaining)
-  //     const success: Error = this.getMinimumSpendable(aad, asOf, locktime)
-  //     if (typeof success === "undefined") {
-  //       ins = aad.getInputs()
-  //       outs = aad.getAllOutputs()
-  //     } else {
-  //       throw success
-  //     }
-  //   }
-  //
-  //   const importTx: ImportTx = new ImportTx(
-  //     networkID,
-  //     blockchainID,
-  //     outs,
-  //     ins,
-  //     memo,
-  //     sourceChain,
-  //     importIns
-  //   )
-  //   return new UnsignedTx(importTx)
-  // }
+  /**
+   * Creates an unsigned Secp mint transaction. For more granular control, you may create your own
+   * [[OperationTx]] manually (with their corresponding [[TransferableInput]]s, [[TransferableOutput]]s, and [[TransferOperation]]s).
+   *
+   * @param networkID The number representing NetworkID of the node
+   * @param blockchainID The {@link https://github.com/feross/buffer|Buffer} representing the BlockchainID for the transaction
+   * @param mintOwner A [[SECPMintOutput]] which specifies the new set of minters
+   * @param transferOwner A [[SECPTransferOutput]] which specifies where the minted tokens will go
+   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs
+   * @param mintUTXOID The UTXOID for the [[SCPMintOutput]] being spent to produce more tokens
+   * @param fee Optional. The amount of fees to burn in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}
+   * @param feeAssetID Optional. The assetID of the fees being burned.
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param changethreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   *
+   * @returns An unsigned transaction created from the passed in parameters.
+   */
+  /**
+   * Creates an unsigned ImportTx transaction.
+   *
+   * @param networkID The number representing NetworkID of the node
+   * @param blockchainID The {@link https://github.com/feross/buffer|Buffer} representing the BlockchainID for the transaction
+   * @param toAddresses The addresses to send the funds
+   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+   * @param changeAddresses Optional. The addresses that can spend the change remaining from the spent UTXOs.
+   * @param importIns An array of [[TransferableInput]]s being imported
+   * @param sourceChain A {@link https://github.com/feross/buffer|Buffer} for the chainid where the imports are coming from.
+   * @param fee Optional. The amount of fees to burn in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}. Fee will come from the inputs first, if they can.
+   * @param feeAssetID Optional. The assetID of the fees being burned.
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param locktime Optional. The locktime field created in the resulting outputs
+   * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param changethreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   *
+   * @returns An unsigned transaction created from the passed in parameters.
+   *
+   */
+  buildImportTx = (
+    networkID: number,
+    blockchainID: Buffer,
+    toAddresses: Buffer[],
+    fromAddresses: Buffer[],
+    changeAddresses: Buffer[],
+    atomics: UTXO[],
+    sourceChain: Buffer = undefined,
+    fee: BN = undefined,
+    feeAssetID: Buffer = undefined,
+    memo: Buffer = undefined,
+    asOf: BN = UnixNow(),
+    locktime: BN = new BN(0),
+    toThreshold: number = 1,
+    changeThreshold: number = 1
+  ): UnsignedTx => {
+    const zero: BN = new BN(0)
+    let ins: TransferableInput[] = []
+    let outs: TransferableOutput[] = []
+    if (typeof fee === "undefined") {
+      fee = zero.clone()
+    }
+
+    const importIns: TransferableInput[] = []
+    let feepaid: BN = new BN(0)
+    let feeAssetStr: string = feeAssetID.toString("hex")
+    for (let i: number = 0; i < atomics.length; i++) {
+      const utxo: UTXO = atomics[`${i}`]
+      const assetID: Buffer = utxo.getAssetID()
+      const output: AmountOutput = utxo.getOutput() as AmountOutput
+      let amt: BN = output.getAmount().clone()
+
+      let infeeamount = amt.clone()
+      let assetStr: string = assetID.toString("hex")
+      if (
+        typeof feeAssetID !== "undefined" &&
+        fee.gt(zero) &&
+        feepaid.lt(fee) &&
+        assetStr === feeAssetStr
+      ) {
+        feepaid = feepaid.add(infeeamount)
+        if (feepaid.gt(fee)) {
+          infeeamount = feepaid.sub(fee)
+          feepaid = fee.clone()
+        } else {
+          infeeamount = zero.clone()
+        }
+      }
+
+      const txid: Buffer = utxo.getTxID()
+      const outputidx: Buffer = utxo.getOutputIdx()
+      const input: SECPTransferInput = new SECPTransferInput(amt)
+      const xferin: TransferableInput = new TransferableInput(
+        txid,
+        outputidx,
+        assetID,
+        input
+      )
+      const from: Buffer[] = output.getAddresses()
+      const spenders: Buffer[] = output.getSpenders(from, asOf)
+      for (let j: number = 0; j < spenders.length; j++) {
+        const idx: number = output.getAddressIdx(spenders[`${j}`])
+        if (idx === -1) {
+          /* istanbul ignore next */
+          throw new AddressError(
+            "Error - UTXOSet.buildImportTx: no such " +
+              `address in output: ${spenders[`${j}`]}`
+          )
+        }
+        xferin.getInput().addSignatureIdx(idx, spenders[`${j}`])
+      }
+      importIns.push(xferin)
+
+      //add extra outputs for each amount (calculated from the imported inputs), minus fees
+      if (infeeamount.gt(zero)) {
+        const spendout: AmountOutput = SelectOutputClass(
+          output.getOutputID(),
+          infeeamount,
+          toAddresses,
+          locktime,
+          toThreshold
+        ) as AmountOutput
+        const xferout: TransferableOutput = new TransferableOutput(
+          assetID,
+          spendout
+        )
+        outs.push(xferout)
+      }
+    }
+
+    // get remaining fees from the provided addresses
+    let feeRemaining: BN = fee.sub(feepaid)
+    if (feeRemaining.gt(zero) && this._feeCheck(feeRemaining, feeAssetID)) {
+      const aad: AssetAmountDestination = new AssetAmountDestination(
+        toAddresses,
+        toThreshold,
+        fromAddresses,
+        changeAddresses,
+        changeThreshold
+      )
+      aad.addAssetAmount(feeAssetID, zero, feeRemaining)
+      const success: Error = this.getMinimumSpendable(aad, asOf, locktime)
+      if (typeof success === "undefined") {
+        ins = aad.getInputs()
+        outs = aad.getAllOutputs()
+      } else {
+        throw success
+      }
+    }
+
+    const importTx: ImportTx = new ImportTx(
+      networkID,
+      blockchainID,
+      outs,
+      ins,
+      memo,
+      sourceChain,
+      importIns
+    )
+    return new UnsignedTx(importTx)
+  }
 }

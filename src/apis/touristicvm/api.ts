@@ -1,6 +1,6 @@
 /**
  * @packageDocumentation
- * @module API-PlatformVM
+ * @module API-TouristicVM
  */
 import { Buffer } from "buffer/"
 import BN from "bn.js"
@@ -10,9 +10,10 @@ import BinTools from "../../utils/bintools"
 import { ONEAVAX } from "../../utils/constants"
 import { PayloadBase } from "../../utils/payload"
 import { UnixNow } from "../../utils/helperfunctions"
-import { UTXOSet } from "./utxos"
+import { UTXO, UTXOSet } from "./utxos"
 import {
   AddressError,
+  ChainIdError,
   GooseEggCheckError,
   TransactionError
 } from "../../utils/errors"
@@ -43,7 +44,7 @@ type NodeOwnerType = {
 }
 
 /**
- * Class for interacting with a node's PlatformVMAPI
+ * Class for interacting with a node's TouristicVMAPI
  *
  * @category RPCAPIs
  *
@@ -302,6 +303,104 @@ export class TouristicVMAPI extends JRPCAPI {
       throw new GooseEggCheckError(
         "Error - AVMAPI.buildBaseTx:Failed Goose Egg Check"
       )
+    }
+
+    return builtUnsignedTx
+  }
+
+  /**
+   * Helper function which creates an unsigned Import Tx. For more granular control, you may create your own
+   * [[UnsignedTx]] manually (with their corresponding [[TransferableInput]]s, [[TransferableOutput]]s, and [[TransferOperation]]s).
+   *
+   * @param utxoset A set of UTXOs that the transaction is built on
+   * @param ownerAddresses The addresses being used to import
+   * @param sourceChain The chainid for where the import is coming from.
+   * @param toAddresses The addresses to send the funds
+   * @param fromAddresses The addresses being used to send the funds from the UTXOs provided
+   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param locktime Optional. The locktime field created in the resulting outputs
+   * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   *
+   * @returns An unsigned transaction ([[UnsignedTx]]) which contains a [[ImportTx]].
+   *
+   * @remarks
+   * This helper exists because the endpoint API should be the primary point of entry for most functionality.
+   */
+  buildImportTx = async (
+    utxoset: UTXOSet,
+    ownerAddresses: string[],
+    sourceChain: Buffer | string,
+    toAddresses: string[],
+    fromAddresses: string[],
+    changeAddresses: string[],
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = ZeroBN,
+    locktime: BN = ZeroBN,
+    toThreshold: number = 1,
+    changeThreshold: number = 1
+  ): Promise<UnsignedTx> => {
+    const caller = "buildImportTx"
+
+    const to: Buffer[] = this._cleanAddressArray(toAddresses, caller).map(
+      (a: string): Buffer => bintools.stringToAddress(a)
+    )
+    const from: Buffer[] = this._cleanAddressArray(fromAddresses, caller).map(
+      (a: string): Buffer => bintools.stringToAddress(a)
+    )
+    const change: Buffer[] = this._cleanAddressArray(
+      changeAddresses,
+      caller
+    ).map((a: string): Buffer => bintools.stringToAddress(a))
+
+    let srcChain: string = undefined
+
+    if (typeof sourceChain === "undefined") {
+      throw new ChainIdError(
+        "Error - TouristicVMAPI.buildImportTx: Source ChainID is undefined."
+      )
+    } else if (typeof sourceChain === "string") {
+      srcChain = sourceChain
+      sourceChain = bintools.cb58Decode(sourceChain)
+    } else if (!(sourceChain instanceof Buffer)) {
+      throw new ChainIdError(
+        "Error - TouristicVMAPI.buildImportTx: Invalid destinationChain type: " +
+          typeof sourceChain
+      )
+    }
+    const atomicUTXOs: UTXOSet = await (
+      await this.getUTXOs(ownerAddresses, srcChain, 0, undefined)
+    ).utxos
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+
+    const atomics: UTXO[] = atomicUTXOs.getAllUTXOs()
+
+    const builtUnsignedTx: UnsignedTx = await utxoset.buildImportTx(
+      this.core.getNetworkID(),
+      bintools.cb58Decode(this.blockchainID),
+      to,
+      from,
+      change,
+      atomics,
+      sourceChain,
+      this.getTxFee(),
+      avaxAssetID,
+      memo,
+      asOf,
+      locktime,
+      toThreshold,
+      changeThreshold
+    )
+
+    if (!(await this.checkGooseEgg(builtUnsignedTx))) {
+      /* istanbul ignore next */
+      throw new GooseEggCheckError("Failed Goose Egg Check")
     }
 
     return builtUnsignedTx

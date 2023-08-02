@@ -1,27 +1,28 @@
-import { Avalanche, BinTools, BN, Buffer } from "caminojs/index"
-import { UnixNow } from "caminojs/utils"
-import { ExamplesConfig } from "../common/examplesConfig"
+import { Avalanche, BN, Buffer } from "caminojs/index"
 import { TouristicVMAPI } from "caminojs/apis/touristicvm/api"
-import { Tx, UnsignedTx, UTXOSet } from "caminojs/apis/touristicvm"
+import {
+  PrivateKeyPrefix,
+  DefaultLocalGenesisPrivateKey,
+  UnixNow,
+  DefaultLocalGenesisPrivateKey2
+} from "caminojs/utils"
 import { GetUTXOsResponse } from "caminojs/apis/touristicvm/interfaces"
+import { Tx, UnsignedTx, UTXOSet } from "caminojs/apis/touristicvm"
 
-const config: ExamplesConfig = require("../common/examplesConfig.json")
 const avalanche: Avalanche = new Avalanche("localhost", 9650, "http", 1002)
-const bintools: BinTools = BinTools.getInstance()
-const privKey: string =
-  "PrivateKey-vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"
+
 const asOf: BN = UnixNow()
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const threshold: number = 1
 const locktime: BN = new BN(0)
-const memo: Buffer = Buffer.from(
-  "TVM utility method buildBaseTx to send an ANT"
-)
+const memo: Buffer = Buffer.from("TVM utility method buildImportTx")
 
 let avaxAssetID: string = undefined
 let tchain: TouristicVMAPI
 let tkeyChain: any
 let tAddresses: Buffer[]
 let tAddressStrings: string[]
+let pChainBlockchainID: string
 
 const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()
@@ -31,31 +32,29 @@ const InitAvalanche = async () => {
   tAddresses = tchain.keyChain().getAddresses()
   tAddressStrings = tchain.keyChain().getAddressStrings()
   avaxAssetID = avalanche.getNetwork().X.avaxAssetID
+  pChainBlockchainID = avalanche.getNetwork().P.blockchainID
 }
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const amount: BN = new BN(1)
 
   const tvmUTXOResponse: GetUTXOsResponse = await tchain.getUTXOs([
     "T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
   ])
   const utxoSet: UTXOSet = tvmUTXOResponse.utxos
 
-  const unsignedTx: UnsignedTx = await tchain.buildBaseTx(
+  const unsignedTx: UnsignedTx = await tchain.buildImportTx(
     utxoSet,
-    amount,
-    avaxAssetID,
-    ["T-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68"],
-    ["T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"], //TODO check again
-    ["T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"],
+    tAddressStrings,
+    pChainBlockchainID,
+    tAddressStrings,
+    tAddressStrings,
+    tAddressStrings,
     memo,
     asOf,
     locktime,
     threshold
   )
-  console.log(JSON.stringify(unsignedTx))
-
   const tx: Tx = unsignedTx.sign(tkeyChain)
   // console.log(tx.toBuffer().toString("hex"))
   const txid: string = await tchain.issueTx(tx)

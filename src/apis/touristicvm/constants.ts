@@ -8,15 +8,17 @@ export class TouristicVmConstants {
 
   static SECPFXID: number = 0
 
-  static SECPINPUTID: number = 1
+  static SECPINPUTID: number = 5
 
-  static SECPXFEROUTPUTID: number = 3
+  static SECPXFEROUTPUTID: number = 7
 
-  static SECPCREDENTIAL: number = 5
+  static SECPCREDENTIAL: number = 9
 
-  static SECPOWNEROUTPUTID: number = 7
+  static SECPOWNEROUTPUTID: number = 11
 
-  static BASETX: number = 8
+  static BASETX: number = 12
+
+  static IMPORTTX: number = 13
 
   // Length Constants
   static ASSETIDLEN: number = 32
