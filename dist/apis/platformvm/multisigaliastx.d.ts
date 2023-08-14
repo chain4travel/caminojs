@@ -19,6 +19,7 @@ export declare class MultisigAlias {
     protected owners: ParseableOutput;
     constructor(id?: Buffer, memo?: Buffer, owners?: ParseableOutput);
     getMemo(): Buffer;
+    getOwners(): ParseableOutput;
     deserialize(fields: object, encoding?: SerializedEncoding): this;
     serialize(encoding?: SerializedEncoding): object;
     fromBuffer(bytes: Buffer, offset?: number): number;
