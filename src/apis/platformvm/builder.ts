@@ -59,6 +59,8 @@ import {
   AddDepositOfferTx,
   Offer
 } from "../../apis/platformvm/adddepositoffertx"
+import { AddProposalTx, type Proposal } from "./addproposaltx"
+import BinTools from "../../utils/bintools"
 
 export type LockMode = "Unlocked" | "Bond" | "Deposit" | "Stake"
 
@@ -1770,6 +1772,85 @@ export class Builder {
     })
 
     owners.push(new OutputOwners([depositOfferCreatorAddress], ZeroBN, 1))
+
+    baseTx.setOutputOwners(owners)
+    return new UnsignedTx(baseTx)
+  }
+
+  /**
+   * Build an unsigned [[AddProposalTx]].
+   *
+   * @param networkID Networkid, [[DefaultNetworkID]]
+   * @param blockchainID Blockchainid, default undefined
+   * @param fromSigner The addresses being used to send and verify the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+   * @param proposal The proposal content that will be created.
+   * @param proposerAddress The P-address of proposer in Buffer.
+   * @param proposerAuth Auth for proposer address
+   * @param version Optional. Transaction version number, default 0.
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param fee Optional. The amount of fees to burn in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}
+   * @param feeAssetID Optional. The assetID of the fees being burned
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   *
+   * @returns An unsigned AddProposalTx created from the passed in parameters.
+   */
+  buildAddProposalTx = async (
+    networkID: number = DefaultNetworkID,
+    blockchainID: Buffer,
+    fromSigner: FromSigner,
+    changeAddresses: Buffer[],
+    proposal: Proposal = undefined,
+    proposerAddress: Buffer = undefined,
+    proposerAuth = undefined,
+    version: number = DefaultTransactionVersionNumber,
+    memo: Buffer = undefined,
+    fee: BN = zero,
+    feeAssetID: Buffer = undefined,
+    asOf: BN = zero,
+    changeThreshold: number = 1
+  ): Promise<UnsignedTx> => {
+    let ins: TransferableInput[] = []
+    let outs: TransferableOutput[] = []
+    let owners: OutputOwners[] = []
+
+    if (this._feeCheck(fee, feeAssetID)) {
+      const aad: AssetAmountDestination = new AssetAmountDestination(
+        [],
+        0,
+        fromSigner.from,
+        fromSigner.signer,
+        changeAddresses,
+        changeThreshold
+      )
+      aad.addAssetAmount(feeAssetID, zero, fee)
+
+      const minSpendableErr: Error = await this.spender.getMinimumSpendable(
+        aad,
+        asOf,
+        zero,
+        "Unlocked"
+      )
+      if (typeof minSpendableErr === "undefined") {
+        ins = aad.getInputs()
+        outs = aad.getAllOutputs()
+      } else {
+        throw minSpendableErr
+      }
+    }
+
+    const baseTx: AddProposalTx = new AddProposalTx(
+      version,
+      networkID,
+      blockchainID,
+      outs,
+      ins,
+      memo,
+      proposal,
+      proposerAddress,
+      proposerAuth
+    )
 
     baseTx.setOutputOwners(owners)
     return new UnsignedTx(baseTx)
