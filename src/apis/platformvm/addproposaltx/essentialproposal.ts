@@ -63,8 +63,8 @@ export abstract class EssentialProposal {
   /**
    * Adds a option to the proposal and returns the index off the added option.
    */
-  addOption = (sig: VoteOption): number => {
-    this.options.push(sig)
+  addOption(option: VoteOption): number {
+    this.options.push(option)
     if (this.options) {
       this.numOptions.writeUInt32BE(this.options.length, 0)
     }

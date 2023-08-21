@@ -21,7 +21,7 @@ import { SelectCredentialClass } from '../credentials';
 const bintools: BinTools = BinTools.getInstance()
 const serialization: Serialization = Serialization.getInstance()
 
-const DEFAULT_CAMINOGO_CODEC_VERSION = 0
+export const DEFAULT_CAMINOGO_CODEC_VERSION = 0
 export type Proposal = BaseFeeProposal // TODO: extend this alias type for further supported proposal types
 export class ProposalWrapper {
   private _typeID: number
@@ -68,7 +68,8 @@ export class ProposalWrapper {
   }
 
   toBuffer(): Buffer {
-    const codecVersion = Buffer.alloc(2, DEFAULT_CAMINOGO_CODEC_VERSION)
+    const codecVersion = Buffer.alloc(2)
+    codecVersion.writeUInt8(DEFAULT_CAMINOGO_CODEC_VERSION, 0)
     const typeId = Buffer.alloc(4)
     typeId.writeUInt32BE(this._typeID, 0)
     const buff = this.proposal.toBuffer()
@@ -119,7 +120,7 @@ export class AddProposalTx extends BaseTx {
   /**
    * Returns the proposal payload
    */
-  getProposerPayload(): ProposalWrapper {
+  getProposalPayload(): ProposalWrapper {
     return this.proposalPayload
   }
 
@@ -148,10 +149,10 @@ export class AddProposalTx extends BaseTx {
    */
   fromBuffer(bytes: Buffer, offset: number = 0): number {
     offset = super.fromBuffer(bytes, offset)
-    const payloadSize = bintools.copyFrom(bytes, offset, offset + 4).readUInt32BE(0)
-    offset += 4
     this.upgradeVersionID = new UpgradeVersionID()
     offset = this.upgradeVersionID.fromBuffer(bytes, offset)
+    const payloadSize = bintools.copyFrom(bytes, offset, offset + 4).readUInt32BE(0)
+    offset += 4
 
     const proposalWrapper = new ProposalWrapper()
     offset = proposalWrapper.fromBuffer(bytes, offset)
@@ -169,8 +170,8 @@ export class AddProposalTx extends BaseTx {
    * Returns a {@link https://github.com/feross/buffer|Buffer} representation of the [[AddProposalTx]].
    */
   toBuffer(): Buffer {
-    let upgradeBuf = this.upgradeVersionID.toBuffer()
     const superbuff: Buffer = super.toBuffer()
+    const upgradeBuf = this.upgradeVersionID.toBuffer()
 
     // TODO: proposalPayload toBuffer
     const payloadBuffer = this.proposalPayload.toBuffer()
