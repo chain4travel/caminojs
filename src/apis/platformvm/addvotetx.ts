@@ -21,7 +21,7 @@ import { DEFAULT_CAMINOGO_CODEC_VERSION } from './addproposaltx';
 const bintools: BinTools = BinTools.getInstance()
 const serialization: Serialization = Serialization.getInstance()
 
-class SimpleVote {
+export class SimpleVote {
   private _typeID: number = PlatformVMConstants.SIMPLEVOTE_TYPE_ID
   private optionIndex = Buffer.alloc(4)
 

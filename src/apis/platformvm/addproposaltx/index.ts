@@ -21,6 +21,7 @@ import { SelectCredentialClass } from '../credentials';
 const bintools: BinTools = BinTools.getInstance()
 const serialization: Serialization = Serialization.getInstance()
 
+export { BaseFeeProposal }
 export const DEFAULT_CAMINOGO_CODEC_VERSION = 0
 export type Proposal = BaseFeeProposal // TODO: extend this alias type for further supported proposal types
 export class ProposalWrapper {
