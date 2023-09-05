@@ -38,13 +38,7 @@ const InitAvalanche = async () => {
 const main = async (): Promise<any> => {
   await InitAvalanche()
 
-  const tvmUTXOResponse: GetUTXOsResponse = await tchain.getUTXOs([
-    "T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
-  ])
-  const utxoSet: UTXOSet = tvmUTXOResponse.utxos
-
   const unsignedTx: UnsignedTx = await tchain.buildImportTx(
-    utxoSet,
     tAddressStrings,
     pChainBlockchainID,
     tAddressStrings,
@@ -55,6 +49,8 @@ const main = async (): Promise<any> => {
     locktime,
     threshold
   )
+
+  console.log(JSON.stringify(unsignedTx))
   const tx: Tx = unsignedTx.sign(tkeyChain)
   // console.log(tx.toBuffer().toString("hex"))
   const txid: string = await tchain.issueTx(tx)

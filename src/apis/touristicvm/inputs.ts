@@ -14,6 +14,7 @@ import {
 import { Serialization, SerializedEncoding } from "../../utils/serialization"
 import BN from "bn.js"
 import { InputIdError } from "../../utils/errors"
+import { LockedIn } from "caminojs/apis/platformvm"
 
 /**
  * @ignore
@@ -34,6 +35,8 @@ export const SelectInputClass = (
 ): BaseInput => {
   if (inputid === TouristicVmConstants.SECPINPUTID) {
     return new SECPTransferInput(...args)
+  } else if (inputid === TouristicVmConstants.LOCKEDINID) {
+    return new LockedIn(...args)
   }
   /* istanbul ignore next */
   throw new InputIdError("Error - SelectInputClass: unknown inputid")

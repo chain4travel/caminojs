@@ -4,10 +4,15 @@
  */
 import { Buffer } from "buffer/"
 import BN from "bn.js"
-import { JRPCAPI, RequestResponseData, ZeroBN } from "../../common"
+import {
+  JRPCAPI,
+  OutputOwners,
+  RequestResponseData,
+  ZeroBN
+} from "../../common"
 
 import BinTools from "../../utils/bintools"
-import { ONEAVAX } from "../../utils/constants"
+import { DefaultTransactionVersionNumber, ONEAVAX } from "../../utils/constants"
 import { PayloadBase } from "../../utils/payload"
 import { UnixNow } from "../../utils/helperfunctions"
 import { UTXO, UTXOSet } from "./utxos"
@@ -15,6 +20,7 @@ import {
   AddressError,
   ChainIdError,
   GooseEggCheckError,
+  ProtocolError,
   TransactionError
 } from "../../utils/errors"
 import { PersistanceOptions, Serialization, SerializedType } from "../../utils"
@@ -24,9 +30,20 @@ import { Tx, UnsignedTx } from "caminojs/apis/touristicvm/tx"
 import { TouristicVmConstants } from "caminojs/apis/touristicvm/constants"
 import AvalancheCore from "caminojs/camino"
 import {
+  SpendParams,
+  SpendReply,
   GetUTXOsParams,
-  GetUTXOsResponse
+  GetUTXOsResponse,
+  FromSigner
 } from "caminojs/apis/touristicvm/interfaces"
+import {
+  TransferableInput,
+  TransferableOutput
+} from "caminojs/apis/touristicvm"
+import { Spender } from "caminojs/apis/touristicvm/spender"
+import { Builder } from "caminojs/apis/touristicvm/builder"
+
+export type LockMode = "Unlocked" | "Lock"
 
 /**
  * @ignore
@@ -245,11 +262,9 @@ export class TouristicVMAPI extends JRPCAPI {
    * This helper exists because the endpoint API should be the primary point of entry for most functionality.
    */
   buildBaseTx = async (
-    utxoset: UTXOSet,
     amount: BN,
-    assetID: Buffer | string = undefined,
     toAddresses: string[],
-    fromAddresses: string[],
+    fromAddresses: FromType,
     changeAddresses: string[],
     memo: PayloadBase | Buffer = undefined,
     asOf: BN = UnixNow(),
@@ -258,36 +273,27 @@ export class TouristicVMAPI extends JRPCAPI {
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
     const caller: string = "buildBaseTx"
-    const to: Buffer[] = this._cleanAddressArray(toAddresses, caller).map(
-      (a: string): Buffer => bintools.stringToAddress(a)
-    )
-    const from: Buffer[] = this._cleanAddressArray(fromAddresses, caller).map(
-      (a: string): Buffer => bintools.stringToAddress(a)
-    )
-    const change: Buffer[] = this._cleanAddressArray(
+    const to: Buffer[] = this._cleanAddressArrayBuffer(toAddresses, caller)
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
       changeAddresses,
       caller
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-
-    if (typeof assetID === "string") {
-      assetID = bintools.cb58Decode(assetID)
-    }
+    )
 
     if (memo instanceof PayloadBase) {
       memo = memo.getPayload()
     }
-
     const networkID: number = this.core.getNetworkID()
     const blockchainIDBuf: Buffer = bintools.cb58Decode(this.blockchainID)
     const fee: BN = this.getTxFee()
     const feeAssetID: Buffer = await this.getAVAXAssetID()
-    const builtUnsignedTx: UnsignedTx = utxoset.buildBaseTx(
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder().buildBaseTx(
       networkID,
       blockchainIDBuf,
       amount,
-      assetID,
+      feeAssetID,
       to,
-      from,
+      fromSigner,
       change,
       fee,
       feeAssetID,
@@ -301,7 +307,7 @@ export class TouristicVMAPI extends JRPCAPI {
     if (!(await this.checkGooseEgg(builtUnsignedTx))) {
       /* istanbul ignore next */
       throw new GooseEggCheckError(
-        "Error - AVMAPI.buildBaseTx:Failed Goose Egg Check"
+        "Error - TouristicVMAPI.buildBaseTx:Failed Goose Egg Check"
       )
     }
 
@@ -330,12 +336,11 @@ export class TouristicVMAPI extends JRPCAPI {
    * This helper exists because the endpoint API should be the primary point of entry for most functionality.
    */
   buildImportTx = async (
-    utxoset: UTXOSet,
     ownerAddresses: string[],
     sourceChain: Buffer | string,
     toAddresses: string[],
-    fromAddresses: string[],
-    changeAddresses: string[],
+    fromAddresses: FromType,
+    changeAddresses: string[] = undefined,
     memo: PayloadBase | Buffer = undefined,
     asOf: BN = ZeroBN,
     locktime: BN = ZeroBN,
@@ -344,16 +349,14 @@ export class TouristicVMAPI extends JRPCAPI {
   ): Promise<UnsignedTx> => {
     const caller = "buildImportTx"
 
-    const to: Buffer[] = this._cleanAddressArray(toAddresses, caller).map(
-      (a: string): Buffer => bintools.stringToAddress(a)
-    )
-    const from: Buffer[] = this._cleanAddressArray(fromAddresses, caller).map(
-      (a: string): Buffer => bintools.stringToAddress(a)
-    )
-    const change: Buffer[] = this._cleanAddressArray(
+    const to: Buffer[] = this._cleanAddressArrayBuffer(toAddresses, caller)
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
       changeAddresses,
       caller
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
+    )
 
     let srcChain: string = undefined
 
@@ -381,11 +384,13 @@ export class TouristicVMAPI extends JRPCAPI {
 
     const atomics: UTXO[] = atomicUTXOs.getAllUTXOs()
 
-    const builtUnsignedTx: UnsignedTx = await utxoset.buildImportTx(
+    console.log("atomics")
+    console.log(atomics)
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder().buildImportTx(
       this.core.getNetworkID(),
       bintools.cb58Decode(this.blockchainID),
       to,
-      from,
+      fromSigner,
       change,
       atomics,
       sourceChain,
@@ -404,6 +409,111 @@ export class TouristicVMAPI extends JRPCAPI {
     }
 
     return builtUnsignedTx
+  }
+
+  buildLockMessengerFundsTx = async (
+    fromAddresses: FromType,
+    changeAddresses: string[] = undefined,
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = ZeroBN,
+    amountToLock: BN,
+    changeThreshold: number = 1
+  ): Promise<UnsignedTx> => {
+    const caller = "buildDepositTx"
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+    const networkID: number = this.core.getNetworkID()
+    const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
+    const fee: BN = this.getTxFee()
+
+    const builtUnsignedTx: UnsignedTx =
+      await this._getBuilder().buildLockMessengerFundsTx(
+        networkID,
+        blockchainID,
+        fromSigner,
+        change,
+        fee,
+        avaxAssetID,
+        memo,
+        asOf,
+        amountToLock,
+        changeThreshold
+      )
+
+    return builtUnsignedTx
+  }
+
+  spend = async (
+    from: string[] | string,
+    signer: string[] | string,
+    to: string[],
+    toThreshold: number,
+    toLockTime: BN,
+    change: string[],
+    changeThreshold: number,
+    lockMode: LockMode,
+    amountToLock: BN,
+    amountToBurn: BN,
+    asOf: BN,
+    encoding?: string
+  ): Promise<SpendReply> => {
+    if (!["Unlocked", "Lock"].includes(lockMode)) {
+      throw new ProtocolError("Error -- TouristicvmAPI.spend: invalid lockMode")
+    }
+    const params: SpendParams = {
+      from,
+      signer,
+      to:
+        to.length > 0
+          ? {
+              locktime: toLockTime.toString(10),
+              threshold: toThreshold,
+              addresses: to
+            }
+          : undefined,
+      change:
+        change.length > 0
+          ? { locktime: "0", threshold: changeThreshold, addresses: change }
+          : undefined,
+      lockMode: lockMode === "Unlocked" ? 0 : 1,
+      amountToLock: amountToLock.toString(10),
+      amountToBurn: amountToBurn.toString(10),
+      asOf: asOf.toString(10),
+      encoding: encoding ?? "hex"
+    }
+
+    const response: RequestResponseData = await this.callMethod(
+      "touristicvm.spend",
+      params
+    )
+    const r = response.data.result
+
+    // We need to update signature index source here
+    const ins = TransferableInput.fromArray(Buffer.from(r.ins.slice(2), "hex"))
+    ins.forEach((e, idx) =>
+      e.getSigIdxs().forEach((s, sidx) => {
+        s.setSource(bintools.cb58Decode(r.signers[`${idx}`][`${sidx}`]))
+      })
+    )
+
+    return {
+      ins,
+      out: TransferableOutput.fromArray(Buffer.from(r.outs.slice(2), "hex")),
+      owners: r.owners
+        ? OutputOwners.fromArray(Buffer.from(r.owners.slice(2), "hex"))
+        : []
+    }
   }
 
   /**
@@ -571,12 +681,34 @@ export class TouristicVMAPI extends JRPCAPI {
   parseAddress = (addr: string): Buffer => {
     const alias: string = this.getBlockchainAlias()
     const blockchainID: string = this.getBlockchainID()
-    console.log("parseAddress", addr, blockchainID, alias)
     return bintools.parseAddress(
       addr,
       blockchainID,
       alias,
       TouristicVmConstants.ADDRESSLENGTH
     )
+  }
+
+  _getBuilder = (): Builder => {
+    return new Builder(new Spender(this))
+  }
+
+  protected _parseFromSigner(from: FromType, caller: string): FromSigner {
+    if (from.length > 0) {
+      if (typeof from[0] === "string")
+        return {
+          from: this._cleanAddressArrayBuffer(from as string[], caller),
+          signer: []
+        }
+      else
+        return {
+          from: this._cleanAddressArrayBuffer(from[0] as string[], caller),
+          signer:
+            from.length > 1
+              ? this._cleanAddressArrayBuffer(from[1] as string[], caller)
+              : []
+        }
+    }
+    return { from: [], signer: [] }
   }
 }

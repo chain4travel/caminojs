@@ -1,13 +1,13 @@
 /**
  * @packageDocumentation
- * @module API-AVM-UTXOs
+ * @module API-TouristicVM-UTXOs
  */
 import { Buffer } from "buffer/"
 import BinTools from "../../utils/bintools"
 import BN from "bn.js"
 import { AmountOutput, SelectOutputClass, TransferableOutput } from "./outputs"
 import { SECPTransferInput, TransferableInput } from "./inputs"
-import { Output } from "../../common/output"
+import { BaseOutput, Output, OutputOwners } from "../../common/output"
 import { UnixNow } from "../../utils/helperfunctions"
 import { StandardUTXO, StandardUTXOSet } from "../../common/utxos"
 import { BaseTx } from "./basetx"
@@ -16,21 +16,16 @@ import {
   AssetAmount
 } from "../../common/assetamount"
 import { Serialization, SerializedEncoding } from "../../utils/serialization"
-import {
-  UTXOError,
-  AddressError,
-  InsufficientFundsError,
-  ThresholdError
-} from "../../utils/errors"
-import { UnsignedTx } from "caminojs/apis/touristicvm/tx"
-import { TouristicVmConstants } from "caminojs/apis/touristicvm/constants"
-import { ImportTx } from "caminojs/apis/touristicvm/importtx"
+import { UTXOError, UnknownFormatError } from "../../utils/errors"
+import { TouristicVmConstants } from "caminojs/apis/touristicvm"
 
 /**
  * @ignore
  */
 const bintools: BinTools = BinTools.getInstance()
 const serialization: Serialization = Serialization.getInstance()
+
+const zeroBN = new BN(0)
 
 /**
  * Class for representing a single UTXO.
@@ -65,29 +60,63 @@ export class UTXO extends StandardUTXO {
   }
 
   /**
-   * Takes a base-58 string containing a [[UTXO]], parses it, populates the class, and returns the length of the StandardUTXO in bytes.
+   * Takes a base-58 or hex string containing a [[UTXO]], parses it, populates the class, and returns the length of the StandardUTXO in bytes.
    *
    * @param serialized A base-58 string containing a raw [[UTXO]]
+   * @param format The format of the encoded [[UTXO]] (cb58 or hex). Defaults to cb58 per existing codebase
    *
    * @returns The length of the raw [[UTXO]]
    *
    * @remarks
-   * unlike most fromStrings, it expects the string to be serialized in cb58 format
+   * Default encoding format is cb58, if providing hex encoded string please specify format as 'hex'
    */
-  fromString(serialized: string): number {
-    /* istanbul ignore next */
-    return this.fromBuffer(bintools.cb58Decode(serialized))
+  fromString(serialized: string, format: string = "cb58"): number {
+    switch (format) {
+      case "cb58": {
+        /* istanbul ignore next */
+        return this.fromBuffer(bintools.cb58Decode(serialized))
+      }
+      case "hex": {
+        let decoded = serialization.decoder(serialized, "hex", "hex", "cb58")
+        this.fromString(decoded)
+        return this.toBuffer().length
+      }
+      default: {
+        throw new UnknownFormatError(
+          `Specified format '${format}' is unknown, should be hex or cb58.`
+        )
+      }
+    }
   }
 
   /**
    * Returns a base-58 representation of the [[UTXO]].
    *
+   * @param format The format of the encoded [[UTXO]] (cb58 or hex). Defaults to cb58 per existing codebase
+   *
    * @remarks
-   * unlike most toStrings, this returns in cb58 serialization format
+   * Default encoding format to cb58, if you want a hex encoded output please specify format as 'hex'
    */
-  toString(): string {
-    /* istanbul ignore next */
-    return bintools.cb58Encode(this.toBuffer())
+  toString(format: string = "cb58"): string {
+    switch (format) {
+      case "cb58": {
+        /* istanbul ignore next */
+        return bintools.cb58Encode(this.toBuffer())
+      }
+      case "hex": {
+        return serialization.encoder(
+          bintools.cb58Encode(this.toBuffer()),
+          "hex",
+          "cb58",
+          "hex"
+        )
+      }
+      default: {
+        throw new UnknownFormatError(
+          `Specified format '${format}' is unknown, should be hex or cb58.`
+        )
+      }
+    }
   }
 
   clone(): this {
@@ -101,7 +130,7 @@ export class UTXO extends StandardUTXO {
     txid: Buffer = undefined,
     outputidx: Buffer | number = undefined,
     assetID: Buffer = undefined,
-    output: Output = undefined
+    output: BaseOutput = undefined
   ): this {
     return new UTXO(codecID, txid, outputidx, assetID, output) as this
   }
@@ -110,7 +139,33 @@ export class UTXO extends StandardUTXO {
 export class AssetAmountDestination extends StandardAssetAmountDestination<
   TransferableOutput,
   TransferableInput
-> {}
+> {
+  protected signers: Buffer[]
+  protected outputOwners: OutputOwners[] = []
+
+  getSigners = (): Buffer[] => this.signers
+
+  setOutputOwners = (owners: OutputOwners[]) => (this.outputOwners = owners)
+  getOutputOwners = (): OutputOwners[] => this.outputOwners
+
+  constructor(
+    destinations: Buffer[],
+    destinationsThreshold: number,
+    senders: Buffer[],
+    signers: Buffer[],
+    changeAddresses: Buffer[],
+    changeAddressesThreshold: number
+  ) {
+    super(
+      destinations,
+      destinationsThreshold,
+      senders,
+      changeAddresses,
+      changeAddressesThreshold
+    )
+    this.signers = signers
+  }
+}
 
 /**
  * Class representing a set of [[UTXO]]s.
@@ -123,7 +178,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
 
   deserialize(fields: object, encoding: SerializedEncoding = "hex") {
     super.deserialize(fields, encoding)
-    let utxos: { [key: string]: UTXO } = {}
+    let utxos = {}
     for (let utxoid in fields["utxos"]) {
       let utxoidCleaned: string = serialization.decoder(
         utxoid,
@@ -137,7 +192,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
         encoding
       )
     }
-    let addressUTXOs: { [key: string]: { [key: string]: BN } } = {}
+    let addressUTXOs = {}
     for (let address in fields["addressUTXOs"]) {
       let addressCleaned: string = serialization.decoder(
         address,
@@ -145,7 +200,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
         "cb58",
         "hex"
       )
-      let utxobalance: { [key: string]: BN } = {}
+      let utxobalance = {}
       for (let utxoid in fields["addressUTXOs"][`${address}`]) {
         let utxoidCleaned: string = serialization.decoder(
           utxoid,
@@ -171,7 +226,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
     // force a copy
     if (typeof utxo === "string") {
       utxovar.fromBuffer(bintools.cb58Decode(utxo))
-    } else if (utxo instanceof UTXO) {
+    } else if (utxo instanceof StandardUTXO) {
       utxovar.fromBuffer(utxo.toBuffer()) // forces a copy
     } else {
       /* istanbul ignore next */
@@ -182,7 +237,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
     return utxovar
   }
 
-  create(): this {
+  create(...args: any[]): this {
     return new UTXOSet() as this
   }
 
@@ -202,359 +257,283 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
     )
   }
 
-  getMinimumSpendable = (
-    aad: AssetAmountDestination,
-    asOf: BN = UnixNow(),
-    locktime: BN = new BN(0),
-    threshold: number = 1
-  ): Error => {
-    const utxoArray: UTXO[] = this.getAllUTXOs()
-    const outids: object = {}
-    for (let i: number = 0; i < utxoArray.length && !aad.canComplete(); i++) {
-      const u: UTXO = utxoArray[`${i}`]
-      const assetKey: string = u.getAssetID().toString("hex")
-      const fromAddresses: Buffer[] = aad.getSenders()
-      if (
-        u.getOutput() instanceof AmountOutput &&
-        aad.assetExists(assetKey) &&
-        u.getOutput().meetsThreshold(fromAddresses, asOf)
-      ) {
-        const am: AssetAmount = aad.getAssetAmount(assetKey)
-        if (!am.isFinished()) {
-          const uout: AmountOutput = u.getOutput() as AmountOutput
-          outids[`${assetKey}`] = uout.getOutputID()
-          const amount = uout.getAmount()
-          am.spendAmount(amount)
-          const txid: Buffer = u.getTxID()
-          const outputidx: Buffer = u.getOutputIdx()
-          const input: SECPTransferInput = new SECPTransferInput(amount)
-          const xferin: TransferableInput = new TransferableInput(
-            txid,
-            outputidx,
-            u.getAssetID(),
-            input
-          )
-          const spenders: Buffer[] = uout.getSpenders(fromAddresses, asOf)
-          for (let j: number = 0; j < spenders.length; j++) {
-            const idx: number = uout.getAddressIdx(spenders[`${j}`])
-            if (idx === -1) {
-              /* istanbul ignore next */
-              throw new AddressError(
-                "Error - UTXOSet.getMinimumSpendable: no such " +
-                  `address in output: ${spenders[`${j}`]}`
-              )
-            }
-            xferin.getInput().addSignatureIdx(idx, spenders[`${j}`])
-          }
-          aad.addInput(xferin)
-        } else if (
-          aad.assetExists(assetKey) &&
-          !(u.getOutput() instanceof AmountOutput)
-        ) {
-          /**
-           * Leaving the below lines, not simply for posterity, but for clarification.
-           * AssetIDs may have mixed OutputTypes.
-           * Some of those OutputTypes may implement AmountOutput.
-           * Others may not.
-           * Simply continue in this condition.
-           */
-          /*return new Error('Error - UTXOSet.getMinimumSpendable: outputID does not '
-            + `implement AmountOutput: ${u.getOutput().getOutputID}`)*/
-          continue
-        }
-      }
-    }
-    if (!aad.canComplete()) {
-      return new InsufficientFundsError(
-        "Error - UTXOSet.getMinimumSpendable: insufficient " +
-          "funds to create the transaction"
-      )
-    }
-    const amounts: AssetAmount[] = aad.getAmounts()
-    const zero: BN = new BN(0)
-    for (let i: number = 0; i < amounts.length; i++) {
-      const assetKey: string = amounts[`${i}`].getAssetIDString()
-      const amount: BN = amounts[`${i}`].getAmount()
-      if (amount.gt(zero)) {
-        const spendout: AmountOutput = SelectOutputClass(
-          outids[`${assetKey}`],
-          amount,
-          aad.getDestinations(),
-          locktime,
-          threshold
-        ) as AmountOutput
-        const xferout: TransferableOutput = new TransferableOutput(
-          amounts[`${i}`].getAssetID(),
-          spendout
-        )
-        aad.addOutput(xferout)
-      }
-      const change: BN = amounts[`${i}`].getChange()
-      if (change.gt(zero)) {
-        const changeout: AmountOutput = SelectOutputClass(
-          outids[`${assetKey}`],
-          change,
-          aad.getChangeAddresses()
-        ) as AmountOutput
-        const chgxferout: TransferableOutput = new TransferableOutput(
-          amounts[`${i}`].getAssetID(),
-          changeout
-        )
-        aad.addChange(chgxferout)
-      }
-    }
-    return undefined
-  }
-
-  /**
-   * Creates an [[UnsignedTx]] wrapping a [[BaseTx]]. For more granular control, you may create your own
-   * [[UnsignedTx]] wrapping a [[BaseTx]] manually (with their corresponding [[TransferableInput]]s and [[TransferableOutput]]s).
-   *
-   * @param networkID The number representing NetworkID of the node
-   * @param blockchainID The {@link https://github.com/feross/buffer|Buffer} representing the BlockchainID for the transaction
-   * @param amount The amount of the asset to be spent in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}.
-   * @param assetID {@link https://github.com/feross/buffer|Buffer} of the asset ID for the UTXO
-   * @param toAddresses The addresses to send the funds
-   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
-   * @param changeAddresses Optional. The addresses that can spend the change remaining from the spent UTXOs. Default: toAddresses
-   * @param fee Optional. The amount of fees to burn in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}
-   * @param feeAssetID Optional. The assetID of the fees being burned. Default: assetID
-   * @param memo Optional. Contains arbitrary data, up to 256 bytes
-   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
-   * @param locktime Optional. The locktime field created in the resulting outputs
-   * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
-   * @param changethreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
-   *
-   * @returns An unsigned transaction created from the passed in parameters.
-   *
-   */
-  buildBaseTx = (
-    networkID: number,
-    blockchainID: Buffer,
-    amount: BN,
-    assetID: Buffer,
-    toAddresses: Buffer[],
-    fromAddresses: Buffer[],
-    changeAddresses: Buffer[] = undefined,
-    fee: BN = undefined,
-    feeAssetID: Buffer = undefined,
-    memo: Buffer = undefined,
-    asOf: BN = UnixNow(),
-    locktime: BN = new BN(0),
-    toThreshold: number = 1,
-    changeThreshold: number = 1
-  ): UnsignedTx => {
-    if (toThreshold > toAddresses.length) {
-      /* istanbul ignore next */
-      throw new ThresholdError(
-        "Error - UTXOSet.buildBaseTx: threshold is greater than number of addresses"
-      )
-    }
-
-    if (typeof changeAddresses === "undefined") {
-      changeAddresses = toAddresses
-    }
-
-    if (typeof feeAssetID === "undefined") {
-      feeAssetID = assetID
-    }
-
-    const zero: BN = new BN(0)
-
-    if (amount.eq(zero)) {
-      return undefined
-    }
-
-    const aad: AssetAmountDestination = new AssetAmountDestination(
-      toAddresses,
-      toThreshold,
-      fromAddresses,
-      changeAddresses,
-      changeThreshold
-    )
-    if (assetID.toString("hex") === feeAssetID.toString("hex")) {
-      aad.addAssetAmount(assetID, amount, fee)
-    } else {
-      aad.addAssetAmount(assetID, amount, zero)
-      if (this._feeCheck(fee, feeAssetID)) {
-        aad.addAssetAmount(feeAssetID, zero, fee)
-      }
-    }
-
-    let ins: TransferableInput[] = []
-    let outs: TransferableOutput[] = []
-
-    const success: Error = this.getMinimumSpendable(aad, asOf, locktime)
-    if (typeof success === "undefined") {
-      ins = aad.getInputs()
-      outs = aad.getAllOutputs()
-    } else {
-      throw success
-    }
-
-    const baseTx: BaseTx = new BaseTx(networkID, blockchainID, outs, ins, memo)
-    return new UnsignedTx(baseTx)
-  }
-
-  /**
-   * Creates an unsigned Secp mint transaction. For more granular control, you may create your own
-   * [[OperationTx]] manually (with their corresponding [[TransferableInput]]s, [[TransferableOutput]]s, and [[TransferOperation]]s).
-   *
-   * @param networkID The number representing NetworkID of the node
-   * @param blockchainID The {@link https://github.com/feross/buffer|Buffer} representing the BlockchainID for the transaction
-   * @param mintOwner A [[SECPMintOutput]] which specifies the new set of minters
-   * @param transferOwner A [[SECPTransferOutput]] which specifies where the minted tokens will go
-   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
-   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs
-   * @param mintUTXOID The UTXOID for the [[SCPMintOutput]] being spent to produce more tokens
-   * @param fee Optional. The amount of fees to burn in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}
-   * @param feeAssetID Optional. The assetID of the fees being burned.
-   * @param memo Optional contains arbitrary bytes, up to 256 bytes
-   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
-   * @param changethreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
-   *
-   * @returns An unsigned transaction created from the passed in parameters.
-   */
-  /**
-   * Creates an unsigned ImportTx transaction.
-   *
-   * @param networkID The number representing NetworkID of the node
-   * @param blockchainID The {@link https://github.com/feross/buffer|Buffer} representing the BlockchainID for the transaction
-   * @param toAddresses The addresses to send the funds
-   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
-   * @param changeAddresses Optional. The addresses that can spend the change remaining from the spent UTXOs.
-   * @param importIns An array of [[TransferableInput]]s being imported
-   * @param sourceChain A {@link https://github.com/feross/buffer|Buffer} for the chainid where the imports are coming from.
-   * @param fee Optional. The amount of fees to burn in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}. Fee will come from the inputs first, if they can.
-   * @param feeAssetID Optional. The assetID of the fees being burned.
-   * @param memo Optional contains arbitrary bytes, up to 256 bytes
-   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
-   * @param locktime Optional. The locktime field created in the resulting outputs
-   * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
-   * @param changethreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
-   *
-   * @returns An unsigned transaction created from the passed in parameters.
-   *
-   */
-  buildImportTx = (
-    networkID: number,
-    blockchainID: Buffer,
-    toAddresses: Buffer[],
-    fromAddresses: Buffer[],
-    changeAddresses: Buffer[],
-    atomics: UTXO[],
-    sourceChain: Buffer = undefined,
-    fee: BN = undefined,
-    feeAssetID: Buffer = undefined,
-    memo: Buffer = undefined,
-    asOf: BN = UnixNow(),
-    locktime: BN = new BN(0),
-    toThreshold: number = 1,
-    changeThreshold: number = 1
-  ): UnsignedTx => {
-    const zero: BN = new BN(0)
-    let ins: TransferableInput[] = []
-    let outs: TransferableOutput[] = []
-    if (typeof fee === "undefined") {
-      fee = zero.clone()
-    }
-
-    const importIns: TransferableInput[] = []
-    let feepaid: BN = new BN(0)
-    let feeAssetStr: string = feeAssetID.toString("hex")
-    for (let i: number = 0; i < atomics.length; i++) {
-      const utxo: UTXO = atomics[`${i}`]
-      const assetID: Buffer = utxo.getAssetID()
-      const output: AmountOutput = utxo.getOutput() as AmountOutput
-      let amt: BN = output.getAmount().clone()
-
-      let infeeamount = amt.clone()
-      let assetStr: string = assetID.toString("hex")
-      if (
-        typeof feeAssetID !== "undefined" &&
-        fee.gt(zero) &&
-        feepaid.lt(fee) &&
-        assetStr === feeAssetStr
-      ) {
-        feepaid = feepaid.add(infeeamount)
-        if (feepaid.gt(fee)) {
-          infeeamount = feepaid.sub(fee)
-          feepaid = fee.clone()
-        } else {
-          infeeamount = zero.clone()
-        }
-      }
-
-      const txid: Buffer = utxo.getTxID()
-      const outputidx: Buffer = utxo.getOutputIdx()
-      const input: SECPTransferInput = new SECPTransferInput(amt)
-      const xferin: TransferableInput = new TransferableInput(
-        txid,
-        outputidx,
-        assetID,
-        input
-      )
-      const from: Buffer[] = output.getAddresses()
-      const spenders: Buffer[] = output.getSpenders(from, asOf)
-      for (let j: number = 0; j < spenders.length; j++) {
-        const idx: number = output.getAddressIdx(spenders[`${j}`])
-        if (idx === -1) {
-          /* istanbul ignore next */
-          throw new AddressError(
-            "Error - UTXOSet.buildImportTx: no such " +
-              `address in output: ${spenders[`${j}`]}`
-          )
-        }
-        xferin.getInput().addSignatureIdx(idx, spenders[`${j}`])
-      }
-      importIns.push(xferin)
-
-      //add extra outputs for each amount (calculated from the imported inputs), minus fees
-      if (infeeamount.gt(zero)) {
-        const spendout: AmountOutput = SelectOutputClass(
-          output.getOutputID(),
-          infeeamount,
-          toAddresses,
-          locktime,
-          toThreshold
-        ) as AmountOutput
-        const xferout: TransferableOutput = new TransferableOutput(
-          assetID,
-          spendout
-        )
-        outs.push(xferout)
-      }
-    }
-
-    // get remaining fees from the provided addresses
-    let feeRemaining: BN = fee.sub(feepaid)
-    if (feeRemaining.gt(zero) && this._feeCheck(feeRemaining, feeAssetID)) {
-      const aad: AssetAmountDestination = new AssetAmountDestination(
-        toAddresses,
-        toThreshold,
-        fromAddresses,
-        changeAddresses,
-        changeThreshold
-      )
-      aad.addAssetAmount(feeAssetID, zero, feeRemaining)
-      const success: Error = this.getMinimumSpendable(aad, asOf, locktime)
-      if (typeof success === "undefined") {
-        ins = aad.getInputs()
-        outs = aad.getAllOutputs()
-      } else {
-        throw success
-      }
-    }
-
-    const importTx: ImportTx = new ImportTx(
-      networkID,
-      blockchainID,
-      outs,
-      ins,
-      memo,
-      sourceChain,
-      importIns
-    )
-    return new UnsignedTx(importTx)
-  }
+  // getConsumableUXTO = (
+  //   asOf: BN = UnixNow(),
+  //   stakeable: boolean = false
+  // ): UTXO[] => {
+  //   return this.getAllUTXOs().filter((utxo: UTXO) => {
+  //     if (stakeable) {
+  //       // stakeable transactions can consume any UTXO.
+  //       return true
+  //     }
+  //     const output: BaseOutput = utxo.getOutput()
+  //     if (!(output instanceof StakeableLockOut)) {
+  //       // non-stakeable transactions can consume any UTXO that isn't locked.
+  //       return true
+  //     }
+  //     const stakeableOutput: StakeableLockOut = output as StakeableLockOut
+  //     if (stakeableOutput.getStakeableLocktime().lt(asOf)) {
+  //       // If the stakeable outputs locktime has ended, then this UTXO can still
+  //       // be consumed by a non-stakeable transaction.
+  //       return true
+  //     }
+  //     // This output is locked and can't be consumed by a non-stakeable
+  //     // transaction.
+  //     return false
+  //   })
+  // }
+  //
+  // getMinimumSpendable = async (
+  //   aad: AssetAmountDestination,
+  //   asOf: BN = zeroBN,
+  //   lockTime: BN = zeroBN,
+  //   lockMode: LockMode = "Unlocked"
+  // ): Promise<Error> => {
+  //   if (asOf.isZero()) asOf = UnixNow()
+  //
+  //   let utxoArray: UTXO[] = this.getConsumableUXTO(asOf, lockMode == "Lock")
+  //   let tmpUTXOArray: UTXO[] = []
+  //   if (lockMode == "Lock") {
+  //     // If this is a stakeable transaction then have StakeableLockOut come before SECPTransferOutput
+  //     // so that users first stake locked tokens before staking unlocked tokens
+  //     utxoArray.forEach((utxo: UTXO) => {
+  //       // StakeableLockOuts
+  //       if (utxo.getOutput().getTypeID() === 22) {
+  //         tmpUTXOArray.push(utxo)
+  //       }
+  //     })
+  //
+  //     // Sort the StakeableLockOuts by StakeableLocktime so that the greatest StakeableLocktime are spent first
+  //     tmpUTXOArray.sort((a: UTXO, b: UTXO) => {
+  //       let stakeableLockOut1 = a.getOutput() as StakeableLockOut
+  //       let stakeableLockOut2 = b.getOutput() as StakeableLockOut
+  //       return (
+  //         stakeableLockOut2.getStakeableLocktime().toNumber() -
+  //         stakeableLockOut1.getStakeableLocktime().toNumber()
+  //       )
+  //     })
+  //
+  //     utxoArray.forEach((utxo: UTXO) => {
+  //       // SECPTransferOutputs
+  //       if (utxo.getOutput().getTypeID() === 7) {
+  //         tmpUTXOArray.push(utxo)
+  //       }
+  //     })
+  //     utxoArray = tmpUTXOArray
+  //   }
+  //
+  //   // outs is a map from assetID to a tuple of (lockedStakeable, unlocked)
+  //   // which are arrays of outputs.
+  //   const outs: object = {}
+  //
+  //   // We only need to iterate over UTXOs until we have spent sufficient funds
+  //   // to met the requested amounts.
+  //   utxoArray.forEach((utxo: UTXO) => {
+  //     const assetID: Buffer = utxo.getAssetID()
+  //     const assetKey: string = assetID.toString("hex")
+  //     const fromAddresses: Buffer[] = aad.getSenders()
+  //     const output: BaseOutput = utxo.getOutput()
+  //     const amountOutput =
+  //       output instanceof ParseableOutput ? output.getOutput() : output
+  //     if (
+  //       !(amountOutput instanceof AmountOutput) ||
+  //       !aad.assetExists(assetKey) ||
+  //       !output.meetsThreshold(fromAddresses, asOf)
+  //     ) {
+  //       // We should only try to spend fungible assets.
+  //       // We should only spend {{ assetKey }}.
+  //       // We need to be able to spend the output.
+  //       return
+  //     }
+  //
+  //     const assetAmount: AssetAmount = aad.getAssetAmount(assetKey)
+  //     if (assetAmount.isFinished()) {
+  //       // We've already spent the needed UTXOs for this assetID.
+  //       return
+  //     }
+  //
+  //     if (!(assetKey in outs)) {
+  //       // If this is the first time spending this assetID, we need to
+  //       // initialize the outs object correctly.
+  //       outs[`${assetKey}`] = {
+  //         lockedStakeable: [],
+  //         unlocked: []
+  //       }
+  //     }
+  //
+  //     // amount is the amount of funds available from this UTXO.
+  //     const amount = amountOutput.getAmount()
+  //
+  //     // Set up the SECP input with the same amount as the output.
+  //     let input: BaseInput = new SECPTransferInput(amount)
+  //
+  //     let locked: boolean = false
+  //
+  //     assetAmount.spendAmount(amount, locked)
+  //     if (locked) {
+  //       // Track the UTXO as locked.
+  //       outs[`${assetKey}`].lockedStakeable.push(output)
+  //     } else {
+  //       // Track the UTXO as unlocked.
+  //       outs[`${assetKey}`].unlocked.push(output)
+  //     }
+  //
+  //     // Get the indices of the outputs that should be used to authorize the
+  //     // spending of this input.
+  //
+  //     // TODO: getSpenders should return an array of indices rather than an
+  //     // array of addresses.
+  //     const spenders: Buffer[] = amountOutput.getSpenders(fromAddresses, asOf)
+  //     spenders.forEach((spender: Buffer) => {
+  //       const idx: number = amountOutput.getAddressIdx(spender)
+  //       if (idx === -1) {
+  //         // This should never happen, which is why the error is thrown rather
+  //         // than being returned. If this were to ever happen this would be an
+  //         // error in the internal logic rather having called this function with
+  //         // invalid arguments.
+  //
+  //         /* istanbul ignore next */
+  //         throw new AddressError(
+  //           "Error - UTXOSet.getMinimumSpendable: no such " +
+  //             `address in output: ${spender}`
+  //         )
+  //       }
+  //       input.addSignatureIdx(idx, spender)
+  //     })
+  //
+  //     const txID: Buffer = utxo.getTxID()
+  //     const outputIdx: Buffer = utxo.getOutputIdx()
+  //     const transferInput: TransferableInput = new TransferableInput(
+  //       txID,
+  //       outputIdx,
+  //       assetID,
+  //       input
+  //     )
+  //     aad.addInput(transferInput)
+  //   })
+  //
+  //   if (!aad.canComplete()) {
+  //     // After running through all the UTXOs, we still weren't able to get all
+  //     // the necessary funds, so this transaction can't be made.
+  //     return new InsufficientFundsError(
+  //       "Error - UTXOSet.getMinimumSpendable: insufficient " +
+  //         "funds to create the transaction"
+  //     )
+  //   }
+  //
+  //   // TODO: We should separate the above functionality into a single function
+  //   // that just selects the UTXOs to consume.
+  //
+  //   const zero: BN = new BN(0)
+  //
+  //   // assetAmounts is an array of asset descriptions and how much is left to
+  //   // spend for them.
+  //   const assetAmounts: AssetAmount[] = aad.getAmounts()
+  //   assetAmounts.forEach((assetAmount: AssetAmount) => {
+  //     // change is the amount that should be returned back to the source of the
+  //     // funds.
+  //     const change: BN = assetAmount.getChange()
+  //     // isStakeableLockChange is if the change is locked or not.
+  //     const isStakeableLockChange: boolean =
+  //       assetAmount.getStakeableLockChange()
+  //     // lockedChange is the amount of locked change that should be returned to
+  //     // the sender
+  //     const lockedChange: BN = isStakeableLockChange ? change : zero.clone()
+  //
+  //     const assetID: Buffer = assetAmount.getAssetID()
+  //     const assetKey: string = assetAmount.getAssetIDString()
+  //     // const lockedOutputs: StakeableLockOut[] =
+  //     //   outs[`${assetKey}`].lockedStakeable
+  //     // lockedOutputs.forEach((lockedOutput: StakeableLockOut, i: number) => {
+  //     //   const stakeableLocktime: BN = lockedOutput.getStakeableLocktime()
+  //     //
+  //     //   // We know that parseableOutput contains an AmountOutput because the
+  //     //   // first loop filters for fungible assets.
+  //     //   const output: AmountOutput = lockedOutput.getOutput() as AmountOutput
+  //     //
+  //     //   let outputAmountRemaining: BN = output.getAmount()
+  //     //   // The only output that could generate change is the last output.
+  //     //   // Otherwise, any further UTXOs wouldn't have needed to be spent.
+  //     //   if (i == lockedOutputs.length - 1 && lockedChange.gt(zero)) {
+  //     //     // update outputAmountRemaining to no longer hold the change that we
+  //     //     // are returning.
+  //     //     outputAmountRemaining = outputAmountRemaining.sub(lockedChange)
+  //     //     let newLockedChangeOutput: StakeableLockOut = SelectOutputClass(
+  //     //       lockedOutput.getOutputID(),
+  //     //       lockedChange,
+  //     //       output.getAddresses(),
+  //     //       output.getLocktime(),
+  //     //       output.getThreshold(),
+  //     //       stakeableLocktime
+  //     //     ) as StakeableLockOut
+  //     //     const transferOutput: TransferableOutput = new TransferableOutput(
+  //     //       assetID,
+  //     //       newLockedChangeOutput
+  //     //     )
+  //     //     aad.addChange(transferOutput)
+  //     //   }
+  //     //
+  //     //   // We know that outputAmountRemaining > 0. Otherwise, we would never
+  //     //   // have consumed this UTXO, as it would be only change.
+  //     //   const newLockedOutput: StakeableLockOut = SelectOutputClass(
+  //     //     lockedOutput.getOutputID(),
+  //     //     outputAmountRemaining,
+  //     //     output.getAddresses(),
+  //     //     output.getLocktime(),
+  //     //     output.getThreshold(),
+  //     //     stakeableLocktime
+  //     //   ) as StakeableLockOut
+  //     //   const transferOutput: TransferableOutput = new TransferableOutput(
+  //     //     assetID,
+  //     //     newLockedOutput
+  //     //   )
+  //     //   aad.addOutput(transferOutput)
+  //     // })
+  //
+  //     // unlockedChange is the amount of unlocked change that should be returned
+  //     // to the sender
+  //     const unlockedChange: BN = isStakeableLockChange ? zero.clone() : change
+  //     if (unlockedChange.gt(zero)) {
+  //       const newChangeOutput: AmountOutput = new SECPTransferOutput(
+  //         unlockedChange,
+  //         aad.getChangeAddresses(),
+  //         zero.clone(), // make sure that we don't lock the change output.
+  //         aad.getChangeAddressesThreshold()
+  //       ) as AmountOutput
+  //       const transferOutput: TransferableOutput = new TransferableOutput(
+  //         assetID,
+  //         newChangeOutput
+  //       )
+  //       aad.addChange(transferOutput)
+  //     }
+  //
+  //     // totalAmountSpent is the total amount of tokens consumed.
+  //     const totalAmountSpent: BN = assetAmount.getSpent()
+  //     // stakeableLockedAmount is the total amount of locked tokens consumed.
+  //     const stakeableLockedAmount: BN = assetAmount.getStakeableLockSpent()
+  //     // totalUnlockedSpent is the total amount of unlocked tokens consumed.
+  //     const totalUnlockedSpent: BN = totalAmountSpent.sub(stakeableLockedAmount)
+  //     // amountBurnt is the amount of unlocked tokens that must be burn.
+  //     const amountBurnt: BN = assetAmount.getBurn()
+  //     // totalUnlockedAvailable is the total amount of unlocked tokens available
+  //     // to be produced.
+  //     const totalUnlockedAvailable: BN = totalUnlockedSpent.sub(amountBurnt)
+  //     // unlockedAmount is the amount of unlocked tokens that should be sent.
+  //     const unlockedAmount: BN = totalUnlockedAvailable.sub(unlockedChange)
+  //     if (unlockedAmount.gt(zero)) {
+  //       const newOutput: AmountOutput = new SECPTransferOutput(
+  //         unlockedAmount,
+  //         aad.getDestinations(),
+  //         lockTime,
+  //         aad.getDestinationsThreshold()
+  //       ) as AmountOutput
+  //       const transferOutput: TransferableOutput = new TransferableOutput(
+  //         assetID,
+  //         newOutput
+  //       )
+  //       aad.addOutput(transferOutput)
+  //     }
+  //   })
+  //   return undefined
+  // }
 }

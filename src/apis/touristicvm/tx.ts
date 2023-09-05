@@ -88,6 +88,7 @@ export class UnsignedTx extends StandardUnsignedTx<
       kc instanceof MultisigKeyChain
         ? kc.getCredentials()
         : this.transaction.sign(msg, kc)
+    console.log(creds)
     return new Tx(this, creds)
   }
 }

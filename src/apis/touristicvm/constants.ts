@@ -20,6 +20,11 @@ export class TouristicVmConstants {
 
   static IMPORTTX: number = 13
 
+  static LOCKEDINID: number = 14
+  static LOCKEDOUTID: number = 15
+  static LOCKMESSENGERFUNDSTX: number = 16
+  static CASHOUTCHEQUETX: number = 17
+
   // Length Constants
   static ASSETIDLEN: number = 32
 

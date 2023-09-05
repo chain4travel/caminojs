@@ -1,18 +1,13 @@
-import { Avalanche, BinTools, BN, Buffer } from "caminojs/index"
+import { Avalanche, BN, Buffer } from "caminojs/index"
 import { UnixNow } from "caminojs/utils"
-import { ExamplesConfig } from "../common/examplesConfig"
 import { TouristicVMAPI } from "caminojs/apis/touristicvm/api"
-import { Tx, UnsignedTx, UTXOSet } from "caminojs/apis/touristicvm"
-import { GetUTXOsResponse } from "caminojs/apis/touristicvm/interfaces"
+import { Tx, UnsignedTx } from "caminojs/apis/touristicvm"
 
-const config: ExamplesConfig = require("../common/examplesConfig.json")
 const avalanche: Avalanche = new Avalanche("localhost", 9650, "http", 1002)
-const bintools: BinTools = BinTools.getInstance()
 const privKey: string =
   "PrivateKey-vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"
 const asOf: BN = UnixNow()
 const threshold: number = 1
-const locktime: BN = new BN(0)
 const memo: Buffer = Buffer.from(
   "TVM utility method buildBaseTx to send an ANT"
 )
@@ -35,20 +30,19 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const amount: BN = new BN(1)
+  const amount: BN = new BN(499999997999998)
 
-  const unsignedTx: UnsignedTx = await tchain.buildBaseTx(
-    amount,
-    ["T-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68"],
-    ["T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"], //TODO check again
+  const unsignedTx: UnsignedTx = await tchain.buildLockMessengerFundsTx(
+    ["T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"],
     ["T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"],
     memo,
     asOf,
-    locktime,
+    amount,
     threshold
   )
   console.log(JSON.stringify(unsignedTx))
 
+  console.log(tkeyChain)
   const tx: Tx = unsignedTx.sign(tkeyChain)
   // console.log(tx.toBuffer().toString("hex"))
   const txid: string = await tchain.issueTx(tx)

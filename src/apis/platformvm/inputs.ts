@@ -325,7 +325,7 @@ export class LockedIn extends ParseableInput {
   toBuffer(): Buffer {
     const idsBuf: Buffer = this.ids.toBuffer()
     const superBuff: Buffer = super.toBuffer()
-    return Buffer.concat([idsBuf, superBuff], superBuff.length + 64)
+    return Buffer.concat([idsBuf, superBuff], superBuff.length + 32)
   }
 
   /**

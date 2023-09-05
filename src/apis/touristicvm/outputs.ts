@@ -15,6 +15,7 @@ import {
 import { Serialization, SerializedEncoding } from "../../utils/serialization"
 import BN from "bn.js"
 import { OutputIdError } from "../../utils/errors"
+import { LockedIDs } from "caminojs/apis/touristicvm/locked"
 
 const bintools: BinTools = BinTools.getInstance()
 const serialization: Serialization = Serialization.getInstance()
@@ -32,6 +33,8 @@ export const SelectOutputClass = (
 ): BaseOutput => {
   if (outputid == TouristicVmConstants.SECPXFEROUTPUTID) {
     return new SECPTransferOutput(...args)
+  } else if (outputid == TouristicVmConstants.LOCKEDOUTID) {
+    return new LockedOut(...args)
   }
   throw new OutputIdError(
     "Error - SelectOutputClass: unknown outputid " + outputid
@@ -173,5 +176,97 @@ export class SECPOwnerOutput extends Output {
     const newout: SECPOwnerOutput = this.create()
     newout.fromBuffer(this.toBuffer())
     return newout as this
+  }
+}
+export class LockedOut extends ParseableOutput {
+  protected _typeName = "LockedOut"
+  protected _typeID = TouristicVmConstants.LOCKEDOUTID
+
+  //serialize and deserialize both are inherited
+  serialize(encoding: SerializedEncoding = "hex"): object {
+    let fields: object = super.serialize(encoding)
+    let outobj: object = {
+      ...fields,
+      ids: this.ids.serialize()
+    }
+    return outobj
+  }
+
+  deserialize(fields: object, encoding: SerializedEncoding = "hex") {
+    super.deserialize(fields, encoding)
+    this.ids.deserialize(fields["ids"], encoding)
+  }
+
+  protected ids: LockedIDs = new LockedIDs()
+
+  getLockedIDs(): LockedIDs {
+    return this.ids
+  }
+
+  /**
+   * @param assetID An assetID which is wrapped around the Buffer of the Output
+   */
+  makeTransferable(assetID: Buffer): TransferableOutput {
+    return new TransferableOutput(assetID, this)
+  }
+
+  create(...args: any[]): this {
+    return new LockedOut(...args) as this
+  }
+
+  clone(): this {
+    const newout: LockedOut = this.create()
+    newout.fromBuffer(this.toBuffer())
+    return newout as this
+  }
+
+  /**
+   * Popuates the instance from a {@link https://github.com/feross/buffer|Buffer} representing the [[LockedOut]] and returns the size of the output.
+   */
+  fromBuffer(outbuff: Buffer, offset: number = 0): number {
+    offset = this.ids.fromBuffer(outbuff, offset)
+    offset = super.fromBuffer(outbuff, offset)
+    return offset
+  }
+
+  /**
+   * Returns the buffer representing the [[LockedOut]] instance.
+   */
+  toBuffer(): Buffer {
+    const idsBuf: Buffer = this.ids.toBuffer()
+    const superBuff: Buffer = super.toBuffer()
+    return Buffer.concat([idsBuf, superBuff], superBuff.length + 32)
+  }
+
+  /**
+   * Returns the outputID for this output
+   */
+  getOutputID(): number {
+    return this._typeID
+  }
+
+  /**
+   * Returns the amount from the underlying output
+   */
+  getAmount(): BN {
+    return (this.getOutput() as StandardAmountOutput).getAmount()
+  }
+
+  /**
+   * @param amount A {@link https://github.com/indutny/bn.js/|BN} representing the amount in the output
+   * @param addresses An array of {@link https://github.com/feross/buffer|Buffer}s representing addresses
+   * @param locktime A {@link https://github.com/indutny/bn.js/|BN} representing the locktime
+   * @param threshold A number representing the the threshold number of signers required to sign the transaction
+   * @param ids LockIDs set of deposit and bond txIDs
+   */
+  constructor(
+    amount: BN = undefined,
+    addresses: Buffer[] = undefined,
+    locktime: BN = undefined,
+    threshold: number = undefined,
+    ids: LockedIDs = undefined
+  ) {
+    super(new SECPTransferOutput(amount, addresses, locktime, threshold))
+    if (typeof ids !== "undefined") this.ids = ids
   }
 }
