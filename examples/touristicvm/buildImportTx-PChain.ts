@@ -2,12 +2,10 @@ import { Avalanche, BN, Buffer } from "caminojs/index"
 import { TouristicVMAPI } from "caminojs/apis/touristicvm/api"
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey,
   UnixNow,
   DefaultLocalGenesisPrivateKey2
 } from "caminojs/utils"
-import { GetUTXOsResponse } from "caminojs/apis/touristicvm/interfaces"
-import { Tx, UnsignedTx, UTXOSet } from "caminojs/apis/touristicvm"
+import { Tx, UnsignedTx } from "caminojs/apis/touristicvm"
 
 const avalanche: Avalanche = new Avalanche("localhost", 9650, "http", 1002)
 
@@ -50,7 +48,6 @@ const main = async (): Promise<any> => {
     threshold
   )
 
-  console.log(JSON.stringify(unsignedTx))
   const tx: Tx = unsignedTx.sign(tkeyChain)
   // console.log(tx.toBuffer().toString("hex"))
   const txid: string = await tchain.issueTx(tx)

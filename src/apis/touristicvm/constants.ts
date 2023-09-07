@@ -13,6 +13,7 @@ export class TouristicVmConstants {
   static SECPXFEROUTPUTID: number = 7
 
   static SECPCREDENTIAL: number = 9
+  static AUTH: number = 10
 
   static SECPOWNEROUTPUTID: number = 11
 

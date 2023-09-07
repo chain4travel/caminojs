@@ -16,9 +16,11 @@ import { Buffer } from "buffer/"
 import { LockMode } from "./api"
 import { AddressError, DefaultNetworkID, ThresholdError } from "caminojs/utils"
 import { OutputOwners, ZeroBN } from "caminojs/common"
-import { FromSigner } from "caminojs/apis/touristicvm/interfaces"
-import { LockMessengerFundsTx } from "caminojs/apis/touristicvm/lockmessengerfundstx"
-import { ImportTx } from "caminojs/apis/touristicvm/importtx"
+import { FromSigner } from "./interfaces"
+import { LockMessengerFundsTx } from "./lockmessengerfundstx"
+import { ImportTx } from "./importtx"
+import { CashoutChequeTx } from "./cashoutChequeTx"
+import BinTools from "caminojs/utils/bintools"
 export interface MinimumSpendable {
   getMinimumSpendable(
     aad: AssetAmountDestination,
@@ -28,7 +30,7 @@ export interface MinimumSpendable {
   ): Promise<Error>
 }
 const zero: BN = new BN(0)
-
+const bintools: BinTools = BinTools.getInstance()
 export class Builder {
   spender: MinimumSpendable
 
@@ -302,6 +304,67 @@ export class Builder {
       memo
     )
 
+    baseTx.setOutputOwners(owners)
+    return new UnsignedTx(baseTx)
+  }
+
+  buildCashoutChequeTx = async (
+    networkID: number = DefaultNetworkID,
+    blockchainID: Buffer,
+    fromSigner: FromSigner,
+    changeAddresses: Buffer[],
+    fee: BN = zero,
+    feeAssetID: Buffer = undefined,
+    memo: Buffer = undefined,
+    asOf: BN = zero,
+    issuer: Buffer,
+    beneficiary: Buffer,
+    issuerAuth: [number, Buffer] = undefined,
+    cumulativeAmountToCashOut: BN,
+    changeThreshold: number = 1
+  ): Promise<UnsignedTx> => {
+    let ins: TransferableInput[] = []
+    let outs: TransferableOutput[] = []
+    let owners: OutputOwners[] = []
+
+    if (this._feeCheck(fee, feeAssetID)) {
+      const aad: AssetAmountDestination = new AssetAmountDestination(
+        [beneficiary],
+        1,
+        fromSigner.from,
+        fromSigner.signer,
+        changeAddresses,
+        changeThreshold
+      )
+
+      aad.addAssetAmount(feeAssetID, cumulativeAmountToCashOut, zero) //TODO nikos: make CashoutChequeTx fee-less
+
+      const minSpendableErr: Error = await this.spender.getMinimumSpendable(
+        aad,
+        asOf,
+        new BN(1), // nikos: unlock locked funds
+        "Unlocked"
+      )
+      if (typeof minSpendableErr === "undefined") {
+        ins = aad.getInputs()
+        outs = aad.getAllOutputs()
+        owners = aad.getOutputOwners()
+      } else {
+        throw minSpendableErr
+      }
+    }
+
+    const baseTx: CashoutChequeTx = new CashoutChequeTx(
+      networkID,
+      blockchainID,
+      outs,
+      ins,
+      memo,
+      issuer,
+      beneficiary,
+      bintools.fromBNToBuffer(cumulativeAmountToCashOut, 8)
+    )
+    baseTx.addSignatureIdx(issuerAuth[0], issuerAuth[1])
     baseTx.setOutputOwners(owners)
     return new UnsignedTx(baseTx)
   }

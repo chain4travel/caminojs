@@ -14,7 +14,7 @@ import {
 import { Serialization, SerializedEncoding } from "../../utils/serialization"
 import BN from "bn.js"
 import { InputIdError } from "../../utils/errors"
-import { LockedIn } from "caminojs/apis/platformvm"
+import { LockedIDs } from "./locked"
 
 /**
  * @ignore
@@ -148,5 +148,91 @@ export class SECPTransferInput extends AmountInput {
     const newout: SECPTransferInput = this.create()
     newout.fromBuffer(this.toBuffer())
     return newout as this
+  }
+}
+
+/**
+ * An [[Input]] class which specifies an input that is controlled by deposit and bond tx.
+ */
+export class LockedIn extends ParseableInput {
+  protected _typeName = "LockedIn"
+  protected _typeID = TouristicVmConstants.LOCKEDINID
+
+  //serialize and deserialize both are inherited
+  serialize(encoding: SerializedEncoding = "hex"): object {
+    let fields: object = super.serialize(encoding)
+    let outobj: object = {
+      ...fields,
+      ids: this.ids.serialize()
+    }
+    return outobj
+  }
+
+  deserialize(fields: object, encoding: SerializedEncoding = "hex") {
+    super.deserialize(fields, encoding)
+    this.ids.deserialize(fields["ids"], encoding)
+  }
+
+  protected ids: LockedIDs = new LockedIDs()
+
+  getLockedIDs(): LockedIDs {
+    return this.ids
+  }
+
+  create(...args: any[]): this {
+    return new LockedIn(...args) as this
+  }
+
+  clone(): this {
+    const newout: LockedIn = this.create()
+    newout.fromBuffer(this.toBuffer())
+    return newout as this
+  }
+
+  /**
+   * Popuates the instance from a {@link https://github.com/feross/buffer|Buffer}
+   * representing the [[LockedIn]] and returns the size of the input.
+   */
+  fromBuffer(outbuff: Buffer, offset: number = 0): number {
+    offset = this.ids.fromBuffer(outbuff, offset)
+    offset = super.fromBuffer(outbuff, offset)
+    return offset
+  }
+
+  /**
+   * Returns the buffer representing the [[LockedIn]] instance.
+   */
+  toBuffer(): Buffer {
+    const idsBuf: Buffer = this.ids.toBuffer()
+    const superBuff: Buffer = super.toBuffer()
+    return Buffer.concat([idsBuf, superBuff], superBuff.length + 32)
+  }
+
+  /**
+   * Returns the inputID for this input
+   */
+  getInputID(): number {
+    return this._typeID
+  }
+
+  /**
+   * Returns the credentialID for this input
+   */
+  getCredentialID = (): number => TouristicVmConstants.SECPCREDENTIAL
+
+  /**
+   * Returns the amount from the underlying input
+   */
+  getAmount(): BN {
+    return (this.getInput() as StandardAmountInput).getAmount()
+  }
+
+  /**
+   * An [[Input]] class which specifies an input that is controlled by deposit and bond tx.
+   *
+   * @param amount A {@link https://github.com/indutny/bn.js/|BN} representing the amount in the input
+   */
+  constructor(amount: BN = undefined) {
+    super(new SECPTransferInput(amount))
   }
 }

@@ -15,7 +15,7 @@ import {
 import { Serialization, SerializedEncoding } from "../../utils/serialization"
 import BN from "bn.js"
 import { OutputIdError } from "../../utils/errors"
-import { LockedIDs } from "caminojs/apis/touristicvm/locked"
+import { LockedIDs } from "./locked"
 
 const bintools: BinTools = BinTools.getInstance()
 const serialization: Serialization = Serialization.getInstance()

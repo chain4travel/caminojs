@@ -15,9 +15,12 @@ import { Credential } from "../../common/credentials"
 import createHash from "create-hash"
 import { SerializedEncoding } from "../../utils/serialization"
 import { TransactionError } from "../../utils/errors"
-import { TouristicVmConstants } from "caminojs/apis/touristicvm/constants"
-import { BaseTx } from "caminojs/apis/touristicvm/basetx"
-import { SelectCredentialClass } from "caminojs/apis/touristicvm/credentials"
+import { TouristicVmConstants } from "./constants"
+import { BaseTx } from "./basetx"
+import { SelectCredentialClass } from "./credentials"
+import { ImportTx } from "./importtx"
+import { LockMessengerFundsTx } from "./lockmessengerfundstx"
+import { CashoutChequeTx } from "./cashoutChequeTx"
 
 /**
  * @ignore
@@ -35,6 +38,13 @@ export const SelectTxClass = (txtype: number, ...args: any[]): BaseTx => {
   if (txtype === TouristicVmConstants.BASETX) {
     return new BaseTx(...args)
   }
+  // else if (txtype === TouristicVmConstants.IMPORTTX) {
+  //   return new ImportTx(...args)
+  // } else if (txtype === TouristicVmConstants.LOCKMESSENGERFUNDSTX) {
+  //   return new LockMessengerFundsTx(...args)
+  // } else if (txtype === TouristicVmConstants.CASHOUTCHEQUETX) {
+  //   return new CashoutChequeTx(...args)
+  // }
 
   /* istanbul ignore next */
   throw new TransactionError("Error - SelectTxClass: unknown txtype")
@@ -88,7 +98,6 @@ export class UnsignedTx extends StandardUnsignedTx<
       kc instanceof MultisigKeyChain
         ? kc.getCredentials()
         : this.transaction.sign(msg, kc)
-    console.log(creds)
     return new Tx(this, creds)
   }
 }

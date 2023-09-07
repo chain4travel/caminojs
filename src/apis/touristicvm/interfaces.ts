@@ -1,8 +1,8 @@
 import { Buffer } from "buffer/"
 import { OutputOwners } from "caminojs/common"
-import { TransferableInput } from "caminojs/apis/touristicvm/inputs"
-import { TransferableOutput } from "caminojs/apis/touristicvm/outputs"
-import { UTXOSet } from "caminojs/apis/touristicvm/utxos"
+import { TransferableInput } from "./inputs"
+import { TransferableOutput } from "./outputs"
+import { UTXOSet } from "./utxos"
 
 export interface StartIndexInterface {
   address: string
@@ -33,6 +33,7 @@ export interface SpendParams {
   change?: OwnerParam
   lockMode: 0 | 1
   amountToLock: string
+  amountToUnlock: string
   amountToBurn: string
   asOf: string
   encoding?: string

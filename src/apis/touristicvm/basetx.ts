@@ -18,8 +18,8 @@ import {
 import { DefaultNetworkID } from "../../utils/constants"
 import { SelectTxClass } from "./tx"
 import { SerializedEncoding } from "../../utils/serialization"
-import { TouristicVmConstants } from "caminojs/apis/touristicvm/constants"
-import { SelectCredentialClass } from "caminojs/apis/touristicvm/credentials"
+import { TouristicVmConstants } from "./constants"
+import { SelectCredentialClass } from "./credentials"
 
 /**
  * @ignore
@@ -145,8 +145,6 @@ export class BaseTx extends StandardBaseTx<SignerKeyPair, SignerKeyChain> {
         this.ins[`${i}`].getInput().getCredentialID()
       )
       const sigidxs: SigIdx[] = this.ins[`${i}`].getInput().getSigIdxs()
-      console.log("sigidxs")
-      console.log(sigidxs)
       for (let j: number = 0; j < sigidxs.length; j++) {
         const keypair: SignerKeyPair = kc.getKey(sigidxs[`${j}`].getSource())
         const signval: Buffer = keypair.sign(msg)

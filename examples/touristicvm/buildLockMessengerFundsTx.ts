@@ -26,11 +26,12 @@ const InitAvalanche = async () => {
   tAddresses = tchain.keyChain().getAddresses()
   tAddressStrings = tchain.keyChain().getAddressStrings()
   avaxAssetID = avalanche.getNetwork().X.avaxAssetID
+  console.log(tkeyChain)
 }
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const amount: BN = new BN(499999997999998)
+  const amount: BN = new BN(12345)
 
   const unsignedTx: UnsignedTx = await tchain.buildLockMessengerFundsTx(
     ["T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"],
@@ -40,9 +41,6 @@ const main = async (): Promise<any> => {
     amount,
     threshold
   )
-  console.log(JSON.stringify(unsignedTx))
-
-  console.log(tkeyChain)
   const tx: Tx = unsignedTx.sign(tkeyChain)
   // console.log(tx.toBuffer().toString("hex"))
   const txid: string = await tchain.issueTx(tx)

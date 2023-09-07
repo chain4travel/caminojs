@@ -26,8 +26,8 @@ import {
 import { PersistanceOptions, Serialization, SerializedType } from "../../utils"
 import { Network } from "../../utils/networks"
 import { KeyChain } from "./keychain"
-import { Tx, UnsignedTx } from "caminojs/apis/touristicvm/tx"
-import { TouristicVmConstants } from "caminojs/apis/touristicvm/constants"
+import { Tx, UnsignedTx } from "./tx"
+import { TouristicVmConstants } from "./constants"
 import AvalancheCore from "caminojs/camino"
 import {
   SpendParams,
@@ -35,13 +35,13 @@ import {
   GetUTXOsParams,
   GetUTXOsResponse,
   FromSigner
-} from "caminojs/apis/touristicvm/interfaces"
+} from "./interfaces"
 import {
   TransferableInput,
   TransferableOutput
 } from "caminojs/apis/touristicvm"
-import { Spender } from "caminojs/apis/touristicvm/spender"
-import { Builder } from "caminojs/apis/touristicvm/builder"
+import { Spender } from "./spender"
+import { Builder } from "./builder"
 
 export type LockMode = "Unlocked" | "Lock"
 
@@ -419,7 +419,7 @@ export class TouristicVMAPI extends JRPCAPI {
     amountToLock: BN,
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
-    const caller = "buildDepositTx"
+    const caller = "buildLockMessengerFundsTx"
 
     const fromSigner = this._parseFromSigner(fromAddresses, caller)
 
@@ -448,6 +448,60 @@ export class TouristicVMAPI extends JRPCAPI {
         memo,
         asOf,
         amountToLock,
+        changeThreshold
+      )
+
+    return builtUnsignedTx
+  }
+
+  buildCashoutChequeTx = async (
+    fromAddresses: FromType,
+    changeAddresses: string[] = undefined,
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = ZeroBN,
+    issuer: string,
+    beneficiary: string,
+    issuerAuth: [number, string | Buffer] = undefined,
+    cumulativeAmountToCashOut: BN,
+    changeThreshold: number = 1
+  ): Promise<UnsignedTx> => {
+    const caller = "buildCashoutChequeTx"
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+    const networkID: number = this.core.getNetworkID()
+    const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
+    const fee: BN = this.getTxFee()
+
+    const builtUnsignedTx: UnsignedTx =
+      await this._getBuilder().buildCashoutChequeTx(
+        networkID,
+        blockchainID,
+        fromSigner,
+        change,
+        fee,
+        avaxAssetID,
+        memo,
+        asOf,
+        bintools.stringToAddress(issuer),
+        bintools.stringToAddress(beneficiary),
+        [
+          issuerAuth[0],
+          typeof issuerAuth[1] === "string"
+            ? this.parseAddress(issuerAuth[1])
+            : issuerAuth[1]
+        ],
+        cumulativeAmountToCashOut,
         changeThreshold
       )
 
@@ -487,7 +541,8 @@ export class TouristicVMAPI extends JRPCAPI {
           ? { locktime: "0", threshold: changeThreshold, addresses: change }
           : undefined,
       lockMode: lockMode === "Unlocked" ? 0 : 1,
-      amountToLock: amountToLock.toString(10),
+      amountToLock: toLockTime.eqn(0) ? amountToLock.toString(10) : "0",
+      amountToUnlock: toLockTime.eqn(1) ? amountToLock.toString(10) : "0",
       amountToBurn: amountToBurn.toString(10),
       asOf: asOf.toString(10),
       encoding: encoding ?? "hex"
