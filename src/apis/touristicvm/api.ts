@@ -8,6 +8,7 @@ import {
   JRPCAPI,
   OutputOwners,
   RequestResponseData,
+  Signature,
   ZeroBN
 } from "../../common"
 
@@ -25,7 +26,7 @@ import {
 } from "../../utils/errors"
 import { PersistanceOptions, Serialization, SerializedType } from "../../utils"
 import { Network } from "../../utils/networks"
-import { KeyChain } from "./keychain"
+import { KeyChain, KeyPair } from "./keychain"
 import { Tx, UnsignedTx } from "./tx"
 import { TouristicVmConstants } from "./constants"
 import AvalancheCore from "caminojs/camino"
@@ -42,6 +43,7 @@ import {
 } from "caminojs/apis/touristicvm"
 import { Spender } from "./spender"
 import { Builder } from "./builder"
+import createHash from "create-hash"
 
 export type LockMode = "Unlocked" | "Lock"
 
@@ -569,6 +571,32 @@ export class TouristicVMAPI extends JRPCAPI {
         ? OutputOwners.fromArray(Buffer.from(r.owners.slice(2), "hex"))
         : []
     }
+  }
+
+  buildChequeSignature(
+    issuer: string,
+    beneficiary: string,
+    amount: number
+  ): string {
+    // 1. build message to sign out of issuer, beneficiary and amount
+    const messageToSign =
+      bintools.cb58Encode(bintools.stringToAddress(issuer)) +
+      bintools.cb58Encode(bintools.stringToAddress(beneficiary)) +
+      amount
+
+    // 2. hashed message to sign
+    const hashedMessage: Buffer = Buffer.from(
+      createHash("sha256").update(messageToSign).digest()
+    )
+
+    // 3. sign message
+    const keypair: KeyPair = this.keychain.getKey(
+      bintools.stringToAddress(issuer)
+    )
+    const signval: Buffer = keypair.sign(hashedMessage)
+    const sig: Signature = new Signature()
+    sig.fromBuffer(signval)
+    return sig.toBuffer().toString("hex")
   }
 
   /**
