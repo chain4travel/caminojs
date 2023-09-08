@@ -16,13 +16,13 @@ const InitAvalanche = async () => {
 }
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const signature = tchain.buildChequeSignature(
+  const cheque = tchain.issueCheque(
     "T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3",
     "T-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68",
     10000
   )
 
-  console.log(`Signature: ${signature}`)
+  console.log(`Signature: ${JSON.stringify(cheque)}`)
 }
 
 main()

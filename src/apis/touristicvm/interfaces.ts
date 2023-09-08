@@ -3,6 +3,7 @@ import { OutputOwners } from "caminojs/common"
 import { TransferableInput } from "./inputs"
 import { TransferableOutput } from "./outputs"
 import { UTXOSet } from "./utxos"
+import { BalanceDict, UTXOID } from "caminojs/apis/platformvm"
 
 export interface StartIndexInterface {
   address: string
@@ -53,4 +54,18 @@ export interface OwnerParam {
 export type FromSigner = {
   from: Buffer[]
   signer: Buffer[]
+}
+
+export interface GetBalanceResponse {
+  balances: BalanceDict
+  unlockedOutputs: BalanceDict
+  lockedOutputs: BalanceDict
+  utxoIDs: UTXOID[]
+}
+
+export interface Cheque {
+  issuer: string
+  beneficiary: string
+  amount: number
+  signature: string
 }

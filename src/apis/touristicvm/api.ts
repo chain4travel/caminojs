@@ -35,7 +35,9 @@ import {
   SpendReply,
   GetUTXOsParams,
   GetUTXOsResponse,
-  FromSigner
+  FromSigner,
+  GetBalanceResponse,
+  Cheque
 } from "./interfaces"
 import {
   TransferableInput,
@@ -44,6 +46,7 @@ import {
 import { Spender } from "./spender"
 import { Builder } from "./builder"
 import createHash from "create-hash"
+import { BalanceDict } from "caminojs/apis/platformvm"
 
 export type LockMode = "Unlocked" | "Lock"
 
@@ -573,11 +576,7 @@ export class TouristicVMAPI extends JRPCAPI {
     }
   }
 
-  buildChequeSignature(
-    issuer: string,
-    beneficiary: string,
-    amount: number
-  ): string {
+  issueCheque(issuer: string, beneficiary: string, amount: number): Cheque {
     // 1. build message to sign out of issuer, beneficiary and amount
     const messageToSign =
       bintools.cb58Encode(bintools.stringToAddress(issuer)) +
@@ -596,7 +595,12 @@ export class TouristicVMAPI extends JRPCAPI {
     const signval: Buffer = keypair.sign(hashedMessage)
     const sig: Signature = new Signature()
     sig.fromBuffer(signval)
-    return sig.toBuffer().toString("hex")
+    return {
+      issuer: issuer,
+      beneficiary: beneficiary,
+      amount: amount,
+      signature: sig.toBuffer().toString("hex")
+    } as Cheque
   }
 
   /**
@@ -631,6 +635,46 @@ export class TouristicVMAPI extends JRPCAPI {
       params
     )
     return response.data.result.txID
+  }
+
+  /**
+   * Gets the balance of a particular asset.
+   *
+   * @param addresses The addresses to pull the asset balance from
+   *
+   * @returns Promise with the balance as a {@link https://github.com/indutny/bn.js/|BN} on the provided address.
+   */
+  getBalance = async (addresses: string[]): Promise<GetBalanceResponse> => {
+    addresses.forEach((address) => {
+      if (typeof this.parseAddress(address) === "undefined") {
+        /* istanbul ignore next */
+        throw new AddressError(
+          "Error - TouristicVMAPI.getBalance: Invalid address format"
+        )
+      }
+    })
+    const params: any = {
+      addresses
+    }
+    const response: RequestResponseData = await this.callMethod(
+      "touristicvm.getBalance",
+      params
+    )
+
+    const result = response.data.result
+
+    const parseDict = (input: any[]): BalanceDict => {
+      let dict: BalanceDict = {}
+      for (const [k, v] of Object.entries(input)) dict[k] = new BN(v)
+      return dict as BalanceDict
+    }
+
+    return {
+      balances: parseDict(result.balances),
+      unlockedOutputs: parseDict(result.unlockedOutputs),
+      lockedOutputs: parseDict(result.lockedOutputs),
+      utxoIDs: result.utxoIDs
+    } as GetBalanceResponse
   }
 
   /**
