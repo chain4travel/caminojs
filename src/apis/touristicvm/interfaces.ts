@@ -67,5 +67,6 @@ export interface Cheque {
   issuer: string
   beneficiary: string
   amount: number
+  serialID: number
   signature: string
 }

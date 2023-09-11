@@ -464,10 +464,7 @@ export class TouristicVMAPI extends JRPCAPI {
     changeAddresses: string[] = undefined,
     memo: PayloadBase | Buffer = undefined,
     asOf: BN = ZeroBN,
-    issuer: string,
-    beneficiary: string,
-    issuerAuth: [number, string | Buffer] = undefined,
-    cumulativeAmountToCashOut: BN,
+    cheque: Cheque,
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
     const caller = "buildCashoutChequeTx"
@@ -498,15 +495,11 @@ export class TouristicVMAPI extends JRPCAPI {
         avaxAssetID,
         memo,
         asOf,
-        bintools.stringToAddress(issuer),
-        bintools.stringToAddress(beneficiary),
-        [
-          issuerAuth[0],
-          typeof issuerAuth[1] === "string"
-            ? this.parseAddress(issuerAuth[1])
-            : issuerAuth[1]
-        ],
-        cumulativeAmountToCashOut,
+        bintools.stringToAddress(cheque.issuer),
+        bintools.stringToAddress(cheque.beneficiary),
+        new BN(cheque.amount),
+        new BN(cheque.serialID),
+        cheque.signature,
         changeThreshold
       )
 
@@ -553,12 +546,13 @@ export class TouristicVMAPI extends JRPCAPI {
       encoding: encoding ?? "hex"
     }
 
+    console.log(params)
     const response: RequestResponseData = await this.callMethod(
       "touristicvm.spend",
       params
     )
     const r = response.data.result
-
+    console.log(r)
     // We need to update signature index source here
     const ins = TransferableInput.fromArray(Buffer.from(r.ins.slice(2), "hex"))
     ins.forEach((e, idx) =>
@@ -576,12 +570,18 @@ export class TouristicVMAPI extends JRPCAPI {
     }
   }
 
-  issueCheque(issuer: string, beneficiary: string, amount: number): Cheque {
+  issueCheque(
+    issuer: string,
+    beneficiary: string,
+    amount: number,
+    serialID: number
+  ): Cheque {
     // 1. build message to sign out of issuer, beneficiary and amount
     const messageToSign =
       bintools.cb58Encode(bintools.stringToAddress(issuer)) +
       bintools.cb58Encode(bintools.stringToAddress(beneficiary)) +
-      amount
+      amount +
+      serialID
 
     // 2. hashed message to sign
     const hashedMessage: Buffer = Buffer.from(
@@ -599,6 +599,7 @@ export class TouristicVMAPI extends JRPCAPI {
       issuer: issuer,
       beneficiary: beneficiary,
       amount: amount,
+      serialID: serialID,
       signature: sig.toBuffer().toString("hex")
     } as Cheque
   }

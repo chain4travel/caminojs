@@ -319,8 +319,9 @@ export class Builder {
     asOf: BN = zero,
     issuer: Buffer,
     beneficiary: Buffer,
-    issuerAuth: [number, Buffer] = undefined,
     cumulativeAmountToCashOut: BN,
+    serialID: BN,
+    chequeSignature: string | Buffer,
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
     let ins: TransferableInput[] = []
@@ -362,9 +363,12 @@ export class Builder {
       memo,
       issuer,
       beneficiary,
-      bintools.fromBNToBuffer(cumulativeAmountToCashOut, 8)
+      bintools.fromBNToBuffer(cumulativeAmountToCashOut, 8),
+      bintools.fromBNToBuffer(serialID, 8),
+      typeof chequeSignature === "string"
+        ? Buffer.from(chequeSignature, "hex")
+        : chequeSignature
     )
-    baseTx.addSignatureIdx(issuerAuth[0], issuerAuth[1])
     baseTx.setOutputOwners(owners)
     return new UnsignedTx(baseTx)
   }

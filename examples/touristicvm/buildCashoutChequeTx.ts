@@ -1,11 +1,8 @@
 import { Avalanche, BN, Buffer } from "caminojs/index"
-import { Serialization, UnixNow } from "caminojs/utils"
+import { UnixNow } from "caminojs/utils"
 import { TouristicVMAPI } from "caminojs/apis/touristicvm/api"
 import { Tx, UnsignedTx } from "caminojs/apis/touristicvm"
-import { CashoutChequeTx } from "caminojs/apis/touristicvm/cashoutChequeTx"
-import BinTools from "caminojs/utils/bintools"
-import createHash from "create-hash"
-import * as bech32 from "bech32"
+import { Cheque } from "caminojs/apis/touristicvm/interfaces"
 
 const avalanche: Avalanche = new Avalanche("localhost", 9650, "http", 1002)
 const privKey: string =
@@ -34,17 +31,22 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const amount: BN = new BN(10000)
-
+  const issuer = "T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
+  const beneficiary = "T-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68"
+  const amount = 10000
+  const serialID = 1
+  const cheque: Cheque = tchain.issueCheque(
+    issuer,
+    beneficiary,
+    amount,
+    serialID
+  )
   const unsignedTx: UnsignedTx = await tchain.buildCashoutChequeTx(
-    ["T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"],
-    ["T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"],
+    [issuer],
+    [issuer],
     memo,
     asOf,
-    "T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3",
-    "T-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68",
-    [0, "T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"],
-    amount,
+    cheque,
     threshold
   )
 

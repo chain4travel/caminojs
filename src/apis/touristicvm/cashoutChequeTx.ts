@@ -58,7 +58,12 @@ export class CashoutChequeTx extends BaseTx {
         "Buffer",
         "decimalString"
       ),
-      issuerAuth: this.issuerAuth.serialize(encoding)
+      serialID: serialization.encoder(
+        this.serialID,
+        encoding,
+        "Buffer",
+        "decimalString"
+      )
     }
   }
   deserialize(fields: object, encoding: SerializedEncoding = "hex") {
@@ -83,14 +88,18 @@ export class CashoutChequeTx extends BaseTx {
       "decimalString",
       "Buffer"
     )
-    this.issuerAuth.deserialize(fields["issuerAuth"], encoding)
+    this.serialID = serialization.decoder(
+      fields["serialID"],
+      encoding,
+      "decimalString",
+      "Buffer"
+    )
   }
   protected issuer: Buffer = Buffer.alloc(20)
   protected beneficiary: Buffer = Buffer.alloc(20)
-  protected issuerAuth: Auth = new Auth()
   protected amount: Buffer = Buffer.alloc(8)
-  protected sigCount: Buffer = Buffer.alloc(4)
-  protected sigIdxs: SigIdx[] = [] // idxs of subnet auth signers
+  protected serialID: Buffer = Buffer.alloc(8)
+  protected chequeSignature: Buffer = Buffer.alloc(65)
 
   fromBuffer(bytes: Buffer, offset: number = 0): number {
     offset = super.fromBuffer(bytes, offset)
@@ -100,10 +109,8 @@ export class CashoutChequeTx extends BaseTx {
     offset += 20
     this.amount = bintools.copyFrom(bytes, offset, offset + 8)
     offset += 8
-    const sa: Auth = new Auth()
-    offset += sa.fromBuffer(bintools.copyFrom(bytes, offset))
-    this.issuerAuth = sa
-
+    this.serialID = bintools.copyFrom(bytes, offset, offset + 8)
+    offset += 8
     return offset
   }
 
@@ -114,17 +121,19 @@ export class CashoutChequeTx extends BaseTx {
     const superbuff: Buffer = super.toBuffer()
 
     let bsize: number =
-      superbuff.length + this.issuer.length + this.beneficiary.length + 8
+      superbuff.length +
+      this.issuer.length +
+      this.beneficiary.length +
+      this.amount.length +
+      this.serialID.length
 
     const barr: Buffer[] = [
       superbuff,
       this.issuer,
       this.beneficiary,
-      this.amount
+      this.amount,
+      this.serialID
     ]
-
-    bsize += this.issuerAuth.toBuffer().length
-    barr.push(this.issuerAuth.toBuffer())
 
     return Buffer.concat(barr, bsize)
   }
@@ -139,82 +148,20 @@ export class CashoutChequeTx extends BaseTx {
     return new CashoutChequeTx(...args) as this
   }
 
-  /**
-   * Creates and adds a [[SigIdx]] to the [[AddCashoutChequeTx]].
-   *
-   * @param addressIdx The index of the address to reference in the signatures
-   * @param address The address of the source of the signature
-   */
-  addSignatureIdx(addressIdx: number, address: Buffer): void {
-    const addressIndex: Buffer = Buffer.alloc(4)
-    addressIndex.writeUIntBE(addressIdx, 0, 4)
-    this.issuerAuth.addAddressIndex(addressIndex)
-
-    const sigidx: SigIdx = new SigIdx()
-    const b: Buffer = Buffer.alloc(4)
-    b.writeUInt32BE(addressIdx, 0)
-    sigidx.fromBuffer(b)
-    sigidx.setSource(address)
-    this.sigIdxs.push(sigidx)
-    this.sigCount.writeUInt32BE(this.sigIdxs.length, 0)
-  }
-
-  /**
-   * Returns the array of [[SigIdx]] for this [[TX]]
-   */
-  getSigIdxs(): SigIdx[] {
-    return this.sigIdxs
-  }
-
   getCredentialID(): number {
     return TouristicVmConstants.SECPCREDENTIAL
   }
 
-  getChequeMsgToSign(): any {
-    return (
-      bintools.cb58Encode(this.issuer) +
-      bintools.cb58Encode(this.beneficiary) +
-      bintools.fromBufferToBN(this.amount).toNumber()
-    )
-  }
-  /**
-   * Takes the bytes of an [[UnsignedTx]] and returns an array of [[Credential]]s
-   *
-   * @param msg A Buffer for the [[UnsignedTx]]
-   * @param kc An [[KeyChain]] used in signing
-   *
-   * @returns An array of [[Credential]]s
-   */
   sign(msg: Buffer, kc: KeyChain): Credential[] {
-    const creds: Credential[] = super.sign(msg, kc)
     let cred: Credential = SelectCredentialClass(this.getCredentialID())
 
     // Add Issuer Signature
-    const keypair: KeyPair = kc.getKey(this.issuer)
-    const sha256: Buffer = Buffer.from(
-      createHash("sha256").update(this.getChequeMsgToSign()).digest()
-    )
-    const signval: Buffer = keypair.sign(sha256)
     const sig: Signature = new Signature()
-    sig.fromBuffer(signval)
+    sig.fromBuffer(this.chequeSignature)
     cred.addSignature(sig)
-    creds.push(cred)
-
-    return creds
+    return [cred]
   }
 
-  /**
-   * Class representing an unsigned RegisterNode transaction.
-   *
-   * @param networkID Optional networkID, [[DefaultNetworkID]]
-   * @param blockchainID Optional blockchainID, default Buffer.alloc(32, 16)
-   * @param outs Optional array of the [[TransferableOutput]]s
-   * @param ins Optional array of the [[TransferableInput]]s
-   * @param memo Optional {@link https://github.com/feross/buffer|Buffer} for the memo field
-   * @param oldNodeID Optional ID of the existing NodeID to replace or remove.
-   * @param newNodeID Optional ID of the newNodID to register address.
-   * @param address The consortiumMemberAddress, single or multi-sig.
-   */
   constructor(
     networkID: number = DefaultNetworkID,
     blockchainID: Buffer = Buffer.alloc(32, 16),
@@ -223,7 +170,9 @@ export class CashoutChequeTx extends BaseTx {
     memo: Buffer = undefined,
     issuer: Buffer = undefined,
     beneficiary: Buffer = undefined,
-    amount: Buffer = undefined
+    amount: Buffer = undefined,
+    serialID: Buffer = undefined,
+    chequeSignature: Buffer = undefined
   ) {
     super(networkID, blockchainID, outs, ins, memo)
 
@@ -234,6 +183,11 @@ export class CashoutChequeTx extends BaseTx {
     if (typeof amount != "undefined") {
       this.amount = amount
     }
-    this.issuerAuth = new Auth()
+    if (typeof serialID != "undefined") {
+      this.serialID = serialID
+    }
+    if (typeof chequeSignature != "undefined") {
+      this.chequeSignature = chequeSignature
+    }
   }
 }
