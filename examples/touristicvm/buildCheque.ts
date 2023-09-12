@@ -24,7 +24,7 @@ const main = async (): Promise<any> => {
     1
   )
 
-  console.log(`Signature: ${JSON.stringify(cheque)}`)
+  console.log(`Cheque: ${JSON.stringify(cheque)}`)
 }
 
 main()
