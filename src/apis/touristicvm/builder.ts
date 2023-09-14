@@ -1,32 +1,26 @@
-import {
-  AmountOutput,
-  AssetAmountDestination,
-  BaseTx,
-  SECPOwnerOutput,
-  SECPTransferInput,
-  SelectOutputClass,
-  TransferableInput,
-  TransferableOutput,
-  UnsignedTx,
-  UTXO
-} from "caminojs/apis/touristicvm"
 import BN from "bn.js"
 
 import { Buffer } from "buffer/"
 import { LockMode } from "./api"
-import { AddressError, DefaultNetworkID, ThresholdError } from "caminojs/utils"
-import { OutputOwners, ZeroBN } from "caminojs/common"
+import { AddressError, DefaultNetworkID, ThresholdError } from "../../utils"
+import { OutputOwners } from "../../common"
 import { FromSigner } from "./interfaces"
 import { LockMessengerFundsTx } from "./lockmessengerfundstx"
 import { ImportTx } from "./importtx"
-import { CashoutChequeTx } from "./cashoutChequeTx"
-import BinTools from "caminojs/utils/bintools"
+import { CashoutChequeTx, Cheque } from "./cashoutChequeTx"
+import BinTools from "../../utils/bintools"
+import { AssetAmountDestination, UTXO } from "./utxos"
+import { UnsignedTx } from "./tx"
+import { SECPTransferInput, TransferableInput } from "./inputs"
+import { AmountOutput, SelectOutputClass, TransferableOutput } from "./outputs"
+import { BaseTx } from "./basetx"
 export interface MinimumSpendable {
   getMinimumSpendable(
     aad: AssetAmountDestination,
     asOf: BN,
     locktime: BN,
-    lockMode: LockMode
+    lockMode: LockMode,
+    agent?: string
   ): Promise<Error>
 }
 const zero: BN = new BN(0)
@@ -321,6 +315,7 @@ export class Builder {
     beneficiary: Buffer,
     cumulativeAmountToCashOut: BN,
     serialID: BN,
+    agent: string,
     chequeSignature: string | Buffer,
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
@@ -344,7 +339,8 @@ export class Builder {
         aad,
         asOf,
         new BN(1), // nikos: unlock locked funds
-        "Unlocked"
+        "Unlocked",
+        agent
       )
       if (typeof minSpendableErr === "undefined") {
         ins = aad.getInputs()
@@ -355,19 +351,24 @@ export class Builder {
       }
     }
 
+    const cheque: Cheque = new Cheque(
+      issuer,
+      beneficiary,
+      bintools.fromBNToBuffer(cumulativeAmountToCashOut, 8),
+      bintools.fromBNToBuffer(serialID, 8),
+      agent,
+      typeof chequeSignature === "string"
+        ? Buffer.from(chequeSignature, "hex")
+        : chequeSignature
+    )
+
     const baseTx: CashoutChequeTx = new CashoutChequeTx(
       networkID,
       blockchainID,
       outs,
       ins,
       memo,
-      issuer,
-      beneficiary,
-      bintools.fromBNToBuffer(cumulativeAmountToCashOut, 8),
-      bintools.fromBNToBuffer(serialID, 8),
-      typeof chequeSignature === "string"
-        ? Buffer.from(chequeSignature, "hex")
-        : chequeSignature
+      cheque
     )
     baseTx.setOutputOwners(owners)
     return new UnsignedTx(baseTx)

@@ -5,19 +5,14 @@
 import { Buffer } from "buffer/"
 import BinTools from "../../utils/bintools"
 import BN from "bn.js"
-import { AmountOutput, SelectOutputClass, TransferableOutput } from "./outputs"
-import { SECPTransferInput, TransferableInput } from "./inputs"
-import { BaseOutput, Output, OutputOwners } from "../../common/output"
-import { UnixNow } from "../../utils/helperfunctions"
+import { SelectOutputClass, TransferableOutput } from "./outputs"
+import { TransferableInput } from "./inputs"
+import { BaseOutput, OutputOwners } from "../../common/output"
 import { StandardUTXO, StandardUTXOSet } from "../../common/utxos"
-import { BaseTx } from "./basetx"
-import {
-  StandardAssetAmountDestination,
-  AssetAmount
-} from "../../common/assetamount"
+import { StandardAssetAmountDestination } from "../../common/assetamount"
 import { Serialization, SerializedEncoding } from "../../utils/serialization"
 import { UTXOError, UnknownFormatError } from "../../utils/errors"
-import { TouristicVmConstants } from "caminojs/apis/touristicvm"
+import { TouristicVmConstants } from "./constants"
 
 /**
  * @ignore

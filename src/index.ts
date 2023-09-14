@@ -38,7 +38,7 @@ import {
 } from "./utils/constants"
 import { DefaultPlatformChainID } from "./utils"
 import { GetConfigurationResponse } from "./apis/platformvm/interfaces"
-import { TouristicVMAPI } from "caminojs/apis/touristicvm/api"
+import { TouristicVMAPI } from "./apis/touristicvm/api"
 
 /**
  * CaminoJS is middleware for interacting with Camino node RPC APIs.

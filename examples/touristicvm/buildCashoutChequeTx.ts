@@ -2,7 +2,7 @@ import { Avalanche, BN, Buffer } from "caminojs/index"
 import { UnixNow } from "caminojs/utils"
 import { TouristicVMAPI } from "caminojs/apis/touristicvm/api"
 import { Tx, UnsignedTx } from "caminojs/apis/touristicvm"
-import { Cheque } from "caminojs/apis/touristicvm/interfaces"
+import { ChequeParams } from "caminojs/apis/touristicvm/interfaces"
 
 const avalanche: Avalanche = new Avalanche("localhost", 9650, "http", 1002)
 const privKey: string =
@@ -33,13 +33,15 @@ const main = async (): Promise<any> => {
   await InitAvalanche()
   const issuer = "T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
   const beneficiary = "T-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68"
-  const amount = 10000
-  const serialID = 1
-  const cheque: Cheque = tchain.issueCheque(
+  const amount = 10003
+  const serialID = 2
+  const agent = "ed68ff60-10d1-406f-aeb3-0e76feb7b151"
+  const cheque: ChequeParams = tchain.issueCheque(
     issuer,
     beneficiary,
     amount,
-    serialID
+    serialID,
+    agent
   )
   const unsignedTx: UnsignedTx = await tchain.buildCashoutChequeTx(
     [issuer],
@@ -49,8 +51,7 @@ const main = async (): Promise<any> => {
     cheque,
     threshold
   )
-
-  const tx: Tx = unsignedTx.sign(tkeyChain)
+  const tx: Tx = new Tx(unsignedTx, [])
   const txid: string = await tchain.issueTx(tx)
   console.log(`Success! TXID: ${txid}`)
 }

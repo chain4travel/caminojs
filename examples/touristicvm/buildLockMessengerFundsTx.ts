@@ -30,7 +30,7 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const amount: BN = new BN(12345)
+  const amount: BN = new BN(1000000)
 
   const unsignedTx: UnsignedTx = await tchain.buildLockMessengerFundsTx(
     tAddressStrings,

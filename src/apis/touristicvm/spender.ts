@@ -19,7 +19,8 @@ export class Spender {
     aad: AssetAmountDestination,
     asOf: BN,
     lockTime: BN,
-    lockMode: LockMode
+    lockMode: LockMode,
+    agent?: string
   ): Promise<Error> => {
     if (aad.getAmounts().length !== 1) {
       return new FeeAssetError("spender -- multiple assets not yet supported")
@@ -54,7 +55,8 @@ export class Spender {
       lockMode,
       aa.getAmount(),
       aa.getBurn(),
-      asOf
+      asOf,
+      agent
     )
 
     result.ins.forEach((inp) => {

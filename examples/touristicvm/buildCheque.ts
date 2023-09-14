@@ -1,7 +1,8 @@
 import Avalanche from "caminojs/index"
 import { TouristicVMAPI } from "caminojs/apis/touristicvm"
-import { Cheque } from "caminojs/apis/touristicvm/interfaces"
+import { ChequeParams } from "caminojs/apis/touristicvm/interfaces"
 
+const { v4: uuid } = require("uuid")
 const avalanche: Avalanche = new Avalanche("localhost", 9650, "http", 1002)
 const privateKeyOfIssuer =
   "PrivateKey-vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"
@@ -17,11 +18,13 @@ const InitAvalanche = async () => {
 }
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const cheque: Cheque = tchain.issueCheque(
+  const agent = uuid()
+  const cheque: ChequeParams = tchain.issueCheque(
     "T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3",
     "T-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68",
     10000,
-    1
+    1,
+    agent
   )
 
   console.log(`Cheque: ${JSON.stringify(cheque)}`)

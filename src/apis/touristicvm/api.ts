@@ -29,7 +29,7 @@ import { Network } from "../../utils/networks"
 import { KeyChain, KeyPair } from "./keychain"
 import { Tx, UnsignedTx } from "./tx"
 import { TouristicVmConstants } from "./constants"
-import AvalancheCore from "caminojs/camino"
+import AvalancheCore from "../../camino"
 import {
   SpendParams,
   SpendReply,
@@ -37,16 +37,14 @@ import {
   GetUTXOsResponse,
   FromSigner,
   GetBalanceResponse,
-  Cheque
+  ChequeParams
 } from "./interfaces"
-import {
-  TransferableInput,
-  TransferableOutput
-} from "caminojs/apis/touristicvm"
+import { TransferableInput } from "./inputs"
+import { TransferableOutput } from "./outputs"
 import { Spender } from "./spender"
 import { Builder } from "./builder"
 import createHash from "create-hash"
-import { BalanceDict } from "caminojs/apis/platformvm"
+import { BalanceDict } from "../platformvm"
 
 export type LockMode = "Unlocked" | "Lock"
 
@@ -389,8 +387,6 @@ export class TouristicVMAPI extends JRPCAPI {
 
     const atomics: UTXO[] = atomicUTXOs.getAllUTXOs()
 
-    console.log("atomics")
-    console.log(atomics)
     const builtUnsignedTx: UnsignedTx = await this._getBuilder().buildImportTx(
       this.core.getNetworkID(),
       bintools.cb58Decode(this.blockchainID),
@@ -464,7 +460,7 @@ export class TouristicVMAPI extends JRPCAPI {
     changeAddresses: string[] = undefined,
     memo: PayloadBase | Buffer = undefined,
     asOf: BN = ZeroBN,
-    cheque: Cheque,
+    cheque: ChequeParams,
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
     const caller = "buildCashoutChequeTx"
@@ -485,6 +481,23 @@ export class TouristicVMAPI extends JRPCAPI {
     const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
     const fee: BN = this.getTxFee()
 
+    if (cheque.agent === undefined) {
+      throw new ProtocolError(
+        "Error -- TouristicvmAPI.buildCashoutChequeTx: invalid cheque agent"
+      )
+    }
+
+    // Convert the UUID to bytes (16 bytes)
+    const uuidBytes = Buffer.from(cheque.agent.replace(/-/g, ""), "hex")
+
+    // Pad the UUID bytes to make it 20 bytes in length
+    const paddedBytes = Buffer.concat([
+      uuidBytes,
+      Buffer.alloc(20 - uuidBytes.length)
+    ])
+
+    const agent = bintools.cb58Encode(paddedBytes)
+
     const builtUnsignedTx: UnsignedTx =
       await this._getBuilder().buildCashoutChequeTx(
         networkID,
@@ -499,6 +512,7 @@ export class TouristicVMAPI extends JRPCAPI {
         bintools.stringToAddress(cheque.beneficiary),
         new BN(cheque.amount),
         new BN(cheque.serialID),
+        agent,
         cheque.signature,
         changeThreshold
       )
@@ -518,6 +532,7 @@ export class TouristicVMAPI extends JRPCAPI {
     amountToLock: BN,
     amountToBurn: BN,
     asOf: BN,
+    agent?: string,
     encoding?: string
   ): Promise<SpendReply> => {
     if (!["Unlocked", "Lock"].includes(lockMode)) {
@@ -543,16 +558,15 @@ export class TouristicVMAPI extends JRPCAPI {
       amountToUnlock: toLockTime.eqn(1) ? amountToLock.toString(10) : "0",
       amountToBurn: amountToBurn.toString(10),
       asOf: asOf.toString(10),
-      encoding: encoding ?? "hex"
+      encoding: encoding ?? "hex",
+      agent: agent ?? undefined
     }
 
-    console.log(params)
     const response: RequestResponseData = await this.callMethod(
       "touristicvm.spend",
       params
     )
     const r = response.data.result
-    console.log(r)
     // We need to update signature index source here
     const ins = TransferableInput.fromArray(Buffer.from(r.ins.slice(2), "hex"))
     ins.forEach((e, idx) =>
@@ -574,8 +588,9 @@ export class TouristicVMAPI extends JRPCAPI {
     issuer: string,
     beneficiary: string,
     amount: number,
-    serialID: number
-  ): Cheque {
+    serialID: number,
+    agent: string
+  ): ChequeParams {
     // 1. build message to sign out of issuer, beneficiary and amount
     const messageToSign =
       bintools.cb58Encode(bintools.stringToAddress(issuer)) +
@@ -595,13 +610,15 @@ export class TouristicVMAPI extends JRPCAPI {
     const signval: Buffer = keypair.sign(hashedMessage)
     const sig: Signature = new Signature()
     sig.fromBuffer(signval)
+
     return {
       issuer: issuer,
       beneficiary: beneficiary,
       amount: amount,
       serialID: serialID,
+      agent: agent,
       signature: sig.toBuffer().toString("hex")
-    } as Cheque
+    } as ChequeParams
   }
 
   /**

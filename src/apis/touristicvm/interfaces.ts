@@ -1,9 +1,9 @@
 import { Buffer } from "buffer/"
-import { OutputOwners } from "caminojs/common"
+import { OutputOwners } from "../../common"
 import { TransferableInput } from "./inputs"
 import { TransferableOutput } from "./outputs"
 import { UTXOSet } from "./utxos"
-import { BalanceDict, UTXOID } from "caminojs/apis/platformvm"
+import { BalanceDict, UTXOID } from "../platformvm"
 
 export interface StartIndexInterface {
   address: string
@@ -38,6 +38,7 @@ export interface SpendParams {
   amountToBurn: string
   asOf: string
   encoding?: string
+  agent?: string
 }
 
 export interface SpendReply {
@@ -63,10 +64,11 @@ export interface GetBalanceResponse {
   utxoIDs: UTXOID[]
 }
 
-export interface Cheque {
+export interface ChequeParams {
   issuer: string
   beneficiary: string
   amount: number
   serialID: number
+  agent: string
   signature: string
 }
