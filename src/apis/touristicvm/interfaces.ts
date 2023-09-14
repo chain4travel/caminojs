@@ -4,6 +4,7 @@ import { TransferableInput } from "./inputs"
 import { TransferableOutput } from "./outputs"
 import { UTXOSet } from "./utxos"
 import { BalanceDict, UTXOID } from "../platformvm"
+import BN from "bn.js"
 
 export interface StartIndexInterface {
   address: string
@@ -67,8 +68,8 @@ export interface GetBalanceResponse {
 export interface ChequeParams {
   issuer: string
   beneficiary: string
-  amount: number
-  serialID: number
+  amount: BN
+  serialID: BN
   agent: string
   signature: string
 }

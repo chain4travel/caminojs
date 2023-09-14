@@ -33,8 +33,8 @@ const main = async (): Promise<any> => {
   await InitAvalanche()
   const issuer = "T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
   const beneficiary = "T-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68"
-  const amount = 10003
-  const serialID = 2
+  const amount = new BN(10000)
+  const serialID = new BN(1)
   const agent = "ed68ff60-10d1-406f-aeb3-0e76feb7b151"
   const cheque: ChequeParams = tchain.issueCheque(
     issuer,

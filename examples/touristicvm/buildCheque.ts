@@ -1,4 +1,4 @@
-import Avalanche from "caminojs/index"
+import Avalanche, { BN } from "caminojs/index"
 import { TouristicVMAPI } from "caminojs/apis/touristicvm"
 import { ChequeParams } from "caminojs/apis/touristicvm/interfaces"
 
@@ -22,8 +22,8 @@ const main = async (): Promise<any> => {
   const cheque: ChequeParams = tchain.issueCheque(
     "T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3",
     "T-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68",
-    10000,
-    1,
+    new BN(10000),
+    new BN(1),
     agent
   )
 

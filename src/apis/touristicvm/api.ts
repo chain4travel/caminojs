@@ -510,8 +510,8 @@ export class TouristicVMAPI extends JRPCAPI {
         asOf,
         bintools.stringToAddress(cheque.issuer),
         bintools.stringToAddress(cheque.beneficiary),
-        new BN(cheque.amount),
-        new BN(cheque.serialID),
+        cheque.amount,
+        cheque.serialID,
         agent,
         cheque.signature,
         changeThreshold
@@ -587,8 +587,8 @@ export class TouristicVMAPI extends JRPCAPI {
   issueCheque(
     issuer: string,
     beneficiary: string,
-    amount: number,
-    serialID: number,
+    amount: BN,
+    serialID: BN,
     agent: string
   ): ChequeParams {
     // 1. build message to sign out of issuer, beneficiary and amount
