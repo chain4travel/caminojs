@@ -37,14 +37,16 @@ import {
   GetUTXOsResponse,
   FromSigner,
   GetBalanceResponse,
-  ChequeParams
+  ChequeParams,
+  IssueChequeResponse
 } from "./interfaces"
 import { TransferableInput } from "./inputs"
 import { TransferableOutput } from "./outputs"
 import { Spender } from "./spender"
 import { Builder } from "./builder"
-import createHash from "create-hash"
 import { BalanceDict } from "../platformvm"
+import { SECPCredential } from "./credentials"
+import createHash from "create-hash"
 
 export type LockMode = "Unlocked" | "Lock"
 
@@ -487,17 +489,6 @@ export class TouristicVMAPI extends JRPCAPI {
       )
     }
 
-    // Convert the UUID to bytes (16 bytes)
-    const uuidBytes = Buffer.from(cheque.agent.replace(/-/g, ""), "hex")
-
-    // Pad the UUID bytes to make it 20 bytes in length
-    const paddedBytes = Buffer.concat([
-      uuidBytes,
-      Buffer.alloc(20 - uuidBytes.length)
-    ])
-
-    const agent = bintools.cb58Encode(paddedBytes)
-
     const builtUnsignedTx: UnsignedTx =
       await this._getBuilder().buildCashoutChequeTx(
         networkID,
@@ -512,7 +503,7 @@ export class TouristicVMAPI extends JRPCAPI {
         bintools.stringToAddress(cheque.beneficiary),
         cheque.amount,
         cheque.serialID,
-        agent,
+        cheque.agent,
         cheque.signature,
         changeThreshold
       )
@@ -584,26 +575,36 @@ export class TouristicVMAPI extends JRPCAPI {
     }
   }
 
-  issueCheque(
+  async issueCheque(
     issuer: string,
     beneficiary: string,
     amount: BN,
     serialID: BN,
-    agent: string
-  ): ChequeParams {
-    // 1. build message to sign out of issuer, beneficiary and amount
-    const messageToSign =
-      bintools.cb58Encode(bintools.stringToAddress(issuer)) +
-      bintools.cb58Encode(bintools.stringToAddress(beneficiary)) +
-      amount +
-      serialID
+    unnormalizedAgent: string
+  ): Promise<ChequeParams> {
+    const params: any = {
+      issuer: bintools.cb58Encode(bintools.parseAddress(issuer, "T")),
+      beneficiary: bintools.cb58Encode(bintools.parseAddress(beneficiary, "T")),
+      amount: amount.toString(10),
+      serialID: serialID.toString(10),
+      unnormalizedAgent: unnormalizedAgent
+    }
 
-    // 2. hashed message to sign
-    const hashedMessage: Buffer = Buffer.from(
-      createHash("sha256").update(messageToSign).digest()
+    const response: RequestResponseData = await this.callMethod(
+      "touristicvm.issueCheque",
+      params
     )
 
-    // 3. sign message
+    const chequeResponse: IssueChequeResponse = response.data.result
+
+    // hash message
+    const hashedMessage: Buffer = Buffer.from(
+      createHash("sha256")
+        .update(Buffer.from(chequeResponse.msgToSign, "base64"))
+        .digest()
+    )
+
+    // sign hashed message
     const keypair: KeyPair = this.keychain.getKey(
       bintools.stringToAddress(issuer)
     )
@@ -616,9 +617,37 @@ export class TouristicVMAPI extends JRPCAPI {
       beneficiary: beneficiary,
       amount: amount,
       serialID: serialID,
-      agent: agent,
+      agent: chequeResponse.agent,
       signature: sig.toBuffer().toString("hex")
     } as ChequeParams
+  }
+
+  async validateCheque(cheque: ChequeParams): Promise<Boolean> {
+    // assemble credential object
+    const cred = new SECPCredential()
+    const sig: Signature = new Signature()
+    sig.fromBuffer(Buffer.from(cheque.signature, "hex"))
+    cred.addSignature(sig)
+
+    const params: any = {
+      issuer: bintools.cb58Encode(bintools.parseAddress(cheque.issuer, "T")),
+      beneficiary: bintools.cb58Encode(
+        bintools.parseAddress(cheque.beneficiary, "T")
+      ),
+      amount: cheque.amount.toString(10),
+      serialID: cheque.serialID.toString(10),
+      agent: cheque.agent,
+      // signature: cred.toBuffer().toString("hex")
+      // signature: `0x${sig.toBuffer().toString("hex")}`
+      signature: `0x${cheque.signature}`
+    }
+
+    const response: RequestResponseData = await this.callMethod(
+      "touristicvm.validateCheque",
+      params
+    )
+
+    return response.data.result.valid
   }
 
   /**

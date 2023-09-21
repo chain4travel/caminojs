@@ -1,5 +1,5 @@
-import { Avalanche, BinTools, BN, Buffer } from "caminojs/index"
-import { UnixNow } from "caminojs/utils"
+import { Avalanche, BN, Buffer } from "caminojs/index"
+import { ONEAVAX, UnixNow } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 import { TouristicVMAPI } from "caminojs/apis/touristicvm/api"
 import { Tx, UnsignedTx } from "caminojs/apis/touristicvm"
@@ -33,11 +33,11 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const amount: BN = new BN(1)
+  const amount: BN = new BN(ONEAVAX)
 
   const unsignedTx: UnsignedTx = await tchain.buildBaseTx(
     amount,
-    ["T-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68"],
+    ["T-kopernikus14a2jhd78jptyhna6qc0mdaglzsyt7d5rs0vkum"],
     ["T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"],
     ["T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"],
     memo,

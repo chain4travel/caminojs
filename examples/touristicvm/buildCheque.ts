@@ -19,7 +19,7 @@ const InitAvalanche = async () => {
 const main = async (): Promise<any> => {
   await InitAvalanche()
   const agent = uuid()
-  const cheque: ChequeParams = tchain.issueCheque(
+  const cheque: ChequeParams = await tchain.issueCheque(
     "T-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3",
     "T-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68",
     new BN(10000),
@@ -28,6 +28,10 @@ const main = async (): Promise<any> => {
   )
 
   console.log(`Cheque: ${JSON.stringify(cheque)}`)
+
+  // validate cheque
+  const isValid = await tchain.validateCheque(cheque)
+  console.log(`Cheque is valid: ${isValid}`)
 }
 
 main()

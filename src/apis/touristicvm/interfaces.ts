@@ -70,6 +70,10 @@ export interface ChequeParams {
   beneficiary: string
   amount: BN
   serialID: BN
-  agent: string
+  agent?: string
+  unnormalizedAgent?: string
   signature: string
+}
+export interface IssueChequeResponse extends ChequeParams {
+  msgToSign: string
 }

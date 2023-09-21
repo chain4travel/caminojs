@@ -36,7 +36,7 @@ const main = async (): Promise<any> => {
   const amount = new BN(10000)
   const serialID = new BN(1)
   const agent = "ed68ff60-10d1-406f-aeb3-0e76feb7b151"
-  const cheque: ChequeParams = tchain.issueCheque(
+  const cheque: ChequeParams = await tchain.issueCheque(
     issuer,
     beneficiary,
     amount,
