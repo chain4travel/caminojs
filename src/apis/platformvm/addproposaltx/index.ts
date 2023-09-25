@@ -46,6 +46,10 @@ export class ProposalWrapper {
     return this
   }
 
+  getProposalType(): number {
+    return this._typeID
+  }
+
   getProposal(): Proposal {
     return this.proposal
   }

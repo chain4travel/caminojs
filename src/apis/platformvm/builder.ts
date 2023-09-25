@@ -1836,6 +1836,7 @@ export class Builder {
       if (typeof minSpendableErr === "undefined") {
         ins = aad.getInputs()
         outs = aad.getAllOutputs()
+        owners = aad.getOutputOwners()
       } else {
         throw minSpendableErr
       }
@@ -1853,6 +1854,7 @@ export class Builder {
       proposerAuth
     )
 
+    owners.push(new OutputOwners([proposerAddress], ZeroBN, 1))
     baseTx.setOutputOwners(owners)
     return new UnsignedTx(baseTx)
   }
@@ -1916,6 +1918,7 @@ export class Builder {
       if (typeof minSpendableErr === "undefined") {
         ins = aad.getInputs()
         outs = aad.getAllOutputs()
+        owners = aad.getOutputOwners()
       } else {
         throw minSpendableErr
       }
@@ -1934,6 +1937,7 @@ export class Builder {
       voterAuth
     )
 
+    owners.push(new OutputOwners([voterAddress], ZeroBN, 1))
     baseTx.setOutputOwners(owners)
     return new UnsignedTx(baseTx)
   }
