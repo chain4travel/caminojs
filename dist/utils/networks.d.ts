@@ -20,7 +20,7 @@ export interface X {
     blockchainID: string;
     alias: string;
     vm: string;
-    creationTxFee: BN | number;
+    createAssetTxFee: BN | number;
     avaxAssetID: string;
     avaxAssetAlias: string;
     txFee?: BN | number;
@@ -31,7 +31,7 @@ export interface P {
     blockchainID: string;
     alias: string;
     vm: string;
-    creationTxFee: BN | number;
+    createAssetTxFee: BN | number;
     createSubnetTx: BN | number;
     createChainTx: BN | number;
     minConsumption: number;
