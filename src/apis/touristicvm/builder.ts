@@ -313,8 +313,8 @@ export class Builder {
     asOf: BN = zero,
     issuer: Buffer,
     beneficiary: Buffer,
-    cumulativeAmountToCashOut: BN,
-    serialID: BN,
+    cumulativeAmountToCashOut: string,
+    serialID: string,
     agent: string,
     chequeSignature: string | Buffer,
     changeThreshold: number = 1
@@ -333,7 +333,11 @@ export class Builder {
         changeThreshold
       )
 
-      aad.addAssetAmount(feeAssetID, cumulativeAmountToCashOut, zero) //TODO nikos: make CashoutChequeTx fee-less
+      aad.addAssetAmount(
+        feeAssetID,
+        new BN(cumulativeAmountToCashOut, 10),
+        zero
+      ) //TODO nikos: make CashoutChequeTx fee-less
 
       const minSpendableErr: Error = await this.spender.getMinimumSpendable(
         aad,
@@ -354,8 +358,8 @@ export class Builder {
     const cheque: Cheque = new Cheque(
       issuer,
       beneficiary,
-      bintools.fromBNToBuffer(cumulativeAmountToCashOut, 8),
-      bintools.fromBNToBuffer(serialID, 8),
+      bintools.fromBNToBuffer(new BN(cumulativeAmountToCashOut, 10), 8),
+      bintools.fromBNToBuffer(new BN(serialID, 10), 8),
       agent,
       typeof chequeSignature === "string"
         ? Buffer.from(chequeSignature, "hex")

@@ -68,8 +68,8 @@ export interface GetBalanceResponse {
 export interface ChequeParams {
   issuer: string
   beneficiary: string
-  amount: BN
-  serialID: BN
+  amount: string
+  serialID: string
   agent?: string
   unnormalizedAgent?: string
   signature: string

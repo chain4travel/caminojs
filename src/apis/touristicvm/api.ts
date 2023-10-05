@@ -578,15 +578,15 @@ export class TouristicVMAPI extends JRPCAPI {
   async issueCheque(
     issuer: string,
     beneficiary: string,
-    amount: BN,
-    serialID: BN,
+    amount: string,
+    serialID: string,
     unnormalizedAgent: string
   ): Promise<ChequeParams> {
     const params: any = {
       issuer: bintools.cb58Encode(bintools.parseAddress(issuer, "T")),
       beneficiary: bintools.cb58Encode(bintools.parseAddress(beneficiary, "T")),
-      amount: amount.toString(10),
-      serialID: serialID.toString(10),
+      amount: amount,
+      serialID: serialID,
       unnormalizedAgent: unnormalizedAgent
     }
 
@@ -634,8 +634,8 @@ export class TouristicVMAPI extends JRPCAPI {
       beneficiary: bintools.cb58Encode(
         bintools.parseAddress(cheque.beneficiary, "T")
       ),
-      amount: cheque.amount.toString(10),
-      serialID: cheque.serialID.toString(10),
+      amount: cheque.amount,
+      serialID: cheque.serialID,
       agent: cheque.agent,
       // signature: cred.toBuffer().toString("hex")
       // signature: `0x${sig.toBuffer().toString("hex")}`
