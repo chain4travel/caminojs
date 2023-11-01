@@ -13,6 +13,8 @@ import { TransferableOutput } from '../outputs';
 import { TransferableInput } from '../inputs';
 import { Credential, Signature, UpgradeVersionID } from '../../../common';
 import { BaseFeeProposal } from './basefeeproposal';
+import { AddMemberProposal } from './addmemberproposal'
+import { ExcludeMemberProposal } from './excludememberproposal'
 import { KeyChain, KeyPair } from '../keychain';
 import { SelectCredentialClass } from '../credentials';
 /**
@@ -21,9 +23,9 @@ import { SelectCredentialClass } from '../credentials';
 const bintools: BinTools = BinTools.getInstance()
 const serialization: Serialization = Serialization.getInstance()
 
-export { BaseFeeProposal }
+export { BaseFeeProposal, AddMemberProposal }
 export const DEFAULT_CAMINOGO_CODEC_VERSION = 0
-export type Proposal = BaseFeeProposal // TODO: extend this alias type for further supported proposal types
+export type Proposal = BaseFeeProposal | AddMemberProposal | ExcludeMemberProposal // TODO: extend this alias type for further supported proposal types
 export class ProposalWrapper {
   private _typeID: number
   private proposal: Proposal
