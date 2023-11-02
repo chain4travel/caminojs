@@ -767,7 +767,7 @@ export declare class PlatformVMAPI extends JRPCAPI {
      *
      * @returns An unsigned transaction created from the passed in parameters.
      */
-    buildDepositTx: (version: number, utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], depositOfferID: string | Buffer, depositDuration: number, rewardsOwner: OutputOwners, depositCreatorAddress: string | Buffer, depositCreatorAuth: [number, string | Buffer][], depositOfferOwnerSigs: Buffer[], depositOfferOwnerAuth: [number, string | Buffer][], memo: PayloadBase | Buffer, asOf: BN, amountToLock: BN, changeThreshold?: number) => Promise<UnsignedTx>;
+    buildDepositTx: (version: number, utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], depositOfferID: string | Buffer, depositDuration: number, rewardsOwner: OutputOwners, depositCreatorAddress: string | Buffer, depositCreatorAuth: [number, string | Buffer][], depositOfferOwnerSigs: Buffer[], depositOfferOwnerAuth: [number, string | Buffer][], memo: PayloadBase | Buffer, asOf: BN, amountToLock: BN, changeThreshold?: number, to?: Buffer[], toThreshold?: number) => Promise<UnsignedTx>;
     /**
      * Build an unsigned [[UnlockDepositTx]].
      *

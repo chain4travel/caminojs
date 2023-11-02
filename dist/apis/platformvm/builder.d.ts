@@ -297,7 +297,7 @@ export declare class Builder {
      *
      * @returns An unsigned DepositTx created from the passed in parameters.
      */
-    buildDepositTx: (version: number, networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], depositOfferID: Buffer, depositDuration: number, rewardsOwner: OutputOwners, depositCreatorAddress: Buffer, depositCreatorAuth: [number, Buffer][], depositOfferOwnerSigs: Buffer[], depositOfferOwnerAuth: [number, Buffer][], fee: BN, feeAssetID: Buffer, memo: Buffer, asOf: BN, amountToLock: BN, changeThreshold?: number) => Promise<UnsignedTx>;
+    buildDepositTx: (version: number, networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], depositOfferID: Buffer, depositDuration: number, rewardsOwner: OutputOwners, depositCreatorAddress: Buffer, depositCreatorAuth: [number, Buffer][], depositOfferOwnerSigs: Buffer[], depositOfferOwnerAuth: [number, Buffer][], fee: BN, feeAssetID: Buffer, memo: Buffer, asOf: BN, amountToLock: BN, changeThreshold?: number, to?: Buffer[], toThreshold?: number) => Promise<UnsignedTx>;
     /**
      * Build an unsigned [[UnlockDepositTx]].
      *

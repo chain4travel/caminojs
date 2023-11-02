@@ -33,11 +33,26 @@ export declare class Offer {
     protected rewardedAmount: Buffer;
     protected ownerAddress: Buffer;
     constructor(upgradeVersion?: number, interestRateNominator?: BN, start?: BN, end?: BN, minAmount?: BN, totalMaxAmount?: BN, depositedAmount?: BN, minDuration?: number, maxDuration?: number, unlockPeriodDuration?: number, noRewardsPeriodDuration?: number, memo?: Buffer, flag?: OfferFlag | BN, totalMaxRewardAmount?: BN, rewardedAmount?: BN, ownerAddress?: Buffer);
-    getMemo(): Buffer;
     deserialize(fields: object, encoding?: SerializedEncoding): this;
     serialize(encoding?: SerializedEncoding): object;
     fromBuffer(bytes: Buffer, offset?: number): number;
     toBuffer(): Buffer;
+    getUpgradeVersionID(): UpgradeVersionID;
+    getInterestRateNominator(): Buffer;
+    getStart(): Buffer;
+    getEnd(): Buffer;
+    getMinAmount(): Buffer;
+    getTotalMaxAmount(): Buffer;
+    getDepositedAmount(): Buffer;
+    getMinDuration(): Buffer;
+    getMaxDuration(): Buffer;
+    getUnlockPeriodDuration(): Buffer;
+    getNoRewardsPeriodDuration(): Buffer;
+    getMemo(): Buffer;
+    getFlags(): Buffer;
+    getTotalMaxRewardAmount(): Buffer;
+    getRewardedAmount(): Buffer;
+    getOwnerAddress(): Buffer;
 }
 /**
  * Class representing an unsigned AddDepositOfferTx transaction.
