@@ -69,6 +69,9 @@ export class ProposalWrapper {
       case PlatformVMConstants.ADDMEMBERPORPOSAL_TYPE_ID:
         proposal = new AddMemberProposal()
         break;
+      case PlatformVMConstants.EXCLUDEMEMBERPORPOSAL_TYPE_ID:
+        proposal = new ExcludeMemberProposal()
+        break;
       default:
         throw `Unsupported proposal type: ${this._typeID}`
     }
