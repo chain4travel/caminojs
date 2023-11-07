@@ -23,7 +23,7 @@ import { SelectCredentialClass } from '../credentials';
 const bintools: BinTools = BinTools.getInstance()
 const serialization: Serialization = Serialization.getInstance()
 
-export { BaseFeeProposal, AddMemberProposal }
+export { BaseFeeProposal, AddMemberProposal, ExcludeMemberProposal }
 export const DEFAULT_CAMINOGO_CODEC_VERSION = 0
 export type Proposal = BaseFeeProposal | AddMemberProposal | ExcludeMemberProposal // TODO: extend this alias type for further supported proposal types
 export class ProposalWrapper {
@@ -65,6 +65,9 @@ export class ProposalWrapper {
     switch (this._typeID) {
       case PlatformVMConstants.BASEFEEPORPOSAL_TYPE_ID:
         proposal = new BaseFeeProposal()
+        break;
+      case PlatformVMConstants.ADDMEMBERPORPOSAL_TYPE_ID:
+        proposal = new AddMemberProposal()
         break;
       default:
         throw `Unsupported proposal type: ${this._typeID}`

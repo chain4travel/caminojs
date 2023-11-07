@@ -11,15 +11,31 @@ export class AddMemberProposal extends EssentialProposal {
   private readonly TYPE_ID = PlatformVMConstants.ADDMEMBERPORPOSAL_TYPE_ID
 
   serialize(encoding: SerializedEncoding = 'hex'): object {
-    const fields = super.serialize(encoding)
     return {
-      ...fields,
+      start: serialization.encoder(
+        this.start,
+        encoding,
+        "Buffer",
+        "number"
+      ),
+      end: serialization.encoder(this.end, encoding, "Buffer", "number"),
       applicantAddress: serialization.encoder(this.applicantAddress, encoding, "Buffer", "cb58"),
     }
   };
 
   deserialize(fields: object, encoding: SerializedEncoding = "hex"): this {
-    super.deserialize(fields, encoding)
+    this.start = serialization.decoder(
+      fields["start"],
+      encoding,
+      "number",
+      "Buffer"
+    )
+    this.end = serialization.decoder(
+      fields["end"],
+      encoding,
+      "number",
+      "Buffer"
+    )
     this.applicantAddress = serialization.decoder(
       fields["applicantAddress"],
       encoding,
@@ -29,6 +45,25 @@ export class AddMemberProposal extends EssentialProposal {
     )
 
     return this
+  }
+
+  fromBuffer(bytes: Buffer, offset: number = 0): number {
+    this.applicantAddress = bintools.copyFrom(bytes, offset, offset + 20)
+    offset += 20
+    this.start = bintools.copyFrom(bytes, offset, offset + 8)
+    offset += 8
+    this.end = bintools.copyFrom(bytes, offset, offset + 8)
+    offset += 8
+    return offset
+  }
+
+  /**
+   * Returns a {@link https://github.com/feross/buffer|Buffer} representation of the [[BaseProposal]].
+   */
+  toBuffer(): Buffer {
+    const barr: Buffer[] = [this.applicantAddress, this.start, this.end]
+    const bsize = this.applicantAddress.length + this.start.length + this.end.length
+    return Buffer.concat(barr, bsize)
   }
 
   constructor(start?: number, end?: number, applicantAddress: string | Buffer = undefined) {
