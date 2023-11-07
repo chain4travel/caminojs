@@ -2,7 +2,7 @@ import { Buffer } from 'buffer/'
 import BinTools from '../../../utils/bintools'
 import { Serialization, SerializedEncoding } from '../../../utils/serialization'
 import { PlatformVMConstants } from "../constants"
-import { EssentialProposal, VoteOption } from "./essentialproposal"
+import { EssentialProposal } from "./essentialproposal"
 
 const serialization = Serialization.getInstance()
 const bintools = BinTools.getInstance()
@@ -11,15 +11,31 @@ export class ExcludeMemberProposal extends EssentialProposal {
   private readonly TYPE_ID = PlatformVMConstants.EXCLUDEMEMBERPORPOSAL_TYPE_ID
 
   serialize(encoding: SerializedEncoding = 'hex'): object {
-    const fields = super.serialize(encoding)
     return {
-      ...fields,
+      start: serialization.encoder(
+        this.start,
+        encoding,
+        "Buffer",
+        "number"
+      ),
+      end: serialization.encoder(this.end, encoding, "Buffer", "number"),
       memberAddress: serialization.encoder(this.memberAddress, encoding, "Buffer", "cb58"),
     }
   };
 
   deserialize(fields: object, encoding: SerializedEncoding = "hex"): this {
-    super.deserialize(fields, encoding)
+    this.start = serialization.decoder(
+      fields["start"],
+      encoding,
+      "number",
+      "Buffer"
+    )
+    this.end = serialization.decoder(
+      fields["end"],
+      encoding,
+      "number",
+      "Buffer"
+    )
     this.memberAddress = serialization.decoder(
       fields["memberAddress"],
       encoding,
@@ -29,6 +45,25 @@ export class ExcludeMemberProposal extends EssentialProposal {
     )
 
     return this
+  }
+
+  fromBuffer(bytes: Buffer, offset: number = 0): number {
+    this.memberAddress = bintools.copyFrom(bytes, offset, offset + 20)
+    offset += 20
+    this.start = bintools.copyFrom(bytes, offset, offset + 8)
+    offset += 8
+    this.end = bintools.copyFrom(bytes, offset, offset + 8)
+    offset += 8
+    return offset
+  }
+
+  /**
+   * Returns a {@link https://github.com/feross/buffer|Buffer} representation of the [[BaseProposal]].
+   */
+  toBuffer(): Buffer {
+    const barr: Buffer[] = [this.memberAddress, this.start, this.end]
+    const bsize = this.memberAddress.length + this.start.length + this.end.length
+    return Buffer.concat(barr, bsize)
   }
 
   constructor(start?: number, end?: number, memberAddress: string | Buffer = undefined) {

@@ -2,7 +2,7 @@ import { Buffer } from 'buffer/'
 import BinTools from '../../../utils/bintools'
 import { Serialization, SerializedEncoding } from '../../../utils/serialization'
 import { PlatformVMConstants } from "../constants"
-import { EssentialProposal, VoteOption } from "./essentialproposal"
+import { EssentialProposal } from "./essentialproposal"
 
 const serialization = Serialization.getInstance()
 const bintools = BinTools.getInstance()
