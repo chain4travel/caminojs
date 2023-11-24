@@ -8,7 +8,7 @@ const serialization = Serialization.getInstance()
 const bintools = BinTools.getInstance()
 
 export class AddMemberProposal extends EssentialProposal {
-  private readonly TYPE_ID = PlatformVMConstants.ADDMEMBERPORPOSAL_TYPE_ID
+  private readonly _typeID = PlatformVMConstants.ADDMEMBERPORPOSAL_TYPE_ID
 
   serialize(encoding: SerializedEncoding = 'hex'): object {
     return {
@@ -66,7 +66,7 @@ export class AddMemberProposal extends EssentialProposal {
     return Buffer.concat(barr, bsize)
   }
 
-  constructor(start?: number, end?: number, applicantAddress: string | Buffer = undefined) {
+  constructor(start?: number, end?: number, applicantAddress?: string | Buffer) {
     const startTime = Buffer.alloc(8)
     startTime.writeUInt32BE(start, 4)
     const endTime = Buffer.alloc(8)
@@ -95,7 +95,7 @@ export class AddMemberProposal extends EssentialProposal {
   protected applicantAddress = Buffer.alloc(20)
 
   getTypeID(): number {
-    return this.TYPE_ID
+    return this._typeID
   }
 
   getApplicantAddress(): Buffer {

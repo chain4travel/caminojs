@@ -3,7 +3,7 @@ import { PlatformVMConstants } from "../constants"
 import { EssentialProposal, VoteOption } from "./essentialproposal"
 
 export class BaseFeeProposal extends EssentialProposal {
-  private readonly TYPE_ID = PlatformVMConstants.BASEFEEPORPOSAL_TYPE_ID
+  private readonly _typeID = PlatformVMConstants.BASEFEEPORPOSAL_TYPE_ID
   constructor(start?: number, end?: number) {
     const startTime = Buffer.alloc(8)
     startTime.writeUInt32BE(start, 4)
@@ -13,7 +13,7 @@ export class BaseFeeProposal extends EssentialProposal {
   }
 
   getTypeID(): number {
-    return this.TYPE_ID
+    return this._typeID
   }
 
   addBaseFeeOption(option: number): number {
