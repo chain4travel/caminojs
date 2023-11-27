@@ -73,7 +73,7 @@ export class ProposalWrapper {
       case PlatformVMConstants.EXCLUDEMEMBERPORPOSAL_TYPE_ID:
         proposal = new ExcludeMemberProposal()
         break;
-      case PlatformVMConstants.ADMINPORPOSAL_TYPE_ID:
+      case PlatformVMConstants.ADMINPROPOSAL_TYPE_ID:
         proposal = new AdminProposal()
         break;
       default:

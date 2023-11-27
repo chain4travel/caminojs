@@ -312,7 +312,7 @@ describe("AddMemberAdminProposal", (): void => {
   })
 
   test("getProposalType", async (): Promise<void> => {
-    const proposalTypeID = PlatformVMConstants.ADMINPORPOSAL_TYPE_ID;
+    const proposalTypeID = PlatformVMConstants.ADMINPROPOSAL_TYPE_ID;
     const payload = addProposalTx.getProposalPayload();
     expect(payload.getProposalType()).toBe(proposalTypeID)
     const adminProposal = payload.getProposal();
@@ -457,7 +457,7 @@ describe("ExcludeMemberAdminProposal", (): void => {
   })
 
   test("getProposalType", async (): Promise<void> => {
-    const proposalTypeID = PlatformVMConstants.ADMINPORPOSAL_TYPE_ID;
+    const proposalTypeID = PlatformVMConstants.ADMINPROPOSAL_TYPE_ID;
     const payload = addProposalTx.getProposalPayload();
     expect(payload.getProposalType()).toBe(proposalTypeID)
     const adminProposal = payload.getProposal();

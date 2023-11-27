@@ -69,7 +69,7 @@ export class PlatformVMConstants {
   static BASEFEEPORPOSAL_TYPE_ID: number = PlatformVMConstants.CUSTOM_TYPE_ID + 19
   static SIMPLEVOTE_TYPE_ID: number = PlatformVMConstants.CUSTOM_TYPE_ID + 21
   static ADDMEMBERPORPOSAL_TYPE_ID: number = PlatformVMConstants.CUSTOM_TYPE_ID + 22
-  static ADMINPORPOSAL_TYPE_ID: number = PlatformVMConstants.CUSTOM_TYPE_ID + 23
+  static ADMINPROPOSAL_TYPE_ID: number = PlatformVMConstants.CUSTOM_TYPE_ID + 23
   static EXCLUDEMEMBERPORPOSAL_TYPE_ID: number = PlatformVMConstants.CUSTOM_TYPE_ID + 24
 
   // Length Constants

@@ -11,7 +11,7 @@ const bintools = BinTools.getInstance()
 
 type AllowedProposal = AddMemberProposal | ExcludeMemberProposal
 export class AdminProposal extends EssentialProposal {
-  private readonly _typeID = PlatformVMConstants.ADMINPORPOSAL_TYPE_ID
+  private readonly _typeID = PlatformVMConstants.ADMINPROPOSAL_TYPE_ID
   private _optionIndex = Buffer.alloc(4)
   private _proposal: AllowedProposal
 
