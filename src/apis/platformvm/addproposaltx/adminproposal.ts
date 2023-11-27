@@ -39,7 +39,7 @@ export class AdminProposal extends EssentialProposal {
     return this
   }
 
-  getTypeId() {
+  getTypeID() {
     return this._typeID
   }
 
@@ -53,10 +53,21 @@ export class AdminProposal extends EssentialProposal {
 
   fromBuffer(bytes: Buffer, offset: number = 0): number {
     // try to parse addmember proposal
-    this._proposal = new AddMemberProposal()
-    offset = this._proposal.fromBuffer(bytes, offset)
     this._optionIndex = bintools.copyFrom(bytes, offset, offset + 4)
     offset += 4
+    const proposalTypeID = bintools.copyFrom(bytes, offset, offset + 4).readUInt32BE(0)
+    offset += 4
+    switch (proposalTypeID) {
+      case PlatformVMConstants.ADDMEMBERPORPOSAL_TYPE_ID:
+        this._proposal = new AddMemberProposal()
+        break;
+      case PlatformVMConstants.EXCLUDEMEMBERPORPOSAL_TYPE_ID:
+        this._proposal = new ExcludeMemberProposal()
+        break;
+      default:
+        throw `Unsupported proposal type: ${proposalTypeID}`
+    }
+    offset = this._proposal.fromBuffer(bytes, offset)
     return offset
   }
 
@@ -64,8 +75,10 @@ export class AdminProposal extends EssentialProposal {
    * Returns a {@link https://github.com/feross/buffer|Buffer} representation of the [[BaseProposal]].
    */
   toBuffer(): Buffer {
-    const proposalBuff = this._proposal.toBuffer()
     const buff = this.getOptionIndex()
-    return Buffer.concat([proposalBuff, buff], proposalBuff.length + buff.length)
+    const typeIdBuff = Buffer.alloc(4)
+    typeIdBuff.writeUInt32BE(this._proposal.getTypeID(), 0)
+    const proposalBuff = this._proposal.toBuffer()
+    return Buffer.concat([buff,typeIdBuff, proposalBuff], buff.length + typeIdBuff.length + proposalBuff.length)
   }
 }
