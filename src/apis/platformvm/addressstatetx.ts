@@ -31,7 +31,8 @@ export enum AddressState {
   KYC_EXPIRED = 33,
   CONSORTIUM = 38,
   NODE_DEFERRED = 39,
-  OFFERS_CREATOR = 50
+  OFFERS_CREATOR = 50,
+  CAMINO_ONLY_PROPOSER = 51
 }
 
 /**
