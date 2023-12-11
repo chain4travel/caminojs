@@ -1415,6 +1415,7 @@ export class Builder {
    * @param feeAssetID Optional. The assetID of the fees being burned
    * @param memo Optional contains arbitrary bytes, up to 256 bytes
    * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param amountToUnlock The amount of tokens to unlock
    * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
    *
    * @returns An unsigned UnlockDepositTx created from the passed in parameters.
@@ -1428,6 +1429,7 @@ export class Builder {
     feeAssetID: Buffer = undefined,
     memo: Buffer = undefined,
     asOf: BN = zero,
+    amountToUnlock: BN,
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
     let ins: TransferableInput[] = []
@@ -1443,7 +1445,7 @@ export class Builder {
         changeThreshold
       )
 
-      aad.addAssetAmount(feeAssetID, zero, fee)
+      aad.addAssetAmount(feeAssetID, amountToUnlock, fee)
 
       const minSpendableErr: Error = await this.spender.getMinimumSpendable(
         aad,
