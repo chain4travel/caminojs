@@ -4,19 +4,22 @@ on:
   push:
     branches:
       - chain4travel
+      - dev
   pull_request:
     branches:
       - chain4travel
+      - dev
   workflow_dispatch:
     inputs:
       caminojsRepo:
-        description: 'caminojs github repository'
+        description: "caminojs github repository"
         required: true
-        default: 'chain4travel/caminojs'
+        default: "chain4travel/caminojs"
       caminojsBranch:
-        description: 'caminojs branch'
+        description: "caminojs branch"
         required: true
-        default: 'chain4travel'      
+        default: "chain4travel"
+  workflow_call:
 
 env:
   CI: true
@@ -31,7 +34,7 @@ jobs:
       - name: Check out chain4travel/caminojs
         uses: actions/checkout@v2
         with:
-          repository: 'chain4travel/caminojs'
+          repository: "chain4travel/caminojs"
       - name: Check out ${{ github.event.inputs.caminojsRepo }} ${{ github.event.inputs.caminojsBranch }}
         if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/checkout@v2
@@ -43,4 +46,5 @@ jobs:
           cache: yarn
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile
+      - run: yarn prettier-check
       - run: yarn test

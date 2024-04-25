@@ -11,7 +11,7 @@ import axios, {
 
 import { APIBase, RequestResponseData } from "./common/apibase"
 import { ProtocolError } from "./utils/errors"
-import { Network } from "./utils/networks"
+import networks, { Chain, Network } from "./utils/networks"
 import { fetchAdapter } from "./utils/fetchadapter"
 
 /**
@@ -68,11 +68,7 @@ export default class AvalancheCore {
     }
 
     // Reset network specific
-    if (
-      this.networkID !== networkID ||
-      this.host !== host ||
-      this.port !== port
-    ) {
+    if (this.networkID !== networkID || !networks.isPredefined(networkID)) {
       this.network = undefined
     }
 
@@ -102,6 +98,18 @@ export default class AvalancheCore {
    * Returns the network configuration.
    */
   getNetwork = (): Network => this.network
+
+  /**
+   * Returns the network chains.
+   */
+  getChains = (): Chain[] =>
+    this.network
+      ? [
+          { alias: this.network.C.alias, id: this.network.C.blockchainID },
+          { alias: this.network.P.alias, id: this.network.P.blockchainID },
+          { alias: this.network.X.alias, id: this.network.X.blockchainID }
+        ]
+      : []
 
   /**
    * Returns the protocol such as "http", "https", "git", "ws", etc.

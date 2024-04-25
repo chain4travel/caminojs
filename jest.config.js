@@ -1,5 +1,3 @@
-const { pathsToModuleNameMapper } = require("ts-jest/utils")
-
 module.exports = {
   preset: "ts-jest",
   verbose: true,
@@ -12,9 +10,11 @@ module.exports = {
   transform: {
     "^.+\\.(ts|tsx)$": "ts-jest"
   },
-  transformIgnorePatterns: ["<rootDir>/node_modules/"],
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
-  moduleDirectories: ["node_modules", "src"],
+  transformIgnorePatterns: [
+    "<rootDir>/node_modules/(?!ethereum-cryptography|keccak)"
+  ],
+  moduleFileExtensions: ["js", "ts", "json", "jsx", "tsx", "node"],
+  moduleDirectories: ["node_modules", "<rootDir>/src"],
   collectCoverage: true,
   coverageReporters: ["html"],
   modulePathIgnorePatterns: ["node_modules"],
@@ -26,5 +26,6 @@ module.exports = {
   moduleNameMapper: {
     "^src(.*)$": "<rootDir>/src$1"
   },
-  testSequencer: "<rootDir>/e2eSequencer.js"
+  testSequencer: "<rootDir>/e2eSequencer.js",
+  testTimeout: 300000 // 5 minutes
 }

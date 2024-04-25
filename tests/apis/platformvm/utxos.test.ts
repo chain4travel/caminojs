@@ -2,9 +2,10 @@ import BN from "bn.js"
 import { Buffer } from "buffer/"
 import BinTools from "../../../src/utils/bintools"
 import { UTXO, UTXOSet } from "../../../src/apis/platformvm/utxos"
-import { AmountOutput } from "../../../src/apis/platformvm/outputs"
+import { AmountOutput, LockedOut } from "../../../src/apis/platformvm/outputs"
 import { UnixNow } from "../../../src/utils/helperfunctions"
 import { SerializedEncoding } from "../../../src/utils"
+import { LockedIDs } from "../../../src/apis/platformvm/locked"
 
 const bintools: BinTools = BinTools.getInstance()
 const display: SerializedEncoding = "display"
@@ -94,13 +95,10 @@ const setMergeTester = (
 }
 
 describe("UTXOSet", (): void => {
+  const hexteststring =
+    "000038d1b9f1138672da6fb6c35125539276a9acc2a668d63bea6ba3c795e2edb0f5000000013e07e38e2f23121be8756412c18db7246a16d26ee9936f3cba28be149cfd3558000000070000000000004dd500000000000000000000000100000001a36fd0c2dbcab311731dde7ef1514bd26fcdc74d"
   const utxostrs: string[] = [
-    bintools.cb58Encode(
-      Buffer.from(
-        "000038d1b9f1138672da6fb6c35125539276a9acc2a668d63bea6ba3c795e2edb0f5000000013e07e38e2f23121be8756412c18db7246a16d26ee9936f3cba28be149cfd3558000000070000000000004dd500000000000000000000000100000001a36fd0c2dbcab311731dde7ef1514bd26fcdc74d",
-        "hex"
-      )
-    ),
+    bintools.cb58Encode(Buffer.from(hexteststring, "hex")),
     bintools.cb58Encode(
       Buffer.from(
         "0000c3e4823571587fe2bdfc502689f5a8238b9d0ea7f3277124d16af9de0d2d9911000000003e07e38e2f23121be8756412c18db7246a16d26ee9936f3cba28be149cfd355800000007000000000000001900000000000000000000000100000001e1b6b6a4bad94d2e3f20730379b9bcd6f176318e",
@@ -123,6 +121,22 @@ describe("UTXOSet", (): void => {
     set.add(utxostrs[0])
     const utxo: UTXO = new UTXO()
     utxo.fromString(utxostrs[0])
+    const setArray: UTXO[] = set.getAllUTXOs()
+    expect(utxo.toString()).toBe(setArray[0].toString())
+  })
+  test("Creation (explicit cb58 specification)", (): void => {
+    const set: UTXOSet = new UTXOSet()
+    set.add(utxostrs[0])
+    const utxo: UTXO = new UTXO()
+    utxo.fromString(utxostrs[0], "cb58")
+    const setArray: UTXO[] = set.getAllUTXOs()
+    expect(utxo.toString()).toBe(setArray[0].toString())
+  })
+  test("Creation (explicit hex specification)", (): void => {
+    const set: UTXOSet = new UTXOSet()
+    set.add(utxostrs[0])
+    const utxo: UTXO = new UTXO()
+    utxo.fromString(hexteststring, "hex")
     const setArray: UTXO[] = set.getAllUTXOs()
     expect(utxo.toString()).toBe(setArray[0].toString())
   })
@@ -628,5 +642,73 @@ describe("UTXOSet", (): void => {
         expect(test).toBe(true)
       })
     })
+  })
+})
+
+describe("LockedUTXOs", (): void => {
+  const assetID = new Buffer(32)
+  const emptyTxID = new Buffer(32)
+  const txIDs: Buffer[] = [
+    new Buffer(32),
+    new Buffer(32),
+    new Buffer(32),
+    new Buffer(32)
+  ]
+  assetID.write("ASSETID")
+  txIDs[0].write("TX0")
+  txIDs[1].write("TX1")
+  txIDs[2].write("TX2")
+  txIDs[3].write("TX3")
+
+  const utxos: UTXO[] = [
+    new UTXO(
+      0,
+      txIDs[0],
+      0,
+      assetID,
+      new LockedOut(
+        undefined,
+        [],
+        undefined,
+        0,
+        new LockedIDs(emptyTxID, txIDs[0])
+      )
+    ),
+    new UTXO(
+      0,
+      txIDs[1],
+      0,
+      assetID,
+      new LockedOut(
+        undefined,
+        [],
+        undefined,
+        0,
+        new LockedIDs(txIDs[1], txIDs[2])
+      )
+    ),
+    new UTXO(
+      0,
+      txIDs[2],
+      0,
+      assetID,
+      new LockedOut(
+        undefined,
+        [],
+        undefined,
+        0,
+        new LockedIDs(txIDs[3], emptyTxID)
+      )
+    )
+  ]
+
+  test("Creation", (): void => {
+    const set: UTXOSet = new UTXOSet()
+    set.addArray(utxos)
+    const db = set.getLockedTxIDs()
+    expect(db.bondIDs.length).toBe(2)
+    expect(db.depositIDs.length).toBe(2)
+    expect(bintools.cb58Decode(db.bondIDs[0])).toEqual(txIDs[0])
+    expect(bintools.cb58Decode(db.depositIDs[0])).toEqual(txIDs[1])
   })
 })

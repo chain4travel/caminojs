@@ -3,8 +3,9 @@ docs
 docsMD
 tsconfig.json
 .*
-./*.tar
-./*.tgz
+*.tar
+*.tgz
+*.diff
 e2eSequencer.js
 jest.config.js
 yarn.lock

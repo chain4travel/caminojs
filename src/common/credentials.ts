@@ -57,21 +57,28 @@ export class SigIdx extends NBytes {
    */
   getSource = (): Buffer => this.source
 
+  /**
+   * Retrieves the index buffer for the signature
+   */
+  getBytes = (): Buffer => this.bytes
+
   clone(): this {
     let newbase: SigIdx = new SigIdx()
     newbase.fromBuffer(this.toBuffer())
     return newbase as this
   }
 
-  create(...args: any[]): this {
+  create(): this {
     return new SigIdx() as this
   }
 
   /**
    * Type representing a [[Signature]] index used in [[Input]]
    */
-  constructor() {
+  constructor(addressIdx?: number, address?: Buffer) {
     super()
+    if (addressIdx) this.bytes.writeUInt32BE(addressIdx, 0)
+    if (address) this.setSource(address)
   }
 }
 
@@ -93,7 +100,7 @@ export class Signature extends NBytes {
     return newbase as this
   }
 
-  create(...args: any[]): this {
+  create(): this {
     return new Signature() as this
   }
 
@@ -127,13 +134,16 @@ export abstract class Credential extends Serializable {
 
   protected sigArray: Signature[] = []
 
-  abstract getCredentialID(): number
+  getCredentialID(): number {
+    return this._typeID
+  }
 
   /**
    * Set the codecID
    *
    * @param codecID The codecID to set
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setCodecID(codecID: number): void {}
 
   /**
@@ -180,5 +190,73 @@ export abstract class Credential extends Serializable {
       /* istanbul ignore next */
       this.sigArray = sigarray
     }
+  }
+}
+
+export class SECPMultisigCredential extends Credential {
+  protected _typeName = "SECPMultisigCredential"
+  protected _typeID = undefined
+
+  protected sigIdxs: SigIdx[] = []
+
+  /**
+   * Adds a SignatureIndex to the credentials.
+   */
+  addSSignatureIndex = (sigIdx: SigIdx): void => {
+    this.sigIdxs.push(sigIdx)
+  }
+
+  clone(): this {
+    const newbase = new SECPMultisigCredential(this._typeID)
+    newbase.fromBuffer(this.toBuffer())
+    return newbase as this
+  }
+
+  create(...args: any[]): this {
+    return new SECPMultisigCredential(
+      args.length == 1 ? args[0] : this._typeID
+    ) as this
+  }
+
+  select(id: number, ...args: any[]): Credential {
+    if (id === this._typeID) return this.create(args)
+  }
+
+  fromBuffer(bytes: Buffer, offset: number = 0): number {
+    offset = super.fromBuffer(bytes, offset)
+    const sigIdxlen: number = bintools
+      .copyFrom(bytes, offset, offset + 4)
+      .readUInt32BE(0)
+    offset += 4
+    this.sigIdxs = []
+    for (let i = 0; i < sigIdxlen; i++) {
+      const sigIdx: SigIdx = new SigIdx()
+      offset = sigIdx.fromBuffer(bytes, offset)
+      this.sigIdxs.push(sigIdx)
+    }
+    return offset
+  }
+
+  toBuffer(): Buffer {
+    // The signatures
+    const superBuff: Buffer = super.toBuffer()
+
+    const sigIdxlen: Buffer = Buffer.alloc(4)
+    sigIdxlen.writeInt32BE(this.sigIdxs.length, 0)
+    const barr: Buffer[] = [superBuff, sigIdxlen]
+    let bsize: number = superBuff.length + sigIdxlen.length
+
+    for (const sigIdx of this.sigIdxs) {
+      const sigIdxBuff: Buffer = sigIdx.toBuffer()
+      bsize += sigIdxBuff.length
+      barr.push(sigIdxBuff)
+    }
+    return Buffer.concat(barr, bsize)
+  }
+
+  constructor(typeID: number, sigIdxs?: SigIdx[], sigarray?: Signature[]) {
+    super(sigarray)
+    this._typeID = typeID
+    if (sigIdxs) this.sigIdxs = sigIdxs
   }
 }

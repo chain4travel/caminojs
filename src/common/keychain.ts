@@ -6,10 +6,27 @@
 import { Buffer } from "buffer/"
 
 /**
+ * Class for representing an interface for signing in Avalanche.
+ */
+export abstract class SignerKeyPair {
+  protected pubk: Buffer
+  protected privk: Buffer
+
+  /**
+   * Takes a message, signs it, and returns the signature.
+   *
+   * @param msg The message to sign
+   *
+   * @returns A {@link https://github.com/feross/buffer|Buffer} containing the signature
+   */
+  abstract sign(msg: Buffer): Buffer
+}
+
+/**
  * Class for representing a private and public keypair in Avalanche.
  * All APIs that need key pairs should extend on this class.
  */
-export abstract class StandardKeyPair {
+export abstract class StandardKeyPair extends SignerKeyPair {
   protected pubk: Buffer
   protected privk: Buffer
 
@@ -28,15 +45,6 @@ export abstract class StandardKeyPair {
    * @returns true on success, false on failure
    */
   abstract importKey(privk: Buffer): boolean
-
-  /**
-   * Takes a message, signs it, and returns the signature.
-   *
-   * @param msg The message to sign
-   *
-   * @returns A {@link https://github.com/feross/buffer|Buffer} containing the signature
-   */
-  abstract sign(msg: Buffer): Buffer
 
   /**
    * Recovers the public key of a message signer from a message and its associated signature.
@@ -110,6 +118,18 @@ export abstract class StandardKeyPair {
   abstract create(...args: any[]): this
 
   abstract clone(): this
+}
+
+export abstract class SignerKeyChain {
+  /**
+   * Returns the [[SignerKeyPair]] listed under the provided address
+   *
+   * @param address The {@link https://github.com/feross/buffer|Buffer} of the address to
+   * retrieve from the keys database
+   *
+   * @returns A reference to the [[SignerKeyPair]] in the keys database
+   */
+  abstract getKey(address: Buffer): SignerKeyPair
 }
 
 /**
@@ -203,6 +223,16 @@ export abstract class StandardKeyChain<KPClass extends StandardKeyPair> {
    * @returns A reference to the [[StandardKeyPair]] in the keys database
    */
   getKey = (address: Buffer): KPClass => this.keys[address.toString("hex")]
+
+  /**
+   * Returns the [[StandardKeyPair]]'s listed under the provided address
+   *
+   * @param address The {@link https://github.com/feross/buffer|Buffer} of the address to
+   * retrieve from the keys database
+   *
+   * @returns A reference to the [[StandardKeyPair]]'s in the keys database
+   */
+  getKeys = (address: Buffer): KPClass[] => [this.keys[address.toString("hex")]]
 
   abstract create(...args: any[]): this
 

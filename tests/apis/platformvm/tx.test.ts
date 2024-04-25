@@ -1,4 +1,3 @@
-import mockAxios from "jest-mock-axios"
 import { UTXOSet, UTXO } from "../../../src/apis/platformvm/utxos"
 import { PlatformVMAPI } from "../../../src/apis/platformvm/api"
 import { UnsignedTx, Tx } from "../../../src/apis/platformvm/tx"
@@ -18,15 +17,12 @@ import {
 import { PlatformVMConstants } from "../../../src/apis/platformvm/constants"
 import { Avalanche, GenesisData } from "../../../src/index"
 import { UTF8Payload } from "../../../src/utils/payload"
-import {
-  NodeIDStringToBuffer,
-  UnixNow
-} from "../../../src/utils/helperfunctions"
+import { UnixNow } from "../../../src/utils/helperfunctions"
 import { BaseTx } from "../../../src/apis/platformvm/basetx"
 import { ImportTx } from "../../../src/apis/platformvm/importtx"
 import { ExportTx } from "../../../src/apis/platformvm/exporttx"
-import { HttpResponse } from "jest-mock-axios/dist/lib/mock-axios-types"
 import { DefaultPlatformChainID } from "src/utils"
+import { Builder } from "../../../src/apis/platformvm/builder"
 
 describe("Transactions", (): void => {
   /**
@@ -36,6 +32,7 @@ describe("Transactions", (): void => {
 
   const networkID: number = 12345
   let set: UTXOSet
+  let builder: Builder
   let keymgr1: KeyChain
   let keymgr2: KeyChain
   let keymgr3: KeyChain
@@ -82,35 +79,15 @@ describe("Transactions", (): void => {
   addressIndex.writeUIntBE(0x0, 0, 4)
 
   beforeAll(async (): Promise<void> => {
-    avalanche = new Avalanche(
-      ip,
-      port,
-      protocol,
-      12345,
-      undefined,
-      undefined,
-      true
-    )
+    avalanche = new Avalanche(ip, port, protocol, 12345, undefined, undefined)
     api = new PlatformVMAPI(avalanche, "/ext/bc/P")
-    const result: Promise<Buffer> = api.getAVAXAssetID()
-    const payload: object = {
-      result: {
-        name,
-        symbol,
-        assetID: bintools.cb58Encode(assetID),
-        denomination: `${denomination}`
-      }
-    }
-    const responseObj: HttpResponse = {
-      data: payload
-    }
-
-    mockAxios.mockResponse(responseObj)
-    avaxAssetID = await result
+    avaxAssetID = assetID
+    api.setAVAXAssetID(avaxAssetID)
   })
 
   beforeEach((): void => {
     set = new UTXOSet()
+    builder = new Builder(set, false)
     keymgr1 = new KeyChain(avalanche.getHRP(), alias)
     keymgr2 = new KeyChain(avalanche.getHRP(), alias)
     keymgr3 = new KeyChain(avalanche.getHRP(), alias)
@@ -392,7 +369,7 @@ describe("Transactions", (): void => {
     expect(txins.length).toBe(inputs.length)
     expect(txouts.length).toBe(outputs.length)
 
-    expect(txu.getTransaction().getTxType()).toBe(0)
+    expect(txu.getTransaction().getTxType()).toBe(PlatformVMConstants.BASETX)
     expect(txu.getTransaction().getNetworkID()).toBe(12345)
     expect(txu.getTransaction().getBlockchainID().toString("hex")).toBe(
       blockchainID.toString("hex")
@@ -423,18 +400,19 @@ describe("Transactions", (): void => {
     expect(txunew.toString()).toBe(txu.toString())
   })
 
-  test("Creation UnsignedTx Check Amount", (): void => {
-    expect((): void => {
-      set.buildBaseTx(
+  test("Creation UnsignedTx Check Amount", (): Promise<void | UnsignedTx> => {
+    expect.assertions(1)
+    return builder
+      .buildBaseTx(
         netid,
         blockchainID,
         new BN(amnt * 1000),
         assetID,
         addrs3,
-        addrs1,
+        { from: addrs1, signer: [] },
         addrs1
       )
-    }).toThrow()
+      .catch((e) => expect(e).toBeDefined())
   })
 
   test("Creation ImportTx", (): void => {
@@ -511,14 +489,14 @@ describe("Transactions", (): void => {
     expect(exportTx.getExportOutputs().length).toBe(exportOuts.length)
   })
 
-  test("Creation Tx1 with asof, locktime, threshold", (): void => {
-    const txu: UnsignedTx = set.buildBaseTx(
+  test("Creation Tx1 with asof, locktime, threshold", async (): Promise<void> => {
+    const txu: UnsignedTx = await builder.buildBaseTx(
       netid,
       blockchainID,
       new BN(9000),
       assetID,
       addrs3,
-      addrs1,
+      { from: addrs1, signer: [] },
       addrs1,
       undefined,
       undefined,
@@ -534,14 +512,14 @@ describe("Transactions", (): void => {
     expect(tx2.toBuffer().toString("hex")).toBe(tx.toBuffer().toString("hex"))
     expect(tx2.toString()).toBe(tx.toString())
   })
-  test("Creation Tx2 without asof, locktime, threshold", (): void => {
-    const txu: UnsignedTx = set.buildBaseTx(
+  test("Creation Tx2 without asof, locktime, threshold", async (): Promise<void> => {
+    const txu: UnsignedTx = await builder.buildBaseTx(
       netid,
       blockchainID,
       new BN(9000),
       assetID,
       addrs3,
-      addrs1,
+      { from: addrs1, signer: [] },
       addrs1
     )
     const tx: Tx = txu.sign(keymgr1)
@@ -551,12 +529,12 @@ describe("Transactions", (): void => {
     expect(tx2.toString()).toBe(tx.toString())
   })
 
-  test("Creation Tx4 using ImportTx", (): void => {
-    const txu: UnsignedTx = set.buildImportTx(
+  test("Creation Tx4 using ImportTx", async (): Promise<void> => {
+    const txu: UnsignedTx = await builder.buildImportTx(
       netid,
       blockchainID,
       addrs3,
-      addrs1,
+      { from: addrs1, signer: [] },
       addrs2,
       importUTXOs,
       bintools.cb58Decode(DefaultPlatformChainID),
@@ -571,17 +549,17 @@ describe("Transactions", (): void => {
     expect(tx2.toBuffer().toString("hex")).toBe(tx.toBuffer().toString("hex"))
   })
 
-  test("Creation Tx5 using ExportTx", (): void => {
-    const txu: UnsignedTx = set.buildExportTx(
+  test("Creation Tx5 using ExportTx", async (): Promise<void> => {
+    const txu: UnsignedTx = await builder.buildExportTx(
       netid,
       blockchainID,
       new BN(90),
       avaxAssetID,
       addrs3,
-      addrs1,
-      addrs2,
+      { from: addrs1, signer: [] },
       bintools.cb58Decode(DefaultPlatformChainID),
-      undefined,
+      addrs2,
+      new BN(0),
       undefined,
       new UTF8Payload("hello world").getPayload(),
       UnixNow()

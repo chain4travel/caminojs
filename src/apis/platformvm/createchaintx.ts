@@ -7,7 +7,7 @@ import BinTools from "../../utils/bintools"
 import { PlatformVMConstants } from "./constants"
 import { TransferableOutput } from "./outputs"
 import { TransferableInput } from "./inputs"
-import { Credential, SigIdx, Signature } from "../../common/credentials"
+import { Credential, SigIdx, Signature } from "../../common"
 import { BaseTx } from "./basetx"
 import { DefaultNetworkID } from "../../utils/constants"
 import { Serialization, SerializedEncoding } from "../../utils/serialization"
@@ -245,7 +245,7 @@ export class CreateChainTx extends BaseTx {
   }
 
   /**
-   * Returns the array of [[SigIdx]] for this [[Input]]
+   * Returns the array of [[SigIdx]] for this [[TX]]
    */
   getSigIdxs(): SigIdx[] {
     return this.sigIdxs

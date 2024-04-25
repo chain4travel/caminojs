@@ -119,46 +119,26 @@ export default class Avalanche extends AvalancheCore {
     protocol: string,
     networkID: number = undefined,
     XChainID: string = undefined,
-    CChainID: string = undefined,
-    skipinit: boolean = false
+    CChainID: string = undefined
   ) {
     super(host, port, protocol, networkID)
-    if (!skipinit) {
-      this.addAPI("admin", AdminAPI)
-      this.addAPI("auth", AuthAPI)
-      this.addAPI("health", HealthAPI)
-      this.addAPI("info", InfoAPI)
-      this.addAPI("index", IndexAPI)
-      this.addAPI("keystore", KeystoreAPI)
-      this.addAPI("metrics", MetricsAPI)
-    }
 
-    // Static initializing
-    if (networkID && (this.network = networks.getNetwork(networkID))) {
+    if (networkID && networks.isPredefined(networkID)) {
+      this.network = networks.getNetwork(networkID)
       this.networkID = networkID
-      if (!skipinit) {
-        this.addAPI("pchain", PlatformVMAPI)
-        this.addAPI(
-          "xchain",
-          AVMAPI,
-          "/ext/bc/X",
-          XChainID ? XChainID : this.network.X.blockchainID
-        )
-        this.addAPI(
-          "cchain",
-          EVMAPI,
-          "/ext/bc/C/avax",
-          CChainID ? CChainID : this.network.C.blockchainID
-        )
-      }
+      this.setupAPIs(XChainID, CChainID)
     }
   }
 
   fetchNetworkSettings = async (): Promise<boolean> => {
     // Nothing to do if network is known
     if (this.network) return true
-    // We need this be able to make next call
+    // We need this to be able to make init calls
+    const pAPI = this.apis["pchain"]
+    const iAPI = this.apis["info"]
     this.addAPI("pchain", PlatformVMAPI)
+    this.addAPI("info", InfoAPI)
+
     //Get platform configuration
     let response: GetConfigurationResponse
 
@@ -169,10 +149,16 @@ export default class Avalanche extends AvalancheCore {
       this.networkID = await this.Info().getNetworkID()
     }
 
-    if ((this.network = networks.getNetwork(this.networkID)))
-      return this.refreshAPI()
+    if (networks.isPredefined(this.networkID)) {
+      this.network = networks.getNetwork(this.networkID)
+      return this.setupAPIs()
+    }
 
     if (!response) {
+      // restore apis
+      this.apis["pchain"] = pAPI
+      this.apis["info"] = iAPI
+
       throw new Error("Configuration required")
     }
 
@@ -189,13 +175,13 @@ export default class Avalanche extends AvalancheCore {
         avaxAssetAlias: response.assetSymbol,
         blockchainID: xchain["id"],
         vm: XChainVMName,
-        creationTxFee: fees.creationTxFee,
+        createAssetTxFee: fees.createAssetTxFee,
         txFee: fees.txFee
       },
       P: {
         alias: PChainAlias,
         blockchainID: DefaultPlatformChainID,
-        creationTxFee: fees.creationTxFee,
+        createAssetTxFee: fees.createAssetTxFee,
         createSubnetTx: fees.createSubnetTxFee,
         createChainTx: fees.createBlockchainTxFee,
         maxConsumption: response.maxConsumptionRate,
@@ -208,7 +194,9 @@ export default class Avalanche extends AvalancheCore {
         minStake: response.minValidatorStake,
         minStakeDuration: response.minStakeDuration,
         vm: PChainVMName,
-        txFee: fees.txFee
+        txFee: fees.txFee,
+        verifyNodeSignature: response.verifyNodeSignature,
+        lockModeBondDeposit: response.lockModeBondDeposit
       },
       C: {
         alias: CChainAlias,
@@ -226,16 +214,31 @@ export default class Avalanche extends AvalancheCore {
 
     networks.registerNetwork(this.networkID, this.network)
 
-    return this.refreshAPI()
+    return this.setupAPIs()
   }
 
-  protected refreshAPI = (): boolean => {
-    // Re-apply pchain which creates the correct keychain
-    this.addAPI("pchain", PlatformVMAPI)
+  protected setupAPIs = (XChainID?: string, CChainID?: string): boolean => {
+    this.addAPI("admin", AdminAPI)
+    this.addAPI("auth", AuthAPI)
+    this.addAPI("health", HealthAPI)
+    this.addAPI("info", InfoAPI)
+    this.addAPI("index", IndexAPI)
+    this.addAPI("keystore", KeystoreAPI)
+    this.addAPI("metrics", MetricsAPI)
 
-    // Finally register x and c chains
-    this.addAPI("xchain", AVMAPI, "/ext/bc/X", this.network.X.blockchainID)
-    this.addAPI("cchain", EVMAPI, "/ext/bc/C/avax", this.network.C.blockchainID)
+    this.addAPI("pchain", PlatformVMAPI)
+    this.addAPI(
+      "xchain",
+      AVMAPI,
+      "/ext/bc/X",
+      XChainID ? XChainID : this.network.X.blockchainID
+    )
+    this.addAPI(
+      "cchain",
+      EVMAPI,
+      "/ext/bc/C/avax",
+      CChainID ? CChainID : this.network.C.blockchainID
+    )
 
     return true
   }

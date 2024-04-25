@@ -20,13 +20,6 @@ export class PlatformVMConstants {
 
   static STAKEABLELOCKINID: number = 21
 
-  static LOCKEDSTAKEABLES: number[] = [
-    PlatformVMConstants.STAKEABLELOCKINID,
-    PlatformVMConstants.STAKEABLELOCKOUTID
-  ]
-
-  static BASETX: number = 0
-
   static SUBNETAUTH: number = 10
 
   static ADDVALIDATORTX: number = 12
@@ -47,8 +40,30 @@ export class PlatformVMConstants {
 
   static REWARDVALIDATORTX: number = 20
 
+  static REMOVESUBNETVALIDATORTX: number = 23
+
   static SECPCREDENTIAL: number = 9
 
+  // Camino
+  static CUSTOM_TYPE_ID: number = 8192
+  static LOCKEDINID: number = PlatformVMConstants.CUSTOM_TYPE_ID + 0
+  static LOCKEDOUTID: number = PlatformVMConstants.CUSTOM_TYPE_ID + 1
+  static CAMINOADDVALIDATORTX: number = PlatformVMConstants.CUSTOM_TYPE_ID + 2
+  static CAMINOREWARDVALIDATORTX: number =
+    PlatformVMConstants.CUSTOM_TYPE_ID + 3
+  static ADDRESSSTATETX: number = PlatformVMConstants.CUSTOM_TYPE_ID + 4
+  static DEPOSITTX: number = PlatformVMConstants.CUSTOM_TYPE_ID + 5
+  static UNLOCKDEPOSITTX: number = PlatformVMConstants.CUSTOM_TYPE_ID + 6
+  static REGISTERNODETX: number = PlatformVMConstants.CUSTOM_TYPE_ID + 7
+  static BASETX: number = PlatformVMConstants.CUSTOM_TYPE_ID + 8
+  static MULTISIGALIASTX: number = PlatformVMConstants.CUSTOM_TYPE_ID + 9
+  static CLAIMTX: number = PlatformVMConstants.CUSTOM_TYPE_ID + 10
+  static REWARDSIMPORTTX: number = PlatformVMConstants.CUSTOM_TYPE_ID + 11
+  static SECPMULTISIGCREDENTIAL: number =
+    PlatformVMConstants.CUSTOM_TYPE_ID + 12
+  static ADDDEPOSITOFFERTX: number = PlatformVMConstants.CUSTOM_TYPE_ID + 15
+
+  // Length Constants
   static ASSETIDLEN: number = 32
 
   static BLOCKCHAINIDLEN: number = 32

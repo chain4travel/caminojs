@@ -1,21 +1,19 @@
 name: E2E
-on: 
-  push:
-    branches:
-      - chain4travel
+on:
   pull_request:
     branches:
       - chain4travel
+      - dev
   workflow_dispatch:
     inputs:
       caminojsRepo:
-        description: 'caminojs github repository'
+        description: "caminojs github repository"
         required: true
-        default: 'chain4travel/caminojs'
+        default: "chain4travel/caminojs"
       caminojsBranch:
-        description: 'caminojs branch'
+        description: "caminojs branch"
         required: true
-        default: 'chain4travel'      
+        default: "chain4travel"
 env:
   GOPATH: /home/runner/go
   CAMPATH: src/github.com/chain4travel
@@ -25,15 +23,15 @@ env:
 
 jobs:
   e2e:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out chain4travel/caminojs
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
-          repository: 'chain4travel/caminojs'
+          repository: "chain4travel/caminojs"
       - name: Check out ${{ github.event.inputs.caminojsRepo }} ${{ github.event.inputs.caminojsBranch }}
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: ${{ github.event.inputs.caminojsRepo }}
           ref: ${{ github.event.inputs.caminojsBranch }}
@@ -42,32 +40,72 @@ jobs:
       - name: Install NodeJS dependencies
         run: yarn install --frozen-lockfile
       - name: Setup GoLang Version
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.19.x
+          go-version: 1.19
       - name: Setup GOPATH and CAMPATH
-        run : |
+        run: |
           mkdir -p $GOPATH/$CAMPATH
       - name: Install autoremove
         run: sudo apt-get autoremove -y
       - name: Clone and Build Camino Node
-        run : |
+        env:
+          TARGET_BRANCH: ${{ github.event.pull_request.base.ref || github.event.inputs.caminojsBranch }}
+        run: |
           cd $GOPATH/$CAMPATH
-          git clone https://github.com/chain4travel/camino-node
+          git clone https://github.com/chain4travel/camino-node -b$TARGET_BRANCH
           cd camino-node
           ./scripts/build.sh
       - name: Checkout Camino Network Runner
-        run : |
+        run: |
           cd $GOPATH/$CAMPATH
-          git clone https://github.com/chain4travel/camino-network-runner
-      - name: Starting Camino Network Runner
+          git clone https://github.com/chain4travel/camino-network-runner --depth 1
+      - name: Starting Camino Network Runner with Kopernikus Configuration
+        env:
+          CAMINO_NODE_PATH: ${{env.GOPATH}}/${{env.CAMPATH}}/camino-node/build/camino-node
+          CAMINO_NETWORK: true
         run: |
           cd $GOPATH/$CAMPATH
           cd camino-network-runner
-          git checkout v0.1.4
-          go run ./examples/local/fivenodenetwork/main.go &
-      - name: CaminoJS E2E Test
+          git submodule update --init --recursive
+          go run ./examples/local/e2enodenetwork/main.go  &>/tmp/cnr-e2e.log &
+      - name: CaminoJS E2E Camino Tests
         env:
-          CAMINOGO_IP: localhost
+          CAMINOGO_IP: 127.0.0.1
           CAMINOGO_PORT: 9650
-        run: sleep 60 && yarn test -i --roots e2e_tests
+          NETWORK_ID: 1002
+        run: |
+          sleep 60
+          cat /tmp/cnr-e2e.log
+          yarn test -i --roots e2e_tests/camino
+      - name: Check produced logs
+        id: check-logs
+        run: |
+          export LOG_DIR=$(grep -Po '"log-dir": "[^"]*node1[^"]+"' /tmp/cnr-e2e.log | sed 's/"log-dir": "\(.*\)"/\1/')
+          grep -E 'FATAL |ERROR ' $LOG_DIR/*.log | cat > /tmp/parsed_logs
+          cat /tmp/parsed_logs
+          export errors=$(grep 'ERROR ' /tmp/parsed_logs | wc -l)
+          export fatal=$(grep 'FATAL' /tmp/parsed_logs | wc -l)
+          echo "errors=${errors}"  >> $GITHUB_OUTPUT
+          echo "fatal=${fatal}"  >> $GITHUB_OUTPUT
+          echo errors: ${errors}
+          echo fatal: ${fatal}
+      - name: Find Comment
+        uses: peter-evans/find-comment@v2
+        id: find_comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-includes: "Found errors/fatal log records."
+      - name: Create PR comment if errors/fatal logs produced
+        if: ${{ steps.check-logs.outputs.errors > 0 || steps.check-logs.outputs.fatal > 0 }}
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ steps.find_comment.outputs.comment-id || '' }}
+          edit-mode: replace
+          body: |
+            :warning: Found errors/fatal log records. Please review them(job:e2e, step:"Check produced logs") and resolve this comment.
+            ```
+            ${{ steps.check-logs.outputs.errors }} errors
+            ${{ steps.check-logs.outputs.fatal }} fatal
+            ```

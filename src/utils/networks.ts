@@ -42,7 +42,7 @@ export interface X {
   blockchainID: string
   alias: string
   vm: string
-  creationTxFee: BN | number
+  createAssetTxFee: BN | number
   avaxAssetID: string
   avaxAssetAlias: string
   txFee?: BN | number
@@ -54,7 +54,7 @@ export interface P {
   blockchainID: string
   alias: string
   vm: string
-  creationTxFee: BN | number
+  createAssetTxFee: BN | number
   createSubnetTx: BN | number
   createChainTx: BN | number
   minConsumption: number
@@ -68,15 +68,25 @@ export interface P {
   minDelegationFee: BN
   txFee?: BN | number
   fee?: BN
+  verifyNodeSignature: boolean
+  lockModeBondDeposit: boolean
 }
+
 export interface Network {
+  preDefined?: boolean
   hrp: string
   C: C
   X: X
   P: P
 }
 
+export interface Chain {
+  alias: string
+  id: string
+}
+
 const TestNetwork: Network = {
+  preDefined: true,
   hrp: TestHRP,
   X: {
     blockchainID: TestXBlockchainID,
@@ -85,7 +95,7 @@ const TestNetwork: Network = {
     avaxAssetID: TestAvaxAssetID,
     avaxAssetAlias: "AVAX",
     txFee: MILLIAVAX,
-    creationTxFee: CENTIAVAX,
+    createAssetTxFee: CENTIAVAX,
     mintTxFee: MILLIAVAX
   },
   P: {
@@ -93,7 +103,7 @@ const TestNetwork: Network = {
     alias: PChainAlias,
     vm: PChainVMName,
     txFee: MILLIAVAX,
-    creationTxFee: CENTIAVAX,
+    createAssetTxFee: CENTIAVAX,
     createSubnetTx: ONEAVAX,
     createChainTx: ONEAVAX,
     minConsumption: 0.1,
@@ -104,7 +114,9 @@ const TestNetwork: Network = {
     minStakeDuration: 24 * 60 * 60, //one day
     maxStakeDuration: 365 * 24 * 60 * 60, // one year
     minDelegationStake: ONEAVAX,
-    minDelegationFee: new BN(2)
+    minDelegationFee: new BN(2),
+    verifyNodeSignature: false,
+    lockModeBondDeposit: false
   },
   C: {
     blockchainID: TestCBlockchainID,
@@ -122,6 +134,7 @@ const TestNetwork: Network = {
 
 // Does not support p:getConfiguration
 const AvaxMainNetwork: Network = {
+  preDefined: true,
   hrp: "avax",
   X: {
     blockchainID: "2oYMBNV4eNHyqk2fjjV5nVQLDbtmNJzq5s3qs3Lo6ftnC6FByM",
@@ -130,7 +143,7 @@ const AvaxMainNetwork: Network = {
     avaxAssetID: "FvwEAhmxKfeiG8SnEvq42hc6whRyY3EFYAvebMqDNDGCgxN5Z",
     avaxAssetAlias: "AVAX",
     txFee: MILLIAVAX,
-    creationTxFee: CENTIAVAX,
+    createAssetTxFee: CENTIAVAX,
     mintTxFee: MILLIAVAX
   },
   P: {
@@ -138,7 +151,7 @@ const AvaxMainNetwork: Network = {
     alias: PChainAlias,
     vm: PChainVMName,
     txFee: MILLIAVAX,
-    creationTxFee: CENTIAVAX,
+    createAssetTxFee: CENTIAVAX,
     createSubnetTx: ONEAVAX,
     createChainTx: ONEAVAX,
     minConsumption: 0.1,
@@ -149,7 +162,9 @@ const AvaxMainNetwork: Network = {
     minStakeDuration: 2 * 7 * 24 * 60 * 60, //one day
     maxStakeDuration: 365 * 24 * 60 * 60, // one year
     minDelegationStake: ONEAVAX.mul(new BN(25)),
-    minDelegationFee: new BN(2)
+    minDelegationFee: new BN(2),
+    verifyNodeSignature: false,
+    lockModeBondDeposit: false
   },
   C: {
     blockchainID: "2q9e4r6Mu3U68nU1fYjgbR6JvwrRx36CohpAX5UQxse55x1Q5",
@@ -182,6 +197,10 @@ class Networks {
 
   getNetwork(networkID: number): Network {
     return this.registry[networkID.toString()]
+  }
+
+  isPredefined(networkID: number): boolean {
+    return this.registry[networkID.toString()]?.preDefined ?? false
   }
 }
 

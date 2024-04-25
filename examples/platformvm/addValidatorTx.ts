@@ -1,4 +1,4 @@
-import { Avalanche, BinTools, BN, Buffer } from "@c4tplatform/caminojs/dist"
+import { Avalanche, BinTools, BN, Buffer } from "caminojs/index"
 import {
   PlatformVMAPI,
   KeyChain,
@@ -13,33 +13,32 @@ import {
   AddValidatorTx,
   Tx,
   SECPOwnerOutput,
-  ParseableOutput
-} from "@c4tplatform/caminojs/dist/apis/platformvm"
-import { Output } from "@c4tplatform/caminojs/dist/common"
+  ParseableOutput,
+  GetBalanceResponse,
+  GetBalanceResponseAvax
+} from "caminojs/apis/platformvm"
+import { BaseOutput } from "caminojs/common"
 import {
   PrivateKeyPrefix,
   DefaultLocalGenesisPrivateKey,
   NodeIDStringToBuffer,
   UnixNow
-} from "@c4tplatform/caminojs/dist/utils"
+} from "caminojs/utils"
+import { ExamplesConfig } from "../common/examplesConfig"
 
-const ip: string = "localhost"
-const port: number = 9650
-const protocol: string = "http"
-const networkID: number = 12345
-const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID)
-const pchain: PlatformVMAPI = avalanche.PChain()
+const config: ExamplesConfig = require("../common/examplesConfig.json")
+const avalanche: Avalanche = new Avalanche(
+  config.host,
+  config.port,
+  config.protocol,
+  config.networkID
+)
+
 const bintools: BinTools = BinTools.getInstance()
-const pKeychain: KeyChain = pchain.keyChain()
 const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
-pKeychain.importKey(privKey)
-const pAddresses: Buffer[] = pchain.keyChain().getAddresses()
-const pAddressStrings: string[] = pchain.keyChain().getAddressStrings()
-const pChainBlockchainID: string = avalanche.getNetwork().P.blockchainID
 const outputs: TransferableOutput[] = []
 const inputs: TransferableInput[] = []
 const stakeOuts: TransferableOutput[] = []
-const fee: BN = pchain.getDefaultTxFee()
 const threshold: number = 1
 const locktime: BN = new BN(0)
 const memo: Buffer = Buffer.from(
@@ -50,11 +49,37 @@ const startTime: BN = UnixNow().add(new BN(60 * 1))
 const endTime: BN = startTime.add(new BN(26300000))
 const delegationFee: number = 10
 
+let pchain: PlatformVMAPI
+let pKeychain: KeyChain
+let pAddresses: Buffer[]
+let pAddressStrings: string[]
+let avaxAssetID: string
+let fee: BN
+let pChainBlockchainID: string
+let avaxAssetIDBuf: Buffer
+
+const InitAvalanche = async () => {
+  await avalanche.fetchNetworkSettings()
+  pchain = avalanche.PChain()
+  pKeychain = pchain.keyChain()
+  pKeychain.importKey(privKey)
+  pAddresses = pchain.keyChain().getAddresses()
+  pAddressStrings = pchain.keyChain().getAddressStrings()
+  avaxAssetID = avalanche.getNetwork().X.avaxAssetID
+  fee = pchain.getDefaultTxFee()
+  pChainBlockchainID = avalanche.getNetwork().P.blockchainID
+  avaxAssetIDBuf = bintools.cb58Decode(avaxAssetID)
+}
+
 const main = async (): Promise<any> => {
+  await InitAvalanche()
+
   const stakeAmount: any = await pchain.getMinStake()
   const avaxAssetID: Buffer = await pchain.getAVAXAssetID()
-  const getBalanceResponse: any = await pchain.getBalance(pAddressStrings[0])
-  const unlocked: BN = new BN(getBalanceResponse.unlocked)
+  const getBalanceResponse: GetBalanceResponse = (await pchain.getBalance([
+    pAddressStrings[0]
+  ])) as GetBalanceResponseAvax
+  const unlocked: BN = getBalanceResponse.unlocked
   const secpTransferOutput: SECPTransferOutput = new SECPTransferOutput(
     unlocked.sub(fee).sub(stakeAmount.minValidatorStake),
     pAddresses,
@@ -90,7 +115,7 @@ const main = async (): Promise<any> => {
   const utxoSet: UTXOSet = platformVMUTXOResponse.utxos
   const utxos: UTXO[] = utxoSet.getAllUTXOs()
   utxos.forEach((utxo: UTXO) => {
-    const output: Output = utxo.getOutput()
+    const output: BaseOutput = utxo.getOutput()
     if (output.getOutputID() === 7) {
       const amountOutput: AmountOutput = utxo.getOutput() as AmountOutput
       const amt: BN = amountOutput.getAmount().clone()
@@ -111,7 +136,7 @@ const main = async (): Promise<any> => {
   })
 
   const addValidatorTx: AddValidatorTx = new AddValidatorTx(
-    networkID,
+    config.networkID,
     bintools.cb58Decode(pChainBlockchainID),
     outputs,
     inputs,

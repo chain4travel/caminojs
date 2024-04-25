@@ -61,6 +61,7 @@ export class AddSubnetValidatorTx extends BaseTx {
   protected subnetAuth: SubnetAuth
   protected sigCount: Buffer = Buffer.alloc(4)
   protected sigIdxs: SigIdx[] = [] // idxs of subnet auth signers
+  protected withNodeSig: boolean = false
 
   /**
    * Returns the id of the [[AddSubnetValidatorTx]]
@@ -209,8 +210,12 @@ export class AddSubnetValidatorTx extends BaseTx {
     this.sigCount.writeUInt32BE(this.sigIdxs.length, 0)
   }
 
+  includeNodeSignature(): void {
+    this.withNodeSig = true
+  }
+
   /**
-   * Returns the array of [[SigIdx]] for this [[Input]]
+   * Returns the array of [[SigIdx]] for this [[TX]]
    */
   getSigIdxs(): SigIdx[] {
     return this.sigIdxs
@@ -224,14 +229,14 @@ export class AddSubnetValidatorTx extends BaseTx {
    * Takes the bytes of an [[UnsignedTx]] and returns an array of [[Credential]]s
    *
    * @param msg A Buffer for the [[UnsignedTx]]
-   * @param kc An [[KeyChain]] used in signing
+   * @param kc A [[KeyChain]] used in signing
    *
    * @returns An array of [[Credential]]s
    */
   sign(msg: Buffer, kc: KeyChain): Credential[] {
     const creds: Credential[] = super.sign(msg, kc)
     const sigidxs: SigIdx[] = this.getSigIdxs()
-    const cred: Credential = SelectCredentialClass(this.getCredentialID())
+    let cred: Credential = SelectCredentialClass(this.getCredentialID())
     for (let i: number = 0; i < sigidxs.length; i++) {
       const keypair: KeyPair = kc.getKey(sigidxs[`${i}`].getSource())
       const signval: Buffer = keypair.sign(msg)
@@ -240,6 +245,16 @@ export class AddSubnetValidatorTx extends BaseTx {
       cred.addSignature(sig)
     }
     creds.push(cred)
+
+    if (this.withNodeSig) {
+      cred = cred.create()
+      const keypair: KeyPair = kc.getKey(this.nodeID)
+      const signval: Buffer = keypair.sign(msg)
+      const sig: Signature = new Signature()
+      sig.fromBuffer(signval)
+      cred.addSignature(sig)
+      creds.push(cred)
+    }
     return creds
   }
 

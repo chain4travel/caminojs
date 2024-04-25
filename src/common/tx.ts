@@ -6,9 +6,13 @@ import { Buffer } from "buffer/"
 import BinTools from "../utils/bintools"
 import { Credential } from "./credentials"
 import BN from "bn.js"
-import { StandardKeyChain, StandardKeyPair } from "./keychain"
+import { SignerKeyChain, SignerKeyPair } from "./keychain"
 import { StandardAmountInput, StandardTransferableInput } from "./input"
-import { StandardAmountOutput, StandardTransferableOutput } from "./output"
+import {
+  StandardAmountOutput,
+  StandardParseableOutput,
+  StandardTransferableOutput
+} from "./output"
 import { DefaultNetworkID } from "../utils/constants"
 import {
   Serializable,
@@ -31,8 +35,8 @@ const buffer: SerializedType = "Buffer"
  * Class representing a base for all transactions.
  */
 export abstract class StandardBaseTx<
-  KPClass extends StandardKeyPair,
-  KCClass extends StandardKeyChain<KPClass>
+  KPClass extends SignerKeyPair,
+  KCClass extends SignerKeyChain
 > extends Serializable {
   protected _typeName = "StandardBaseTx"
   protected _typeID = undefined
@@ -179,7 +183,7 @@ export abstract class StandardBaseTx<
    *
    * @returns An array of [[Credential]]s
    */
-  abstract sign(msg: Buffer, kc: StandardKeyChain<KPClass>): Credential[]
+  abstract sign(msg: Buffer, kc: SignerKeyChain): Credential[]
 
   abstract clone(): this
 
@@ -223,8 +227,8 @@ export abstract class StandardBaseTx<
  * Class representing an unsigned transaction.
  */
 export abstract class StandardUnsignedTx<
-  KPClass extends StandardKeyPair,
-  KCClass extends StandardKeyChain<KPClass>,
+  KPClass extends SignerKeyPair,
+  KCClass extends SignerKeyChain,
   SBTx extends StandardBaseTx<KPClass, KCClass>
 > extends Serializable {
   protected _typeName = "StandardUnsignedTx"
@@ -307,15 +311,15 @@ export abstract class StandardUnsignedTx<
     let total: BN = new BN(0)
 
     for (let i: number = 0; i < outs.length; i++) {
+      const inner = outs[`${i}`].getOutput()
+      const innerOut =
+        inner instanceof StandardParseableOutput ? inner.getOutput() : inner
       // only check StandardAmountOutput
       if (
-        outs[`${i}`].getOutput() instanceof StandardAmountOutput &&
+        innerOut instanceof StandardAmountOutput &&
         aIDHex === outs[`${i}`].getAssetID().toString("hex")
       ) {
-        const output: StandardAmountOutput = outs[
-          `${i}`
-        ].getOutput() as StandardAmountOutput
-        total = total.add(output.getAmount())
+        total = total.add(innerOut.getAmount())
       }
     }
     return total
@@ -369,8 +373,8 @@ export abstract class StandardUnsignedTx<
  * Class representing a signed transaction.
  */
 export abstract class StandardTx<
-  KPClass extends StandardKeyPair,
-  KCClass extends StandardKeyChain<KPClass>,
+  KPClass extends SignerKeyPair,
+  KCClass extends SignerKeyChain,
   SUBTx extends StandardUnsignedTx<
     KPClass,
     KCClass,

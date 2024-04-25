@@ -8,12 +8,19 @@ import { PlatformVMConstants } from "./constants"
 import { TransferableOutput } from "./outputs"
 import { TransferableInput } from "./inputs"
 import { SelectCredentialClass } from "./credentials"
-import { KeyChain, KeyPair } from "./keychain"
-import { StandardBaseTx } from "../../common/tx"
-import { Signature, SigIdx, Credential } from "../../common/credentials"
+import {
+  SignerKeyChain,
+  SignerKeyPair,
+  StandardBaseTx,
+  Signature,
+  SigIdx,
+  Credential,
+  OutputOwners
+} from "../../common"
 import { DefaultNetworkID } from "../../utils/constants"
 import { SelectTxClass } from "../platformvm/tx"
 import { SerializedEncoding } from "../../utils/serialization"
+import {} from "caminojs/common"
 
 /**
  * @ignore
@@ -23,9 +30,10 @@ const bintools: BinTools = BinTools.getInstance()
 /**
  * Class representing a base for all transactions.
  */
-export class BaseTx extends StandardBaseTx<KeyPair, KeyChain> {
+export class BaseTx extends StandardBaseTx<SignerKeyPair, SignerKeyChain> {
   protected _typeName = "BaseTx"
-  protected _typeID = PlatformVMConstants.CREATESUBNETTX
+  protected _typeID = PlatformVMConstants.BASETX
+  protected _outputOwners: OutputOwners[] = undefined
 
   deserialize(fields: object, encoding: SerializedEncoding = "hex") {
     super.deserialize(fields, encoding)
@@ -62,6 +70,23 @@ export class BaseTx extends StandardBaseTx<KeyPair, KeyChain> {
    */
   getTxType(): number {
     return PlatformVMConstants.BASETX
+  }
+
+  /**
+   * @returns The outputOwners of inputs, one per input
+   */
+  getOutputOwners(): OutputOwners[] {
+    if (this._outputOwners) {
+      return [...this._outputOwners]
+    }
+    return []
+  }
+
+  /**
+   * @params The outputOwners of inputs, one per input
+   */
+  setOutputOwners(owners: OutputOwners[]) {
+    this._outputOwners = [...owners]
   }
 
   /**
@@ -114,7 +139,7 @@ export class BaseTx extends StandardBaseTx<KeyPair, KeyChain> {
    *
    * @returns An array of [[Credential]]s
    */
-  sign(msg: Buffer, kc: KeyChain): Credential[] {
+  sign(msg: Buffer, kc: SignerKeyChain): Credential[] {
     const creds: Credential[] = []
     for (let i: number = 0; i < this.ins.length; i++) {
       const cred: Credential = SelectCredentialClass(
@@ -122,7 +147,7 @@ export class BaseTx extends StandardBaseTx<KeyPair, KeyChain> {
       )
       const sigidxs: SigIdx[] = this.ins[`${i}`].getInput().getSigIdxs()
       for (let j: number = 0; j < sigidxs.length; j++) {
-        const keypair: KeyPair = kc.getKey(sigidxs[`${j}`].getSource())
+        const keypair: SignerKeyPair = kc.getKey(sigidxs[`${j}`].getSource())
         const signval: Buffer = keypair.sign(msg)
         const sig: Signature = new Signature()
         sig.fromBuffer(signval)

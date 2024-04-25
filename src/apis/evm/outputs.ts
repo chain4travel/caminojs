@@ -11,11 +11,12 @@ import {
   StandardAmountOutput,
   StandardTransferableOutput
 } from "../../common/output"
-import { SerializedEncoding } from "../../utils/serialization"
+import { Serialization, SerializedEncoding } from "../../utils/serialization"
 import { EVMInput } from "./inputs"
 import { OutputIdError } from "../../utils/errors"
 
 const bintools: BinTools = BinTools.getInstance()
+const serializer = Serialization.getInstance()
 
 /**
  * Takes a buffer representing the output and returns the proper Output instance.
@@ -111,6 +112,19 @@ export class EVMOutput {
   protected amountValue: BN = new BN(0)
   protected assetID: Buffer = Buffer.alloc(32)
 
+  serialize(encoding: SerializedEncoding = "hex"): object {
+    return {
+      address: serializer.encoder(this.address, encoding, "Buffer", "hex"),
+      amount: serializer.encoder(
+        this.amount,
+        encoding,
+        "Buffer",
+        "decimalString"
+      ),
+      assetID: serializer.encoder(this.assetID, encoding, "Buffer", "cb58")
+    }
+  }
+
   /**
    * Returns a function used to sort an array of [[EVMOutput]]s
    */
@@ -169,6 +183,7 @@ export class EVMOutput {
     offset += 8
     this.assetID = bintools.copyFrom(bytes, offset, offset + 32)
     offset += 32
+    this.amountValue = new BN(this.amount)
     return offset
   }
 

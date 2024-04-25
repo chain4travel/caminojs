@@ -5,12 +5,21 @@
 import { Buffer } from "buffer/"
 import BN from "bn.js"
 import AvalancheCore from "../../camino"
-import { JRPCAPI } from "../../common/jrpcapi"
-import { RequestResponseData } from "../../common/apibase"
-import { ErrorResponseObject } from "../../utils/errors"
+import {
+  JRPCAPI,
+  OutputOwners,
+  RequestResponseData,
+  ZeroBN
+} from "../../common"
+
+import {
+  ErrorResponseObject,
+  ProtocolError,
+  UTXOError
+} from "../../utils/errors"
 import BinTools from "../../utils/bintools"
 import { KeyChain } from "./keychain"
-import { ONEAVAX } from "../../utils/constants"
+import { DefaultTransactionVersionNumber, ONEAVAX } from "../../utils/constants"
 import { PlatformVMConstants } from "./constants"
 import { UnsignedTx, Tx } from "./tx"
 import { PayloadBase } from "../../utils/payload"
@@ -27,6 +36,11 @@ import {
   DelegationFeeError
 } from "../../utils/errors"
 import {
+  APIDeposit,
+  BalanceDict,
+  Claimable,
+  ClaimAmountParams,
+  DepositOffer,
   GetCurrentValidatorsParams,
   GetPendingValidatorsParams,
   GetRewardUTXOsParams,
@@ -55,11 +69,29 @@ import {
   GetTxStatusParams,
   GetTxStatusResponse,
   GetMinStakeResponse,
-  GetMaxStakeAmountParams
+  GetMaxStakeAmountParams,
+  SpendParams,
+  SpendReply,
+  AddressParams,
+  MultisigAliasReply,
+  GetClaimablesResponse,
+  GetAllDepositOffersParams,
+  GetAllDepositOffersResponse,
+  GetDepositsParams,
+  GetDepositsResponse,
+  Owner,
+  OwnerParam,
+  MultisigAliasParams,
+  UpgradePhasesReply
 } from "./interfaces"
+import { TransferableInput } from "./inputs"
 import { TransferableOutput } from "./outputs"
 import { Serialization, SerializedType } from "../../utils"
 import { GenesisData } from "../avm"
+import { Auth, LockMode, Builder, FromSigner, NodeOwner } from "./builder"
+import { Network } from "../../utils/networks"
+import { Spender } from "./spender"
+import { Offer } from "./adddepositoffertx"
 
 /**
  * @ignore
@@ -69,6 +101,12 @@ const serialization: Serialization = Serialization.getInstance()
 
 const NanoBN = new BN(1000000000)
 const rewardPercentDenom = 1000000
+
+type FromType = String[] | String[][]
+type NodeOwnerType = {
+  address: string
+  auth: [number, string][]
+}
 
 /**
  * Class for interacting with a node's PlatformVMAPI
@@ -104,6 +142,15 @@ export class PlatformVMAPI extends JRPCAPI {
    */
   getBlockchainAlias = (): string => {
     return this.core.getNetwork().P.alias
+  }
+
+  /**
+   * Gets the current network, fetched via avalanche.fetchNetworkSettings.
+   *
+   * @returns The current Network
+   */
+  getNetwork = (): Network => {
+    return this.core.getNetwork()
   }
 
   /**
@@ -151,8 +198,9 @@ export class PlatformVMAPI extends JRPCAPI {
    */
   getAVAXAssetID = async (refresh: boolean = false): Promise<Buffer> => {
     if (typeof this.AVAXAssetID === "undefined" || refresh) {
-      const assetID: string = await this.getStakingAssetID()
-      this.AVAXAssetID = bintools.cb58Decode(assetID)
+      this.AVAXAssetID = bintools.cb58Decode(
+        this.core.getNetwork().X.avaxAssetID
+      )
     }
     return this.AVAXAssetID
   }
@@ -193,6 +241,15 @@ export class PlatformVMAPI extends JRPCAPI {
   }
 
   /**
+   * Gets the CreateAssetTx fee.
+   *
+   * @returns The CreateAssetTx fee as a {@link https://github.com/indutny/bn.js/|BN}
+   */
+  getCreateAssetTxFee = (): BN => {
+    return new BN(this.core.getNetwork().P.createAssetTxFee ?? 0)
+  }
+
+  /**
    * Gets the CreateSubnetTx fee.
    *
    * @returns The CreateSubnetTx fee as a {@link https://github.com/indutny/bn.js/|BN}
@@ -225,7 +282,7 @@ export class PlatformVMAPI extends JRPCAPI {
    * @returns The default creation fee as a {@link https://github.com/indutny/bn.js/|BN}
    */
   getDefaultCreationTxFee = (): BN => {
-    return new BN(this.core.getNetwork().P.creationTxFee)
+    return new BN(this.core.getNetwork().P.createAssetTxFee)
   }
 
   /**
@@ -282,10 +339,10 @@ export class PlatformVMAPI extends JRPCAPI {
    */
   checkGooseEgg = async (
     utx: UnsignedTx,
-    outTotal: BN = new BN(0)
+    outTotal: BN = ZeroBN
   ): Promise<boolean> => {
     const avaxAssetID: Buffer = await this.getAVAXAssetID()
-    let outputTotal: BN = outTotal.gt(new BN(0))
+    let outputTotal: BN = outTotal.gt(ZeroBN)
       ? outTotal
       : utx.getOutputTotal(avaxAssetID)
     const fee: BN = utx.getBurn(avaxAssetID)
@@ -419,25 +476,52 @@ export class PlatformVMAPI extends JRPCAPI {
   /**
    * Gets the balance of a particular asset.
    *
-   * @param address The address to pull the asset balance from
+   * @param addresses The addresses to pull the asset balance from
    *
    * @returns Promise with the balance as a {@link https://github.com/indutny/bn.js/|BN} on the provided address.
    */
-  getBalance = async (address: string): Promise<GetBalanceResponse> => {
-    if (typeof this.parseAddress(address) === "undefined") {
-      /* istanbul ignore next */
-      throw new AddressError(
-        "Error - PlatformVMAPI.getBalance: Invalid address format"
-      )
-    }
+  getBalance = async (addresses: string[]): Promise<GetBalanceResponse> => {
+    addresses.forEach((address) => {
+      if (typeof this.parseAddress(address) === "undefined") {
+        /* istanbul ignore next */
+        throw new AddressError(
+          "Error - PlatformVMAPI.getBalance: Invalid address format"
+        )
+      }
+    })
     const params: any = {
-      address
+      addresses
     }
     const response: RequestResponseData = await this.callMethod(
       "platform.getBalance",
       params
     )
-    return response.data.result
+
+    const result = response.data.result
+
+    const parseDict = (input: any[]): BalanceDict => {
+      let dict: BalanceDict = {}
+      for (const [k, v] of Object.entries(input)) dict[k] = new BN(v)
+      return dict as BalanceDict
+    }
+
+    if (this.core.getNetwork().P.lockModeBondDeposit) {
+      return {
+        balances: parseDict(result.balances),
+        unlockedOutputs: parseDict(result.unlockedOutputs),
+        bondedOutputs: parseDict(result.bondedOutputs),
+        depositedOutputs: parseDict(result.depositedOutputs),
+        bondedDepositedOutputs: parseDict(result.bondedDepositedOutputs),
+        utxoIDs: result.utxoIDs
+      } as GetBalanceResponse
+    }
+    return {
+      balance: new BN(result.balance),
+      unlocked: new BN(result.unlocked),
+      lockedStakeable: new BN(result.lockedStakeable),
+      lockedNotStakeable: new BN(result.lockedNotStakeable),
+      utxoIDs: result.utxoIDs
+    } as GetBalanceResponse
   }
 
   /**
@@ -494,6 +578,146 @@ export class PlatformVMAPI extends JRPCAPI {
   }
 
   /**
+   * A request that in address field accepts either a nodeID (and returns a bech32 address if it exists), or a bech32 address (and returns a NodeID if it exists).
+   *
+   * @param address A nodeID or a bech32 address
+   *
+   * @returns Promise for a string containing bech32 address that is the node owner or nodeID that the address passed is an owner of.
+   */
+  getRegisteredShortIDLink = async (address: string): Promise<string> => {
+    const params = {
+      address
+    }
+    const response: RequestResponseData = await this.callMethod(
+      "platform.getRegisteredShortIDLink",
+      params
+    )
+    return response.data.result.address
+  }
+
+  /**
+   * Returns active or inactive deposit offers.
+   *
+   * @param active A boolean indicating whether to return active or inactive deposit offers.
+   *
+   * @returns Promise for a list containing deposit offers.
+   */
+  getAllDepositOffers = async (timestamp?: number): Promise<DepositOffer[]> => {
+    if (!timestamp) timestamp = Math.floor(Date.now() / 1000)
+    const params: GetAllDepositOffersParams = {
+      timestamp
+    }
+    const response: RequestResponseData = await this.callMethod(
+      "platform.getAllDepositOffers",
+      params
+    )
+
+    const offers: GetAllDepositOffersResponse = response.data.result
+    if (!offers.depositOffers) return []
+    return offers.depositOffers.map((offer) => {
+      return {
+        upgradeVersion: offer.upgradeVersion,
+        id: offer.id,
+        interestRateNominator: new BN(offer.interestRateNominator),
+        start: new BN(offer.start),
+        end: new BN(offer.end),
+        minAmount: new BN(offer.minAmount),
+        totalMaxAmount: new BN(offer.totalMaxAmount),
+        depositedAmount: new BN(offer.depositedAmount),
+        minDuration: offer.minDuration,
+        maxDuration: offer.maxDuration,
+        unlockPeriodDuration: offer.unlockPeriodDuration,
+        noRewardsPeriodDuration: offer.noRewardsPeriodDuration,
+        memo: offer.memo,
+        flags: new BN(offer.flags),
+        totalMaxRewardAmount: new BN(offer.totalMaxRewardAmount),
+        rewardedAmount: new BN(offer.rewardedAmount),
+        ownerAddress: offer.ownerAddress
+      } as DepositOffer
+    })
+  }
+
+  /**
+   * Returns deposits corresponding to requested txIDs.
+   *
+   * @param depositTxIDs A list of txIDs (cb58) to request deposits for.
+   *
+   * @returns Promise for a GetDepositsResponse object.
+   */
+  getDeposits = async (
+    depositTxIDs: string[]
+  ): Promise<GetDepositsResponse> => {
+    const params: GetDepositsParams = {
+      depositTxIDs
+    }
+    const response: RequestResponseData = await this.callMethod(
+      "platform.getDeposits",
+      params
+    )
+
+    const deposits: GetDepositsResponse = response.data.result
+    if (!deposits.deposits)
+      return { deposits: [], availableRewards: [], timestamp: ZeroBN }
+    return {
+      deposits: deposits.deposits.map((deposit) => {
+        return {
+          depositTxID: deposit.depositTxID,
+          depositOfferID: deposit.depositOfferID,
+          unlockedAmount: new BN(deposit.unlockedAmount),
+          unlockableAmount: new BN(deposit.unlockableAmount),
+          claimedRewardAmount: new BN(deposit.claimedRewardAmount),
+          start: new BN(deposit.start),
+          duration: deposit.duration,
+          amount: new BN(deposit.amount),
+          rewardOwner: {
+            locktime: new BN(deposit.rewardOwner.locktime),
+            threshold: new BN(deposit.rewardOwner.threshold).toNumber(),
+            addresses: deposit.rewardOwner.addresses
+          } as Owner
+        } as APIDeposit
+      }),
+      availableRewards: deposits.availableRewards.map((a) => new BN(a)),
+      timestamp: new BN(deposits.timestamp)
+    } as GetDepositsResponse
+  }
+
+  /**
+   * List amounts that can be claimed: validator rewards, expired deposit rewards claimable at current time.
+   *
+   * @param owners RewardOwner of DepositTx or AddValidatorTx
+   *
+   * @returns Promise for an object containing the amounts that can be claimed.
+   */
+  getClaimables = async (
+    owners: OwnerParam[]
+  ): Promise<GetClaimablesResponse> => {
+    const params = {
+      Owners: owners
+    }
+    const response: RequestResponseData = await this.callMethod(
+      "platform.getClaimables",
+      params
+    )
+    const result = response.data.result
+
+    return {
+      claimables: result.claimables.map((c: any) => {
+        return {
+          rewardOwner: c.rewardOwner
+            ? ({
+                locktime: new BN(c.rewardOwner.locktime),
+                threshold: new BN(c.rewardOwner.threshold).toNumber(),
+                addresses: c.rewardOwner.addresses
+              } as Owner)
+            : undefined,
+          validatorRewards: new BN(c.validatorRewards),
+          expiredDepositRewards: new BN(c.expiredDepositRewards)
+        } as Claimable
+      })
+    } as GetClaimablesResponse
+  }
+
+  /**
    * Lists the set of pending validators.
    *
    * @param subnetID Optional. Either a {@link https://github.com/feross/buffer|Buffer}
@@ -522,6 +746,20 @@ export class PlatformVMAPI extends JRPCAPI {
       params
     )
     return response.data.result
+  }
+
+  /**
+   * Retrieves the current phases.
+   *
+   * @returns Returns a Promise of a UpgradePhasesReply.
+   */
+  getUpgradePhases = async (): Promise<UpgradePhasesReply> => {
+    const response: RequestResponseData = await this.callMethod(
+      "platform.getUpgradePhases"
+    )
+    return {
+      SunrisePhase: parseInt(response.data.result.sunrisePhase)
+    }
   }
 
   /**
@@ -959,9 +1197,9 @@ export class PlatformVMAPI extends JRPCAPI {
     }
 
     const params: GetMaxStakeAmountParams = {
-      nodeID,
-      startTime,
-      endTime
+      nodeID: nodeID,
+      startTime: startTime.toString(10),
+      endTime: endTime.toString(10)
     }
 
     if (typeof subnetID === "string") {
@@ -1218,7 +1456,7 @@ export class PlatformVMAPI extends JRPCAPI {
     if (data.length > 0 && data[0].substring(0, 2) === "0x") {
       const cb58Strs: string[] = []
       data.forEach((str: string): void => {
-        cb58Strs.push(bintools.cb58Encode(new Buffer(str.slice(2), "hex")))
+        cb58Strs.push(bintools.cb58Encode(Buffer.from(str.slice(2), "hex")))
       })
 
       utxos.addArray(cb58Strs, false)
@@ -1228,6 +1466,118 @@ export class PlatformVMAPI extends JRPCAPI {
     response.data.result.utxos = utxos
     response.data.result.numFetched = parseInt(response.data.result.numFetched)
     return response.data.result
+  }
+
+  /**
+   * getAddressStates() returns an 64 bit bitmask of states applied to address
+   *
+   * @returns A big number representing the states applied to given address
+   */
+  getAddressStates = async (address: string): Promise<BN> => {
+    const params: AddressParams = {
+      address: address
+    }
+    const response: RequestResponseData = await this.callMethod(
+      "platform.getAddressStates",
+      params
+    )
+    return new BN(response.data.result, 10)
+  }
+
+  /**
+   * getMultisigAlias() returns a MultisigAliasReply
+   *
+   * @returns A MultiSigAlias
+   */
+  getMultisigAlias = async (address: string): Promise<MultisigAliasReply> => {
+    const params: AddressParams = {
+      address: address
+    }
+    const response: RequestResponseData = await this.callMethod(
+      "platform.getMultisigAlias",
+      params
+    )
+    return {
+      memo: response.data.result.memo,
+      locktime: new BN(response.data.result.locktime),
+      threshold: new BN(response.data.result.threshold).toNumber(),
+      addresses: response.data.result.addresses
+    } as MultisigAliasReply
+  }
+
+  /**
+   * Helper function which creates an unsigned transaction. For more granular control, you may create your own
+   * [[UnsignedTx]] manually (with their corresponding [[TransferableInput]]s, [[TransferableOutput]]s, and [[TransferOperation]]s).
+   *
+   * @param utxoset A set of UTXOs that the transaction is built on
+   * @param amount The amount of AssetID to be spent in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}.
+   * @param toAddresses The addresses to send the funds
+   * @param fromAddresses The addresses being used to send the funds from the UTXOs provided
+   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs
+   * @param memo Optional CB58 Buffer or String which contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param locktime Optional. The locktime field created in the resulting outputs
+   * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   *
+   * @returns An unsigned transaction ([[UnsignedTx]]) which contains a [[BaseTx]].
+   *
+   * @remarks
+   * This helper exists because the endpoint API should be the primary point of entry for most functionality.
+   */
+  buildBaseTx = async (
+    utxoset: UTXOSet,
+    amount: BN,
+    toAddresses: string[],
+    fromAddresses: FromType,
+    changeAddresses: string[],
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = UnixNow(),
+    locktime: BN = new BN(0),
+    toThreshold: number = 1,
+    changeThreshold: number = 1
+  ): Promise<UnsignedTx> => {
+    const caller: string = "buildBaseTx"
+    const to: Buffer[] = this._cleanAddressArrayBuffer(toAddresses, caller)
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+    const networkID: number = this.core.getNetworkID()
+    const blockchainIDBuf: Buffer = bintools.cb58Decode(this.blockchainID)
+    const fee: BN = this.getTxFee()
+    const feeAssetID: Buffer = await this.getAVAXAssetID()
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildBaseTx(
+      networkID,
+      blockchainIDBuf,
+      amount,
+      feeAssetID,
+      to,
+      fromSigner,
+      change,
+      fee,
+      feeAssetID,
+      memo,
+      asOf,
+      locktime,
+      toThreshold,
+      changeThreshold
+    )
+
+    if (!(await this.checkGooseEgg(builtUnsignedTx))) {
+      /* istanbul ignore next */
+      new GooseEggCheckError("Failed Goose Egg Check")
+    }
+
+    return builtUnsignedTx
   }
 
   /**
@@ -1243,7 +1593,8 @@ export class PlatformVMAPI extends JRPCAPI {
    * @param memo Optional contains arbitrary bytes, up to 256 bytes
    * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
    * @param locktime Optional. The locktime field created in the resulting outputs
-   * @param threshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
    *
    * @returns An unsigned transaction ([[UnsignedTx]]) which contains a [[ImportTx]].
    *
@@ -1255,25 +1606,24 @@ export class PlatformVMAPI extends JRPCAPI {
     ownerAddresses: string[],
     sourceChain: Buffer | string,
     toAddresses: string[],
-    fromAddresses: string[],
+    fromAddresses: FromType,
     changeAddresses: string[] = undefined,
     memo: PayloadBase | Buffer = undefined,
-    asOf: BN = UnixNow(),
-    locktime: BN = new BN(0),
-    threshold: number = 1
+    asOf: BN = ZeroBN,
+    locktime: BN = ZeroBN,
+    toThreshold: number = 1,
+    changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
-    const to: Buffer[] = this._cleanAddressArray(
-      toAddresses,
-      "buildImportTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-    const from: Buffer[] = this._cleanAddressArray(
-      fromAddresses,
-      "buildImportTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-    const change: Buffer[] = this._cleanAddressArray(
+    const caller = "buildAddValidatorTx"
+
+    const to: Buffer[] = this._cleanAddressArrayBuffer(toAddresses, caller)
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
       changeAddresses,
-      "buildImportTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
+      caller
+    )
 
     let srcChain: string = undefined
 
@@ -1301,11 +1651,13 @@ export class PlatformVMAPI extends JRPCAPI {
 
     const atomics: UTXO[] = atomicUTXOs.getAllUTXOs()
 
-    const builtUnsignedTx: UnsignedTx = utxoset.buildImportTx(
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildImportTx(
       this.core.getNetworkID(),
       bintools.cb58Decode(this.blockchainID),
       to,
-      from,
+      fromSigner,
       change,
       atomics,
       sourceChain,
@@ -1314,7 +1666,8 @@ export class PlatformVMAPI extends JRPCAPI {
       memo,
       asOf,
       locktime,
-      threshold
+      toThreshold,
+      changeThreshold
     )
 
     if (!(await this.checkGooseEgg(builtUnsignedTx))) {
@@ -1338,7 +1691,8 @@ export class PlatformVMAPI extends JRPCAPI {
    * @param memo Optional contains arbitrary bytes, up to 256 bytes
    * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
    * @param locktime Optional. The locktime field created in the resulting outputs
-   * @param threshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
    *
    * @returns An unsigned transaction ([[UnsignedTx]]) which contains an [[ExportTx]].
    */
@@ -1347,13 +1701,16 @@ export class PlatformVMAPI extends JRPCAPI {
     amount: BN,
     destinationChain: Buffer | string,
     toAddresses: string[],
-    fromAddresses: string[],
+    fromAddresses: FromType,
     changeAddresses: string[] = undefined,
     memo: PayloadBase | Buffer = undefined,
-    asOf: BN = UnixNow(),
-    locktime: BN = new BN(0),
-    threshold: number = 1
+    asOf: BN = ZeroBN,
+    locktime: BN = ZeroBN,
+    toThreshold: number = 1,
+    changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
+    const caller = "buildExportTx"
+
     let prefixes: object = {}
     toAddresses.map((a: string): void => {
       prefixes[a.split("-")[0]] = true
@@ -1386,14 +1743,13 @@ export class PlatformVMAPI extends JRPCAPI {
     toAddresses.map((a: string): void => {
       to.push(bintools.stringToAddress(a))
     })
-    const from: Buffer[] = this._cleanAddressArray(
-      fromAddresses,
-      "buildExportTx"
-    ).map((a): Buffer => bintools.stringToAddress(a))
-    const change: Buffer[] = this._cleanAddressArray(
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
       changeAddresses,
-      "buildExportTx"
-    ).map((a): Buffer => bintools.stringToAddress(a))
+      caller
+    )
 
     if (memo instanceof PayloadBase) {
       memo = memo.getPayload()
@@ -1401,21 +1757,24 @@ export class PlatformVMAPI extends JRPCAPI {
 
     const avaxAssetID: Buffer = await this.getAVAXAssetID()
 
-    const builtUnsignedTx: UnsignedTx = utxoset.buildExportTx(
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildExportTx(
       this.core.getNetworkID(),
       bintools.cb58Decode(this.blockchainID),
       amount,
       avaxAssetID,
       to,
-      from,
-      change,
+      fromSigner,
       destinationChain,
+      change,
       this.getTxFee(),
       avaxAssetID,
       memo,
       asOf,
       locktime,
-      threshold
+      toThreshold,
+      changeThreshold
     )
 
     if (!(await this.checkGooseEgg(builtUnsignedTx))) {
@@ -1439,14 +1798,15 @@ export class PlatformVMAPI extends JRPCAPI {
    * @param weight The amount of weight for this subnet validator.
    * @param memo Optional contains arbitrary bytes, up to 256 bytes
    * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
-   * @param subnetAuthCredentials Optional. An array of index and address to sign for each SubnetAuth.
+   * @param subnetAuth Optional. An Auth struct which contains the subnet Auth and the signers.
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
    *
    * @returns An unsigned transaction created from the passed in parameters.
    */
 
   buildAddSubnetValidatorTx = async (
     utxoset: UTXOSet,
-    fromAddresses: string[],
+    fromAddresses: FromType,
     changeAddresses: string[],
     nodeID: string,
     startTime: BN,
@@ -1454,17 +1814,18 @@ export class PlatformVMAPI extends JRPCAPI {
     weight: BN,
     subnetID: string,
     memo: PayloadBase | Buffer = undefined,
-    asOf: BN = UnixNow(),
-    subnetAuthCredentials: [number, Buffer][] = []
+    asOf: BN = ZeroBN,
+    subnetAuth: Auth = { addresses: [], threshold: 0, signer: [] },
+    changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
-    const from: Buffer[] = this._cleanAddressArray(
-      fromAddresses,
-      "buildAddSubnetValidatorTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-    const change: Buffer[] = this._cleanAddressArray(
+    const caller = "buildAddSubnetValidatorTx"
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
       changeAddresses,
-      "buildAddSubnetValidatorTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
+      caller
+    )
 
     if (memo instanceof PayloadBase) {
       memo = memo.getPayload()
@@ -1479,10 +1840,12 @@ export class PlatformVMAPI extends JRPCAPI {
       )
     }
 
-    const builtUnsignedTx: UnsignedTx = utxoset.buildAddSubnetValidatorTx(
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildAddSubnetValidatorTx(
       this.core.getNetworkID(),
       bintools.cb58Decode(this.blockchainID),
-      from,
+      fromSigner,
       change,
       NodeIDStringToBuffer(nodeID),
       startTime,
@@ -1493,7 +1856,8 @@ export class PlatformVMAPI extends JRPCAPI {
       avaxAssetID,
       memo,
       asOf,
-      subnetAuthCredentials
+      subnetAuth,
+      changeThreshold
     )
 
     if (!(await this.checkGooseEgg(builtUnsignedTx))) {
@@ -1521,40 +1885,41 @@ export class PlatformVMAPI extends JRPCAPI {
    * @param rewardThreshold Opional. The number of signatures required to spend the funds in the resultant reward UTXO. Default 1.
    * @param memo Optional contains arbitrary bytes, up to 256 bytes
    * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
    *
    * @returns An unsigned transaction created from the passed in parameters.
    */
   buildAddDelegatorTx = async (
     utxoset: UTXOSet,
     toAddresses: string[],
-    fromAddresses: string[],
+    fromAddresses: FromType,
     changeAddresses: string[],
     nodeID: string,
     startTime: BN,
     endTime: BN,
     stakeAmount: BN,
     rewardAddresses: string[],
-    rewardLocktime: BN = new BN(0),
+    rewardLocktime: BN = ZeroBN,
     rewardThreshold: number = 1,
     memo: PayloadBase | Buffer = undefined,
-    asOf: BN = UnixNow()
+    asOf: BN = ZeroBN,
+    toThreshold: number = 1,
+    changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
-    const to: Buffer[] = this._cleanAddressArray(
-      toAddresses,
-      "buildAddDelegatorTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-    const from: Buffer[] = this._cleanAddressArray(
-      fromAddresses,
-      "buildAddDelegatorTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-    const change: Buffer[] = this._cleanAddressArray(
+    const caller = "buildAddDelegatorTx"
+    const to: Buffer[] = this._cleanAddressArrayBuffer(toAddresses, caller)
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
       changeAddresses,
-      "buildAddDelegatorTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-    const rewards: Buffer[] = this._cleanAddressArray(
+      caller
+    )
+    const rewards: Buffer[] = this._cleanAddressArrayBuffer(
       rewardAddresses,
-      "buildAddDelegatorTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
+      caller
+    )
 
     if (memo instanceof PayloadBase) {
       memo = memo.getPayload()
@@ -1577,12 +1942,20 @@ export class PlatformVMAPI extends JRPCAPI {
       )
     }
 
-    const builtUnsignedTx: UnsignedTx = utxoset.buildAddDelegatorTx(
+    if (this.core.getNetwork().P.lockModeBondDeposit) {
+      throw new UTXOError(
+        "PlatformVMAPI.buildAddDelegatorTx -- not supported in lockmodeBondDeposit"
+      )
+    }
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildAddDelegatorTx(
       this.core.getNetworkID(),
       bintools.cb58Decode(this.blockchainID),
       avaxAssetID,
       to,
-      from,
+      fromSigner,
       change,
       NodeIDStringToBuffer(nodeID),
       startTime,
@@ -1591,10 +1964,12 @@ export class PlatformVMAPI extends JRPCAPI {
       rewardLocktime,
       rewardThreshold,
       rewards,
-      new BN(0),
+      ZeroBN,
       avaxAssetID,
       memo,
-      asOf
+      asOf,
+      toThreshold,
+      changeThreshold
     )
 
     if (!(await this.checkGooseEgg(builtUnsignedTx))) {
@@ -1623,13 +1998,15 @@ export class PlatformVMAPI extends JRPCAPI {
    * @param rewardThreshold Opional. The number of signatures required to spend the funds in the resultant reward UTXO. Default 1.
    * @param memo Optional contains arbitrary bytes, up to 256 bytes
    * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
    *
    * @returns An unsigned transaction created from the passed in parameters.
    */
   buildAddValidatorTx = async (
     utxoset: UTXOSet,
     toAddresses: string[],
-    fromAddresses: string[],
+    fromAddresses: FromType,
     changeAddresses: string[],
     nodeID: string,
     startTime: BN,
@@ -1637,27 +2014,27 @@ export class PlatformVMAPI extends JRPCAPI {
     stakeAmount: BN,
     rewardAddresses: string[],
     delegationFee: number,
-    rewardLocktime: BN = new BN(0),
+    rewardLocktime: BN = ZeroBN,
     rewardThreshold: number = 1,
     memo: PayloadBase | Buffer = undefined,
-    asOf: BN = UnixNow()
+    asOf: BN = ZeroBN,
+    toThreshold: number = 1,
+    changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
-    const to: Buffer[] = this._cleanAddressArray(
-      toAddresses,
-      "buildAddValidatorTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-    const from: Buffer[] = this._cleanAddressArray(
-      fromAddresses,
-      "buildAddValidatorTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-    const change: Buffer[] = this._cleanAddressArray(
+    const caller = "buildAddValidatorTx"
+
+    const to: Buffer[] = this._cleanAddressArrayBuffer(toAddresses, caller)
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
       changeAddresses,
-      "buildAddValidatorTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-    const rewards: Buffer[] = this._cleanAddressArray(
+      caller
+    )
+    const rewards: Buffer[] = this._cleanAddressArrayBuffer(
       rewardAddresses,
-      "buildAddValidatorTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
+      caller
+    )
 
     if (memo instanceof PayloadBase) {
       memo = memo.getPayload()
@@ -1666,7 +2043,7 @@ export class PlatformVMAPI extends JRPCAPI {
     const minStake: BN = (await this.getMinStake())["minValidatorStake"]
     if (stakeAmount.lt(minStake)) {
       throw new StakeError(
-        "PlatformVMAPI.buildAddValidatorTx -- stake amount must be at least " +
+        `PlatformVMAPI.${caller} -- stake amount must be at least ` +
           minStake.toString(10)
       )
     }
@@ -1677,7 +2054,7 @@ export class PlatformVMAPI extends JRPCAPI {
       delegationFee < 0
     ) {
       throw new DelegationFeeError(
-        "PlatformVMAPI.buildAddValidatorTx -- delegationFee must be a number between 0 and 100"
+        `PlatformVMAPI.${caller} -- delegationFee must be a number between 0 and 100`
       )
     }
 
@@ -1686,29 +2063,33 @@ export class PlatformVMAPI extends JRPCAPI {
     const now: BN = UnixNow()
     if (startTime.lt(now) || endTime.lte(startTime)) {
       throw new TimeError(
-        "PlatformVMAPI.buildAddValidatorTx -- startTime must be in the future and endTime must come after startTime"
+        `PlatformVMAPI.${caller} -- startTime must be in the future and endTime must come after startTime`
       )
     }
 
-    const builtUnsignedTx: UnsignedTx = utxoset.buildAddValidatorTx(
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildAddValidatorTx(
       this.core.getNetworkID(),
       bintools.cb58Decode(this.blockchainID),
-      avaxAssetID,
       to,
-      from,
+      fromSigner,
       change,
       NodeIDStringToBuffer(nodeID),
       startTime,
       endTime,
       stakeAmount,
+      avaxAssetID,
       rewardLocktime,
       rewardThreshold,
       rewards,
       delegationFee,
-      new BN(0),
+      ZeroBN,
       avaxAssetID,
       memo,
-      asOf
+      asOf,
+      toThreshold,
+      changeThreshold
     )
 
     if (!(await this.checkGooseEgg(builtUnsignedTx))) {
@@ -1729,30 +2110,32 @@ export class PlatformVMAPI extends JRPCAPI {
    * @param subnetOwnerThreshold A number indicating the amount of signatures required to add validators to a subnet
    * @param memo Optional contains arbitrary bytes, up to 256 bytes
    * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
    *
    * @returns An unsigned transaction created from the passed in parameters.
    */
   buildCreateSubnetTx = async (
     utxoset: UTXOSet,
-    fromAddresses: string[],
+    fromAddresses: FromType,
     changeAddresses: string[],
     subnetOwnerAddresses: string[],
     subnetOwnerThreshold: number,
     memo: PayloadBase | Buffer = undefined,
-    asOf: BN = UnixNow()
+    asOf: BN = ZeroBN,
+    changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
-    const from: Buffer[] = this._cleanAddressArray(
-      fromAddresses,
-      "buildCreateSubnetTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-    const change: Buffer[] = this._cleanAddressArray(
+    const caller = "buildCreateSubnetTx"
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
       changeAddresses,
-      "buildCreateSubnetTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-    const owners: Buffer[] = this._cleanAddressArray(
+      caller
+    )
+    const owners: Buffer[] = this._cleanAddressArrayBuffer(
       subnetOwnerAddresses,
-      "buildCreateSubnetTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
+      caller
+    )
 
     if (memo instanceof PayloadBase) {
       memo = memo.getPayload()
@@ -1762,17 +2145,21 @@ export class PlatformVMAPI extends JRPCAPI {
     const networkID: number = this.core.getNetworkID()
     const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
     const fee: BN = this.getCreateSubnetTxFee()
-    const builtUnsignedTx: UnsignedTx = utxoset.buildCreateSubnetTx(
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildCreateSubnetTx(
       networkID,
       blockchainID,
-      from,
+      fromSigner,
       change,
       owners,
       subnetOwnerThreshold,
       fee,
       avaxAssetID,
       memo,
-      asOf
+      asOf,
+      changeThreshold
     )
 
     if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
@@ -1810,17 +2197,18 @@ export class PlatformVMAPI extends JRPCAPI {
     fxIDs: string[] = undefined,
     genesisData: string | GenesisData = undefined,
     memo: PayloadBase | Buffer = undefined,
-    asOf: BN = UnixNow(),
-    subnetAuthCredentials: [number, Buffer][] = []
+    asOf: BN = ZeroBN,
+    subnetAuth: Auth = { addresses: [], threshold: 0, signer: [] },
+    changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
-    const from: Buffer[] = this._cleanAddressArray(
-      fromAddresses,
-      "buildCreateChainTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
-    const change: Buffer[] = this._cleanAddressArray(
+    const caller = "buildCreateChainTx"
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
       changeAddresses,
-      "buildCreateChainTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
+      caller
+    )
 
     if (memo instanceof PayloadBase) {
       memo = memo.getPayload()
@@ -1832,10 +2220,13 @@ export class PlatformVMAPI extends JRPCAPI {
     const networkID: number = this.core.getNetworkID()
     const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
     const fee: BN = this.getCreateChainTxFee()
-    const builtUnsignedTx: UnsignedTx = utxoset.buildCreateChainTx(
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildCreateChainTx(
       networkID,
       blockchainID,
-      from,
+      fromSigner,
       change,
       subnetID,
       chainName,
@@ -1846,7 +2237,688 @@ export class PlatformVMAPI extends JRPCAPI {
       avaxAssetID,
       memo,
       asOf,
-      subnetAuthCredentials
+      subnetAuth,
+      changeThreshold
+    )
+
+    if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
+      /* istanbul ignore next */
+      throw new GooseEggCheckError("Failed Goose Egg Check")
+    }
+
+    return builtUnsignedTx
+  }
+
+  /**
+   * Helper function which creates an unsigned [[CaminoAddValidatorTx]]. For more granular control, you may create your own
+   * [[UnsignedTx]] manually and import the [[CaminoAddValidatorTx]] class directly.
+   *
+   * @param utxoset A set of UTXOs that the transaction is built on
+   * @param toAddresses An array of addresses as {@link https://github.com/feross/buffer|Buffer} who received the staked tokens at the end of the staking period
+   * @param fromAddresses An array of addresses as {@link https://github.com/feross/buffer|Buffer} who own the staking UTXOs the fees in AVAX
+   * @param changeAddresses An array of addresses as {@link https://github.com/feross/buffer|Buffer} who gets the change leftover from the fee payment
+   * @param nodeID The node ID of the validator being added.
+   * @param nodeOwner The address and signature indices of the registered nodeId owner.
+   * @param startTime The Unix time when the validator starts validating the Primary Network.
+   * @param endTime The Unix time when the validator stops validating the Primary Network (and staked AVAX is returned).
+   * @param stakeAmount The amount being delegated as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param rewardAddresses The addresses which will recieve the rewards from the delegated stake.
+   * @param rewardLocktime Optional. The locktime field created in the resulting reward outputs
+   * @param rewardThreshold Opional. The number of signatures required to spend the funds in the resultant reward UTXO. Default 1.
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   *
+   * @returns An unsigned transaction created from the passed in parameters.
+   */
+  buildCaminoAddValidatorTx = async (
+    utxoset: UTXOSet,
+    toAddresses: string[],
+    fromAddresses: FromType,
+    changeAddresses: string[],
+    nodeID: string,
+    nodeOwner: NodeOwnerType,
+    startTime: BN,
+    endTime: BN,
+    stakeAmount: BN,
+    rewardAddresses: string[],
+    rewardLocktime: BN = ZeroBN,
+    rewardThreshold: number = 1,
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = ZeroBN,
+    toThreshold: number = 1,
+    changeThreshold: number = 1
+  ): Promise<UnsignedTx> => {
+    const caller = "buildCaminoAddValidatorTx"
+
+    const to: Buffer[] = this._cleanAddressArrayBuffer(toAddresses, caller)
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+    const rewards: Buffer[] = this._cleanAddressArrayBuffer(
+      rewardAddresses,
+      caller
+    )
+
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+
+    const minStake: BN = (await this.getMinStake())["minValidatorStake"]
+    if (stakeAmount.lt(minStake)) {
+      throw new StakeError(
+        `PlatformVMAPI.${caller} -- stake amount must be at least ` +
+          minStake.toString(10)
+      )
+    }
+
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+
+    const now: BN = UnixNow()
+    if (startTime.lt(now) || endTime.lte(startTime)) {
+      throw new TimeError(
+        `PlatformVMAPI.${caller} -- startTime must be in the future and endTime must come after startTime`
+      )
+    }
+
+    const auth: NodeOwner = {
+      address: this.parseAddress(nodeOwner.address),
+      auth: []
+    }
+    nodeOwner.auth.forEach((o) => {
+      auth.auth.push([o[0], this.parseAddress(o[1])])
+    })
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildCaminoAddValidatorTx(
+      this.core.getNetworkID(),
+      bintools.cb58Decode(this.blockchainID),
+      to,
+      fromSigner,
+      change,
+      NodeIDStringToBuffer(nodeID),
+      auth,
+      startTime,
+      endTime,
+      stakeAmount,
+      avaxAssetID,
+      rewards,
+      rewardLocktime,
+      rewardThreshold,
+      memo,
+      asOf,
+      toThreshold,
+      changeThreshold
+    )
+
+    if (!(await this.checkGooseEgg(builtUnsignedTx))) {
+      /* istanbul ignore next */
+      throw new GooseEggCheckError("Failed Goose Egg Check")
+    }
+
+    return builtUnsignedTx
+  }
+
+  /**
+   * Build an unsigned [[AddressStateTx]].
+   *
+   * @param version Optional. Transaction version number, default 0.
+   * @param utxoset A set of UTXOs that the transaction is built on
+   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+   * @param address The address to alter state.
+   * @param state The state to set or remove on the given address
+   * @param remove Optional. Flag if state should be applied or removed
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   *
+   * @returns An unsigned AddressStateTx created from the passed in parameters.
+   */
+  buildAddressStateTx = async (
+    version: number = DefaultTransactionVersionNumber,
+    utxoset: UTXOSet,
+    fromAddresses: FromType,
+    changeAddresses: string[],
+    address: string | Buffer,
+    state: number,
+    remove: boolean = false,
+    memo: Buffer = undefined,
+    asOf: BN = ZeroBN,
+    changeThreshold: number = 1,
+    executorAddress: string = undefined,
+    executorAuth: [number, string][] = []
+  ): Promise<UnsignedTx> => {
+    const caller = "buildAddressStateTx"
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+    const addressBuf =
+      typeof address === "string" ? this.parseAddress(address) : address
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+    const networkID: number = this.core.getNetworkID()
+    const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
+    const fee: BN = this.getTxFee()
+
+    var authAddress: Buffer
+    var auth: [number, Buffer][] = []
+
+    if (executorAddress) {
+      authAddress = this.parseAddress(executorAddress)
+      executorAuth.forEach((o) => {
+        auth.push([o[0], this.parseAddress(o[1])])
+      })
+    }
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildAddressStateTx(
+      version,
+      networkID,
+      blockchainID,
+      fromSigner,
+      change,
+      addressBuf,
+      state,
+      remove,
+      fee,
+      avaxAssetID,
+      memo,
+      asOf,
+      changeThreshold,
+      authAddress,
+      auth
+    )
+
+    if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
+      /* istanbul ignore next */
+      throw new GooseEggCheckError("Failed Goose Egg Check")
+    }
+
+    return builtUnsignedTx
+  }
+
+  /**
+   * Build an unsigned [[RegisterNodeTx]].
+   *
+   * @param utxoset A set of UTXOs that the transaction is built on
+   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs
+   * @param oldNodeID Optional. ID of the existing NodeID to replace or remove.
+   * @param newNodeID Optional. ID of the newNodID to register address.
+   * @param address The consortiumMemberAddress, single or multi-sig.
+   * @param addressAuths An array of index and address to verify ownership of address.
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   *
+   * @returns An unsigned transaction created from the passed in parameters.
+   */
+  buildRegisterNodeTx = async (
+    utxoset: UTXOSet,
+    fromAddresses: FromType,
+    changeAddresses: string[] = undefined,
+    oldNodeID: string | Buffer = undefined,
+    newNodeID: string | Buffer = undefined,
+    address: string | Buffer = undefined,
+    addressAuths: [number, string | Buffer][] = [],
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = ZeroBN,
+    changeThreshold: number = 1
+  ): Promise<UnsignedTx> => {
+    const caller = "buildRegisterNodeTx"
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+    const addrBuf =
+      typeof address === "string" ? this.parseAddress(address) : address
+
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+    const auth: [number, Buffer][] = []
+    addressAuths.forEach((c) => {
+      auth.push([
+        c[0],
+        typeof c[1] === "string" ? this.parseAddress(c[1]) : c[1]
+      ])
+    })
+
+    if (typeof oldNodeID === "string") {
+      oldNodeID = NodeIDStringToBuffer(oldNodeID)
+    }
+
+    if (typeof newNodeID === "string") {
+      newNodeID = NodeIDStringToBuffer(newNodeID)
+    }
+
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+    const networkID: number = this.core.getNetworkID()
+    const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
+    const fee: BN = this.getTxFee()
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildRegisterNodeTx(
+      networkID,
+      blockchainID,
+      fromSigner,
+      change,
+      oldNodeID,
+      newNodeID,
+      addrBuf,
+      auth,
+      fee,
+      avaxAssetID,
+      memo,
+      asOf,
+      changeThreshold
+    )
+
+    if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
+      /* istanbul ignore next */
+      throw new GooseEggCheckError("Failed Goose Egg Check")
+    }
+
+    return builtUnsignedTx
+  }
+
+  /**
+   * Build an unsigned [[DepositTx]].
+   *
+   * @param version Optional. Transaction version number, default 0.
+   * @param utxoset A set of UTXOs that the transaction is built on
+   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+   * @param depositOfferID ID of the deposit offer.
+   * @param depositDuration Duration of the deposit
+   * @param rewardsOwner Optional The owners of the reward. If omitted, all inputs must have the same owner
+   * @param depositCreatorAddress Address that is authorized to create deposit with given offer. Could be empty, if offer owner is empty.
+   * @param depositCreatorAuth Auth for deposit creator address
+   * @param depositOfferOwnerSigs Signatures which recover to depositOfferOwner address(es)
+   * @param depositOfferOwnerAuth Auth for deposit offer owner
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   *
+   * @returns An unsigned transaction created from the passed in parameters.
+   */
+  buildDepositTx = async (
+    version: number = DefaultTransactionVersionNumber,
+    utxoset: UTXOSet,
+    fromAddresses: FromType,
+    changeAddresses: string[] = undefined,
+    depositOfferID: string | Buffer,
+    depositDuration: number,
+    rewardsOwner: OutputOwners = undefined,
+    depositCreatorAddress: string | Buffer = undefined,
+    depositCreatorAuth: [number, string | Buffer][] = [],
+    depositOfferOwnerSigs: Buffer[] = [],
+    depositOfferOwnerAuth: [number, string | Buffer][] = [],
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = ZeroBN,
+    amountToLock: BN,
+    changeThreshold: number = 1,
+    to: Buffer[] = [],
+    toThreshold: number = 0
+  ): Promise<UnsignedTx> => {
+    const caller = "buildDepositTx"
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+    const networkID: number = this.core.getNetworkID()
+    const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
+    const fee: BN = this.getTxFee()
+
+    if (typeof depositOfferID === "string")
+      depositOfferID = bintools.cb58Decode(depositOfferID)
+
+    const dc_auth: [number, Buffer][] = []
+    depositCreatorAuth.forEach((c) => {
+      dc_auth.push([
+        c[0],
+        typeof c[1] === "string" ? this.parseAddress(c[1]) : c[1]
+      ])
+    })
+
+    if (depositOfferOwnerAuth.length !== depositOfferOwnerSigs.length) {
+      throw new Error("OwnerAuth length must mathch OwnerSigs length")
+    }
+
+    const o_auth: [number, Buffer][] = []
+    depositOfferOwnerAuth.forEach((c) => {
+      o_auth.push([
+        c[0],
+        typeof c[1] === "string" ? this.parseAddress(c[1]) : c[1]
+      ])
+    })
+
+    if (typeof depositCreatorAddress === "string")
+      depositCreatorAddress = this.parseAddress(depositCreatorAddress)
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildDepositTx(
+      version,
+      networkID,
+      blockchainID,
+      fromSigner,
+      change,
+      depositOfferID,
+      depositDuration,
+      rewardsOwner,
+      depositCreatorAddress,
+      dc_auth,
+      depositOfferOwnerSigs,
+      o_auth,
+      fee,
+      avaxAssetID,
+      memo,
+      asOf,
+      amountToLock,
+      changeThreshold,
+      to,
+      toThreshold
+    )
+
+    if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
+      /* istanbul ignore next */
+      throw new GooseEggCheckError("Failed Goose Egg Check")
+    }
+
+    return builtUnsignedTx
+  }
+
+  /**
+   * Build an unsigned [[UnlockDepositTx]].
+   *
+   * @param utxoset A set of UTXOs that the transaction is built on
+   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   *
+   * @returns An unsigned transaction created from the passed in parameters.
+   */
+  buildUnlockDepositTx = async (
+    utxoset: UTXOSet,
+    fromAddresses: string[],
+    changeAddresses: string[] = undefined,
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = ZeroBN,
+    amountToLock: BN,
+    changeThreshold: number = 1
+  ): Promise<UnsignedTx> => {
+    const caller = "buildUnlockDepositTx"
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+    const networkID: number = this.core.getNetworkID()
+    const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
+    const fee: BN = this.getTxFee()
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildUnlockDepositTx(
+      networkID,
+      blockchainID,
+      fromSigner,
+      change,
+      fee,
+      avaxAssetID,
+      memo,
+      asOf,
+      changeThreshold
+    )
+
+    if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
+      /* istanbul ignore next */
+      throw new GooseEggCheckError("Failed Goose Egg Check")
+    }
+
+    return builtUnsignedTx
+  }
+
+  /**
+   * Build an unsigned [[ClaimTx]].
+   *
+   * @param utxoset A set of UTXOs that the transaction is built on
+   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   * @param claimAmounts The specification and authentication what and how much to claim
+   * @param claimTo The address to claimed rewards will be directed to
+   *
+   * @returns An unsigned transaction created from the passed in parameters.
+   */
+  buildClaimTx = async (
+    utxoset: UTXOSet,
+    fromAddresses: FromType,
+    changeAddresses: string[] = undefined,
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = ZeroBN,
+    changeThreshold: number = 1,
+    claimAmounts: ClaimAmountParams[],
+    claimTo: OutputOwners = undefined
+  ): Promise<UnsignedTx> => {
+    const caller = "buildClaimTx"
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+    if (claimAmounts.length === 0) {
+      throw new Error("Must provide at least one claimAmount")
+    }
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+    const networkID: number = this.core.getNetworkID()
+    const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
+    const fee: BN = this.getTxFee()
+
+    const unsignedClaimTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildClaimTx(
+      networkID,
+      blockchainID,
+      fromSigner,
+      change,
+      fee,
+      avaxAssetID,
+      memo,
+      asOf,
+      changeThreshold,
+      claimAmounts,
+      claimTo
+    )
+
+    if (!(await this.checkGooseEgg(unsignedClaimTx, this.getCreationTxFee()))) {
+      /* istanbul ignore next */
+      throw new GooseEggCheckError("Failed Goose Egg Check")
+    }
+
+    return unsignedClaimTx
+  }
+
+  /**
+   * Build an unsigned [[MultisigAliasTx]].
+   *
+   * @param utxoset A set of UTXOs that the transaction is built on
+   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+   * @param multisigAliasParams An object containing the parameters for the multisigAliasTx
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   *
+   * @returns An unsigned transaction created from the passed in parameters.
+   */
+  buildMultisigAliasTx = async (
+    utxoset: UTXOSet,
+    fromAddresses: FromType,
+    changeAddresses: string[],
+    multisigAliasParams: MultisigAliasParams,
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = ZeroBN,
+    changeThreshold: number = 1
+  ): Promise<UnsignedTx> => {
+    const caller = "buildMultisigAliasTx"
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+    const networkID: number = this.core.getNetworkID()
+    const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
+    const fee: BN = this.getTxFee()
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildMultisigAliasTx(
+      networkID,
+      blockchainID,
+      fromSigner,
+      change,
+      multisigAliasParams,
+      fee,
+      avaxAssetID,
+      memo,
+      asOf,
+      changeThreshold
+    )
+
+    if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
+      /* istanbul ignore next */
+      throw new GooseEggCheckError("Failed Goose Egg Check")
+    }
+
+    return builtUnsignedTx
+  }
+
+  buildAddDepositOfferTx = async (
+    utxoset: UTXOSet,
+    fromAddresses: FromType,
+    changeAddresses: string[],
+    depositOffer: DepositOffer,
+    depositOfferCreatorAddress: string,
+    depositOfferCreatorAuth: [number, string | Buffer][] = [],
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = ZeroBN,
+    changeThreshold: number = 1
+  ): Promise<UnsignedTx> => {
+    const caller = "buildAddDepositOfferTx"
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+    const networkID: number = this.core.getNetworkID()
+    const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
+    const fee: BN = this.getTxFee()
+
+    const auth: [number, Buffer][] = []
+    depositOfferCreatorAuth.forEach((c) => {
+      auth.push([
+        c[0],
+        typeof c[1] === "string" ? this.parseAddress(c[1]) : c[1]
+      ])
+    })
+
+    let ownerAddress: Buffer
+    if (depositOffer.ownerAddress) {
+      ownerAddress = this.parseAddress(depositOffer.ownerAddress)
+    }
+
+    const offer: Offer = new Offer(
+      depositOffer.upgradeVersion,
+      depositOffer.interestRateNominator,
+      depositOffer.start,
+      depositOffer.end,
+      depositOffer.minAmount,
+      depositOffer.totalMaxAmount,
+      depositOffer.depositedAmount,
+      depositOffer.minDuration,
+      depositOffer.maxDuration,
+      depositOffer.unlockPeriodDuration,
+      depositOffer.noRewardsPeriodDuration,
+      Buffer.from(depositOffer.memo, "utf-8"),
+      depositOffer.flags,
+      depositOffer.totalMaxRewardAmount,
+      depositOffer.rewardedAmount,
+      ownerAddress
+    )
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildAddDepositOfferTx(
+      networkID,
+      blockchainID,
+      fromSigner,
+      change,
+      offer,
+      this.parseAddress(depositOfferCreatorAddress),
+      auth,
+      fee,
+      avaxAssetID,
+      memo,
+      asOf,
+      changeThreshold
     )
 
     if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
@@ -1876,7 +2948,7 @@ export class PlatformVMAPI extends JRPCAPI {
             "undefined"
           ) {
             /* istanbul ignore next */
-            throw new AddressError("Error - Invalid address format")
+            throw new AddressError(`Error - Invalid address format (${caller})`)
           }
           addrs.push(addresses[`${i}`] as string)
         } else {
@@ -1893,6 +2965,38 @@ export class PlatformVMAPI extends JRPCAPI {
       }
     }
     return addrs
+  }
+
+  protected _cleanAddressArrayBuffer(
+    addresses: string[] | Buffer[],
+    caller: string
+  ): Buffer[] {
+    return this._cleanAddressArray(addresses, caller).map(
+      (a: string): Buffer => {
+        return typeof a === "undefined"
+          ? undefined
+          : bintools.stringToAddress(a)
+      }
+    )
+  }
+
+  protected _parseFromSigner(from: FromType, caller: string): FromSigner {
+    if (from.length > 0) {
+      if (typeof from[0] === "string")
+        return {
+          from: this._cleanAddressArrayBuffer(from as string[], caller),
+          signer: []
+        }
+      else
+        return {
+          from: this._cleanAddressArrayBuffer(from[0] as string[], caller),
+          signer:
+            from.length > 1
+              ? this._cleanAddressArrayBuffer(from[1] as string[], caller)
+              : []
+        }
+    }
+    return { from: [], signer: [] }
   }
 
   /**
@@ -1962,7 +3066,83 @@ export class PlatformVMAPI extends JRPCAPI {
       minDelegatorStake: new BN(r.minDelegatorStake),
       minConsumptionRate: parseInt(r.minConsumptionRate) / rewardPercentDenom,
       maxConsumptionRate: parseInt(r.maxConsumptionRate) / rewardPercentDenom,
-      supplyCap: new BN(r.supplyCap)
+      supplyCap: new BN(r.supplyCap),
+      verifyNodeSignature: r.verifyNodeSignature ?? false,
+      lockModeBondDeposit: r.lockModeBondDeposit ?? false
+    } as GetConfigurationResponse
+  }
+
+  /**
+   * Get blockchains configuration (genesis)
+   *
+   * @returns Promise for an GetConfigurationResponse
+   */
+  spend = async (
+    from: string[] | string,
+    signer: string[] | string,
+    to: string[],
+    toThreshold: number,
+    toLockTime: BN,
+    change: string[],
+    changeThreshold: number,
+    lockMode: LockMode,
+    amountToLock: BN,
+    amountToBurn: BN,
+    asOf: BN,
+    encoding?: string
+  ): Promise<SpendReply> => {
+    if (!["Unlocked", "Deposit", "Bond"].includes(lockMode)) {
+      throw new ProtocolError("Error -- PlatformAPI.spend: invalid lockMode")
     }
+    const params: SpendParams = {
+      from,
+      signer,
+      to:
+        to.length > 0
+          ? {
+              locktime: toLockTime.toString(10),
+              threshold: toThreshold,
+              addresses: to
+            }
+          : undefined,
+      change:
+        change.length > 0
+          ? { locktime: "0", threshold: changeThreshold, addresses: change }
+          : undefined,
+      lockMode: lockMode === "Unlocked" ? 0 : lockMode === "Deposit" ? 1 : 2,
+      amountToLock: amountToLock.toString(10),
+      amountToBurn: amountToBurn.toString(10),
+      asOf: asOf.toString(10),
+      encoding: encoding ?? "hex"
+    }
+
+    const response: RequestResponseData = await this.callMethod(
+      "platform.spend",
+      params
+    )
+    const r = response.data.result
+
+    // We need to update signature index source here
+    const ins = TransferableInput.fromArray(Buffer.from(r.ins.slice(2), "hex"))
+    ins.forEach((e, idx) =>
+      e.getSigIdxs().forEach((s, sidx) => {
+        s.setSource(bintools.cb58Decode(r.signers[`${idx}`][`${sidx}`]))
+      })
+    )
+
+    return {
+      ins,
+      out: TransferableOutput.fromArray(Buffer.from(r.outs.slice(2), "hex")),
+      owners: r.owners
+        ? OutputOwners.fromArray(Buffer.from(r.owners.slice(2), "hex"))
+        : []
+    }
+  }
+
+  _getBuilder = (utxoSet: UTXOSet): Builder => {
+    if (this.core.getNetwork().P.lockModeBondDeposit) {
+      return new Builder(new Spender(this), true)
+    }
+    return new Builder(utxoSet, false)
   }
 }

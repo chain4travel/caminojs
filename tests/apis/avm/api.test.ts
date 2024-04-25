@@ -96,8 +96,7 @@ describe("AVMAPI", (): void => {
     protocol,
     networkID,
     undefined,
-    undefined,
-    true
+    undefined
   )
   let api: AVMAPI
   let alias: string
@@ -379,17 +378,6 @@ describe("AVMAPI", (): void => {
     }
     const responseObj: HttpResponse = {
       data: payload
-    }
-
-    const expectedRequestPayload = {
-      id: 9,
-      method: "avm.getBalance",
-      params: {
-        address: addrA,
-        assetID: "ATH",
-        includePartial: true
-      },
-      jsonrpc: "2.0"
     }
 
     mockAxios.mockResponse(responseObj)
@@ -1490,7 +1478,7 @@ describe("AVMAPI", (): void => {
     })
 
     test("buildCreateAssetTx - Variable Cap", async (): Promise<void> => {
-      avm.setCreationTxFee(new BN(avalanche.getNetwork().P["creationTxFee"]))
+      avm.setCreationTxFee(new BN(avalanche.getNetwork().P.createAssetTxFee))
       const mintOutputs: SECPMintOutput[] = [secpMintOut1, secpMintOut2]
       const txu1: UnsignedTx = await avm.buildCreateAssetTx(
         set,

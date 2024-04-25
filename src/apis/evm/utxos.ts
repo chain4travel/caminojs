@@ -14,7 +14,7 @@ import {
 } from "./outputs"
 import { EVMConstants } from "./constants"
 import { EVMInput, SECPTransferInput, TransferableInput } from "./inputs"
-import { Output } from "../../common/output"
+import { Output, OutputOwners } from "../../common/output"
 import { UnixNow } from "../../utils/helperfunctions"
 import { StandardUTXO, StandardUTXOSet } from "../../common/utxos"
 import { DefaultPlatformChainID } from "../../utils/constants"
@@ -130,7 +130,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
 
   deserialize(fields: object, encoding: SerializedEncoding = "hex"): void {
     super.deserialize(fields, encoding)
-    const utxos: {} = {}
+    let utxos: { [key: string]: UTXO } = {}
     for (let utxoid in fields["utxos"]) {
       let utxoidCleaned: string = serializer.decoder(
         utxoid,
@@ -144,7 +144,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
         encoding
       )
     }
-    let addressUTXOs: {} = {}
+    let addressUTXOs: { [key: string]: { [key: string]: BN } } = {}
     for (let address in fields["addressUTXOs"]) {
       let addressCleaned: string = serializer.decoder(
         address,
@@ -152,7 +152,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
         "cb58",
         "hex"
       )
-      let utxobalance: {} = {}
+      let utxobalance: { [key: string]: BN } = {}
       for (let utxoid in fields["addressUTXOs"][`${address}`]) {
         let utxoidCleaned: string = serializer.decoder(
           utxoid,
@@ -339,6 +339,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
     let ins: TransferableInput[] = []
     let outs: EVMOutput[] = []
     let feepaid: BN = new BN(0)
+    let owners: OutputOwners[] = []
 
     if (typeof fee === "undefined") {
       fee = zero.clone()
@@ -378,6 +379,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
       )
       const from: Buffer[] = output.getAddresses()
       const spenders: Buffer[] = output.getSpenders(from)
+
       spenders.forEach((spender: Buffer): void => {
         const idx: number = output.getAddressIdx(spender)
         if (idx === -1) {
@@ -389,6 +391,13 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
         xferin.getInput().addSignatureIdx(idx, spender)
       })
       ins.push(xferin)
+      owners.push(
+        new OutputOwners(
+          output.getAddresses(),
+          output.getLocktime(),
+          output.getThreshold()
+        )
+      )
 
       if (map.has(assetID)) {
         infeeamount = infeeamount.add(new BN(map.get(assetID)))
@@ -418,6 +427,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
       outs,
       fee
     )
+    importTx.setOutputOwners(owners)
     return new UnsignedTx(importTx)
   }
 
@@ -436,7 +446,8 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
    * @param feeAssetID Optional. The assetID of the fees being burned.
    * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
    * @param locktime Optional. The locktime field created in the resulting outputs
-   * @param threshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param changethreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
    * @returns An unsigned transaction created from the passed in parameters.
    *
    */
@@ -453,7 +464,8 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
     feeAssetID: Buffer = undefined,
     asOf: BN = UnixNow(),
     locktime: BN = new BN(0),
-    threshold: number = 1
+    toThreshold: number = 1,
+    changeThreshold: number = 1
   ): UnsignedTx => {
     let ins: EVMInput[] = []
     let exportouts: TransferableOutput[] = []
@@ -483,8 +495,10 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
 
     const aad: AssetAmountDestination = new AssetAmountDestination(
       toAddresses,
+      toThreshold,
       fromAddresses,
-      changeAddresses
+      changeAddresses,
+      changeThreshold
     )
     if (avaxAssetID.toString("hex") === feeAssetID.toString("hex")) {
       aad.addAssetAmount(avaxAssetID, amount, fee)
@@ -494,12 +508,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
         aad.addAssetAmount(feeAssetID, zero, fee)
       }
     }
-    const success: Error = this.getMinimumSpendable(
-      aad,
-      asOf,
-      locktime,
-      threshold
-    )
+    const success: Error = this.getMinimumSpendable(aad, asOf, locktime)
     if (typeof success === "undefined") {
       exportouts = aad.getOutputs()
     } else {

@@ -1,52 +1,56 @@
-import { Avalanche, BN, Buffer } from "@c4tplatform/caminojs/dist"
+import { Avalanche, BN, Buffer } from "caminojs/index"
 import {
   PlatformVMAPI,
   KeyChain,
   UTXOSet,
   UnsignedTx,
   Tx
-} from "@c4tplatform/caminojs/dist/apis/platformvm"
-import { GetUTXOsResponse } from "@c4tplatform/caminojs/dist/apis/platformvm/interfaces"
-import {
-  PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey,
-  UnixNow
-} from "@c4tplatform/caminojs/dist/utils"
+} from "caminojs/apis/platformvm"
+import { GetUTXOsResponse } from "caminojs/apis/platformvm/interfaces"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
+import { ExamplesConfig } from "../common/examplesConfig"
 
-const ip: string = "localhost"
-const port: number = 9650
-const protocol: string = "http"
-const networkID: number = 12345
-const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID)
-const pchain: PlatformVMAPI = avalanche.PChain()
-// Keychain with 4 keys-A, B, C, and D
-const pKeychain: KeyChain = pchain.keyChain()
-// Keypair A
+const config: ExamplesConfig = require("../common/examplesConfig.json")
+const avalanche: Avalanche = new Avalanche(
+  config.host,
+  config.port,
+  config.protocol,
+  config.networkID
+)
+
 let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
-// P-local18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p
-pKeychain.importKey(privKey)
-
-// Keypair B
-privKey = "PrivateKey-R6e8f5QSa89DjpvL9asNdhdJ4u8VqzMJStPV8VVdDmLgPd8a4"
-// P-local15s7p7mkdev0uajrd0pzxh88kr8ryccztnlmzvj
-pKeychain.importKey(privKey)
-
-// Keypair C
-privKey = "PrivateKey-24gdABgapjnsJfnYkfev6YPyQhTaCU72T9bavtDNTYivBLp2eW"
-// P-local1u6eth2fg33ye63mnyu5jswtj326jaypvhyar45
-pKeychain.importKey(privKey)
-
-// Keypair D
-privKey = "PrivateKey-2uWuEQbY5t7NPzgqzDrXSgGPhi3uyKj2FeAvPUHYo6CmENHJfn"
-// P-local1t3qjau2pf3ys83yallqt4y5xc3l6ya5f7wr6aq
-pKeychain.importKey(privKey)
-const pAddressStrings: string[] = pchain.keyChain().getAddressStrings()
 const nodeID: string = "NodeID-NFBbbJ4qCmNaCzeW7sxErhvWqvEQMnYcN"
 const startTime: BN = new BN(1652217329)
 const endTime: BN = new BN(1653511017)
-const asOf: BN = UnixNow()
+const asOf: BN = new BN(0)
+
+let pchain: PlatformVMAPI
+let pKeychain: KeyChain
+let pAddressStrings: string[]
+
+const InitAvalanche = async () => {
+  await avalanche.fetchNetworkSettings()
+  pchain = avalanche.PChain()
+  pKeychain = pchain.keyChain()
+  pKeychain.importKey(privKey)
+  // P-local15s7p7mkdev0uajrd0pzxh88kr8ryccztnlmzvj
+  pKeychain.importKey(
+    "PrivateKey-R6e8f5QSa89DjpvL9asNdhdJ4u8VqzMJStPV8VVdDmLgPd8a4"
+  )
+  // P-local1u6eth2fg33ye63mnyu5jswtj326jaypvhyar45
+  pKeychain.importKey(
+    "PrivateKey-24gdABgapjnsJfnYkfev6YPyQhTaCU72T9bavtDNTYivBLp2eW"
+  )
+  // P-local1t3qjau2pf3ys83yallqt4y5xc3l6ya5f7wr6aq
+  pKeychain.importKey(
+    "PrivateKey-2uWuEQbY5t7NPzgqzDrXSgGPhi3uyKj2FeAvPUHYo6CmENHJfn"
+  )
+  pAddressStrings = pchain.keyChain().getAddressStrings()
+}
 
 const main = async (): Promise<any> => {
+  await InitAvalanche()
+
   const platformVMUTXOResponse: GetUTXOsResponse = await pchain.getUTXOs(
     pAddressStrings
   )
@@ -73,7 +77,11 @@ const main = async (): Promise<any> => {
     subnetID,
     memo,
     asOf,
-    subnetAuthCredentials
+    {
+      addresses: [pAddresses[3], pAddresses[1]],
+      threshold: 2,
+      signer: subnetAuthCredentials
+    }
   )
   const tx: Tx = unsignedTx.sign(pKeychain)
   const txid: string = await pchain.issueTx(tx)

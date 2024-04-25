@@ -6,6 +6,7 @@
 import BN from "bn.js"
 
 export const DefaultNetworkID = 1
+export const DefaultTransactionVersionNumber: number = 0
 
 export const PrivateKeyPrefix: string = "PrivateKey-"
 export const NodeIDPrefix: string = "NodeID-"
@@ -27,7 +28,6 @@ export const TestXBlockchainID =
 export const TestCBlockchainID =
   "2CA6j5zYzasynPsFeNoqWkmTCt3VScMvXUZHbfDJ8k3oGzAPtU"
 export const TestCChainID = 42112
-
 export const DummyBlockchainID =
   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 export const DummyPlatformChainID: string =
@@ -37,6 +37,8 @@ export const DummyPlatformChainID: string =
 // This address/account is for testing on the local camsh network
 export const DefaultLocalGenesisPrivateKey: string =
   "ewoqjP7PxY4yr3iLTpLisriqt94hdyDFNgchSxGGztUrTXtNN"
+export const DefaultLocalGenesisPrivateKey2: string =
+  "vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"
 export const DefaultEVMLocalGenesisPrivateKey: string =
   "0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
 export const DefaultEVMLocalGenesisAddress: string =

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./typings/",
+    "outDir": "./dist/",
     "baseUrl": ".",
     "module": "commonjs",
     "target": "ES2015",
@@ -14,9 +14,13 @@
     "noFallthroughCasesInSwitch": true,
     "strictFunctionTypes": true,
     "esModuleInterop": true,
-    "typeRoots": ["./typings/**", "./node_modules/@types"]
+    "typeRoots": ["./typings/**", "./node_modules/@types"],
+    "paths": {
+      "caminojs/*": ["./src/*"]
+    }
   },
-  "exclude": ["node_modules", "examples", "typings"],
+  "exclude": ["node_modules", "*/**/*.test.ts", "e2e_tests"],
+  "include": ["src/"],
   "typeAcquisition": {
     "enable": true,
     "exclude": ["bn.js"]

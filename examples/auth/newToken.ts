@@ -3,15 +3,18 @@
 // root of the `examples/` directory.
 // Unlike "secrets.example", "secrets.json" should never be committed to git.
 import { readFile } from "fs"
-import { Avalanche } from "@c4tplatform/caminojs/dist"
-import { AuthAPI } from "@c4tplatform/caminojs/dist/apis/auth"
-import { ErrorResponseObject } from "@c4tplatform/caminojs/dist/utils"
+import { Avalanche } from "caminojs/index"
+import { AuthAPI } from "caminojs/apis/auth"
+import { ErrorResponseObject } from "caminojs/utils"
+import { ExamplesConfig } from "../common/examplesConfig"
 
-const ip: string = "localhost"
-const port: number = 9650
-const protocol: string = "http"
-const networkID: number = 12345
-const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID)
+const config: ExamplesConfig = require("../common/examplesConfig.json")
+const avalanche: Avalanche = new Avalanche(
+  config.host,
+  config.port,
+  config.protocol,
+  config.networkID
+)
 const auth: AuthAPI = avalanche.Auth()
 
 const main = async (): Promise<any> => {

@@ -1,37 +1,34 @@
-import { Avalanche, BN, Buffer } from "@c4tplatform/caminojs/dist"
-import {
-  AVMAPI,
-  KeyChain,
-  UTXOSet,
-  UnsignedTx,
-  Tx
-} from "@c4tplatform/caminojs/dist/apis/avm"
+import { Avalanche, BN, Buffer } from "caminojs/index"
+import { AVMAPI, KeyChain, UTXOSet, UnsignedTx, Tx } from "caminojs/apis/avm"
 import {
   GetBalanceResponse,
   GetUTXOsResponse
-} from "@c4tplatform/caminojs/dist/apis/avm/interfaces"
+} from "caminojs/apis/avm/interfaces"
 import {
   PrivateKeyPrefix,
   DefaultLocalGenesisPrivateKey,
   UnixNow
-} from "@c4tplatform/caminojs/dist/utils"
+} from "caminojs/utils"
+import { ExamplesConfig } from "../common/examplesConfig"
 
-const ip: string = "localhost"
-const port: number = 9650
-const protocol: string = "http"
-const networkID: number = 12345
-const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID)
+const config: ExamplesConfig = require("../common/examplesConfig.json")
+const avalanche: Avalanche = new Avalanche(
+  config.host,
+  config.port,
+  config.protocol,
+  config.networkID
+)
 const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const asOf: BN = UnixNow()
 const threshold: number = 1
 const locktime: BN = new BN(0)
 const memo: Buffer = Buffer.from("AVM utility method buildBaseTx to send AVAX")
 
-var xchain: AVMAPI
-var xKeychain: KeyChain
-var xAddressStrings: string[]
-var avaxAssetID: string
-var fee: BN
+let xchain: AVMAPI
+let xKeychain: KeyChain
+let xAddressStrings: string[]
+let avaxAssetID: string
+let fee: BN
 
 const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()

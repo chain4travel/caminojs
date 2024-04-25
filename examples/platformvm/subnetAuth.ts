@@ -1,11 +1,12 @@
-import { Buffer } from "@c4tplatform/caminojs/dist"
-import { SubnetAuth } from "@c4tplatform/caminojs/dist/apis/platformvm"
+import { Buffer } from "caminojs/index"
+import { SubnetAuth } from "caminojs/apis/platformvm"
 
 const address1: Buffer = Buffer.alloc(4)
 const address2: Buffer = Buffer.alloc(4)
 address2.writeUIntBE(0x01, 0, 4)
-const addresses: Buffer[] = [address1, address2]
-const subnetAuth: SubnetAuth = new SubnetAuth(addresses)
+const subnetAuth: SubnetAuth = new SubnetAuth()
+subnetAuth.addAddressIndex(address1)
+subnetAuth.addAddressIndex(address2)
 
 const main = async (): Promise<any> => {
   console.log(subnetAuth)

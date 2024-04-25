@@ -6,17 +6,33 @@ import { Buffer } from "buffer/"
 import BinTools from "../../utils/bintools"
 import { PlatformVMConstants } from "./constants"
 import { SelectCredentialClass } from "./credentials"
-import { KeyChain, KeyPair } from "./keychain"
-import { StandardTx, StandardUnsignedTx } from "../../common/tx"
+import {
+  MultisigKeyChain,
+  SignerKeyChain,
+  SignerKeyPair,
+  StandardTx,
+  StandardUnsignedTx
+} from "../../common"
 import { Credential } from "../../common/credentials"
 import createHash from "create-hash"
 import { BaseTx } from "./basetx"
 import { ImportTx } from "./importtx"
 import { ExportTx } from "./exporttx"
 import { SerializedEncoding } from "../../utils/serialization"
-import { AddDelegatorTx, AddValidatorTx } from "./validationtx"
+import {
+  AddDelegatorTx,
+  AddValidatorTx,
+  CaminoAddValidatorTx
+} from "./validationtx"
 import { CreateSubnetTx } from "./createsubnettx"
 import { TransactionError } from "../../utils/errors"
+import { AddSubnetValidatorTx } from "./addsubnetvalidatortx"
+import { RegisterNodeTx } from "./registernodetx"
+import { DepositTx } from "./depositTx"
+import { AddressStateTx } from "./addressstatetx"
+import { ClaimTx } from "./claimtx"
+import { MultisigAliasTx } from "./multisigaliastx"
+import { AddDepositOfferTx } from "./adddepositoffertx"
 
 /**
  * @ignore
@@ -41,14 +57,34 @@ export const SelectTxClass = (txtype: number, ...args: any[]): BaseTx => {
     return new AddDelegatorTx(...args)
   } else if (txtype === PlatformVMConstants.ADDVALIDATORTX) {
     return new AddValidatorTx(...args)
+  } else if (txtype === PlatformVMConstants.CAMINOADDVALIDATORTX) {
+    return new CaminoAddValidatorTx(...args)
   } else if (txtype === PlatformVMConstants.CREATESUBNETTX) {
     return new CreateSubnetTx(...args)
+  } else if (txtype === PlatformVMConstants.ADDSUBNETVALIDATORTX) {
+    return new AddSubnetValidatorTx(...args)
+  } else if (txtype === PlatformVMConstants.REGISTERNODETX) {
+    return new RegisterNodeTx(...args)
+  } else if (txtype === PlatformVMConstants.DEPOSITTX) {
+    return new DepositTx(...args)
+  } else if (txtype === PlatformVMConstants.ADDRESSSTATETX) {
+    return new AddressStateTx(...args)
+  } else if (txtype === PlatformVMConstants.CLAIMTX) {
+    return new ClaimTx(...args)
+  } else if (txtype === PlatformVMConstants.MULTISIGALIASTX) {
+    return new MultisigAliasTx(...args)
+  } else if (txtype === PlatformVMConstants.ADDDEPOSITOFFERTX) {
+    return new AddDepositOfferTx(...args)
   }
   /* istanbul ignore next */
   throw new TransactionError("Error - SelectTxClass: unknown txtype")
 }
 
-export class UnsignedTx extends StandardUnsignedTx<KeyPair, KeyChain, BaseTx> {
+export class UnsignedTx extends StandardUnsignedTx<
+  SignerKeyPair,
+  SignerKeyChain,
+  BaseTx
+> {
   protected _typeName = "UnsignedTx"
   protected _typeID = undefined
 
@@ -82,17 +118,21 @@ export class UnsignedTx extends StandardUnsignedTx<KeyPair, KeyChain, BaseTx> {
    *
    * @returns A signed [[StandardTx]]
    */
-  sign(kc: KeyChain): Tx {
+  sign(kc: SignerKeyChain): Tx {
     const txbuff = this.toBuffer()
     const msg: Buffer = Buffer.from(
       createHash("sha256").update(txbuff).digest()
     )
-    const creds: Credential[] = this.transaction.sign(msg, kc)
+
+    const creds: Credential[] =
+      kc instanceof MultisigKeyChain
+        ? kc.getCredentials()
+        : this.transaction.sign(msg, kc)
     return new Tx(this, creds)
   }
 }
 
-export class Tx extends StandardTx<KeyPair, KeyChain, UnsignedTx> {
+export class Tx extends StandardTx<SignerKeyPair, SignerKeyChain, UnsignedTx> {
   protected _typeName = "Tx"
   protected _typeID = undefined
 

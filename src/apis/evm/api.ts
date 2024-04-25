@@ -387,7 +387,7 @@ export class EVMAPI extends JRPCAPI {
     if (data.length > 0 && data[0].substring(0, 2) === "0x") {
       const cb58Strs: string[] = []
       data.forEach((str: string): void => {
-        cb58Strs.push(bintools.cb58Encode(new Buffer(str.slice(2), "hex")))
+        cb58Strs.push(bintools.cb58Encode(Buffer.from(str.slice(2), "hex")))
       })
 
       utxos.addArray(cb58Strs, false)
@@ -573,17 +573,12 @@ export class EVMAPI extends JRPCAPI {
    * This helper exists because the endpoint API should be the primary point of entry for most functionality.
    */
   buildImportTx = async (
-    utxoset: UTXOSet,
+    utxoset: UTXOSet | undefined,
     toAddress: string,
     ownerAddresses: string[],
     sourceChain: Buffer | string,
-    fromAddresses: string[],
     fee: BN = new BN(0)
   ): Promise<UnsignedTx> => {
-    const from: Buffer[] = this._cleanAddressArray(
-      fromAddresses,
-      "buildImportTx"
-    ).map((a: string): Buffer => bintools.stringToAddress(a))
     let srcChain: string = undefined
 
     if (typeof sourceChain === "string") {
@@ -600,13 +595,18 @@ export class EVMAPI extends JRPCAPI {
         "Error - EVMAPI.buildImportTx: sourceChain is undefined or invalid sourceChain type."
       )
     }
-    const utxoResponse: UTXOResponse = await this.getUTXOs(
-      ownerAddresses,
-      srcChain,
-      0,
-      undefined
-    )
-    const atomicUTXOs: UTXOSet = utxoResponse.utxos
+
+    var atomicUTXOs = utxoset
+    if (!utxoset) {
+      const utxoResponse: UTXOResponse = await this.getUTXOs(
+        ownerAddresses,
+        srcChain,
+        0,
+        undefined
+      )
+      atomicUTXOs = utxoResponse.utxos
+    }
+
     const networkID: number = this.core.getNetworkID()
     const avaxAssetID: string = this.core.getNetwork().X.avaxAssetID
     const avaxAssetIDBuf: Buffer = bintools.cb58Decode(avaxAssetID)
@@ -618,7 +618,7 @@ export class EVMAPI extends JRPCAPI {
       )
     }
 
-    const builtUnsignedTx: UnsignedTx = utxoset.buildImportTx(
+    const builtUnsignedTx: UnsignedTx = atomicUTXOs.buildImportTx(
       networkID,
       bintools.cb58Decode(this.blockchainID),
       toAddress,
@@ -638,12 +638,13 @@ export class EVMAPI extends JRPCAPI {
    * @param amount The amount being exported as a {@link https://github.com/indutny/bn.js/|BN}
    * @param assetID The asset id which is being sent
    * @param destinationChain The chainid for where the assets will be sent.
-   * @param toAddresses The addresses to send the funds
-   * @param fromAddresses The addresses being used to send the funds from the UTXOs provided
-   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs
-   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param fromAddressesHex The addresses to send the funds (hex)
+   * @param fromAddressesBech The addresses being used to send the funds from the UTXOs provided
+   * @param toAddresses An array of addresses as {@link https://github.com/feross/buffer|Buffer} who recieves the AVAX
+   * @param nonce Optional. The nonce to be used
    * @param locktime Optional. The locktime field created in the resulting outputs
-   * @param threshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param toThreshold Optional. The number of signatures required to spend the funds in the resultant UTXO
+   * @param fee Optional. The the fee for this transaction
    *
    * @returns An unsigned transaction ([[UnsignedTx]]) which contains an [[ExportTx]].
    */
@@ -656,7 +657,7 @@ export class EVMAPI extends JRPCAPI {
     toAddresses: string[],
     nonce: number = 0,
     locktime: BN = new BN(0),
-    threshold: number = 1,
+    toThreshold: number = 1,
     fee: BN = new BN(0)
   ): Promise<UnsignedTx> => {
     const prefixes: object = {}
@@ -731,7 +732,7 @@ export class EVMAPI extends JRPCAPI {
       amount,
       to,
       locktime,
-      threshold
+      toThreshold
     )
     const transferableOutput: TransferableOutput = new TransferableOutput(
       bintools.cb58Decode(assetID),

@@ -28,7 +28,7 @@ We built CaminoJS with ease of use in mind. With this library, any Javascript de
 * Build and sign transactions
 * Issue signed transactions to the X-Chain, P-Chain, and C-Chain
 * Perform cross-chain swaps between the X-Chain<->P-Chain and between the X-Chain<->C-Chain
-* Add Validators and Delegators to the Primary Subnetwork by staking CAM
+* Add Validators and Deposits to the Primary Subnetwork by staking CAM
 * Create a Subnetwork
 * Administer a local node
 * Retrieve Camino network information from a node
@@ -75,6 +75,17 @@ The above lines import the libraries used in the tutorials. The libraries includ
 * BinTools: A singleton built into CaminoJS that is used for dealing with binary data.
 * [BN](https://www.npmjs.com/package/bn.js): A bignumber module use by CaminoJS.
 * [Buffer](https://www.npmjs.com/package/buffer): A Buffer library.
+
+
+## Releasing dist branch
+
+1. Create a branch derived from `dev` with `git checkout -b dev_dist`
+2. `git rebase dist` 
+3. `yarn build`
+4. Commit changes with message containing short summary of changes being released
+5. Remove `dist` branch with `git branch -d dist`
+6. Rename `dev_dist` to `dist` with `git branch -m dev_dist dist`
+7. Push changes with `git push --set-upstream origin dist`
 
 ## Example 1 &mdash; Managing X-Chain Keys
 

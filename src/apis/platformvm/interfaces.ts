@@ -4,9 +4,15 @@
  */
 
 import BN from "bn.js"
+import { Buffer } from "buffer/"
 import { PersistanceOptions } from "../../utils/persistenceoptions"
-import { TransferableOutput } from "."
-import { UTXOSet } from "../platformvm/utxos"
+import { ClaimType, TransferableInput, TransferableOutput } from "."
+import { UTXOSet } from "./utxos"
+import { OutputOwners } from "../../common/output"
+
+export interface AddressParams {
+  address: string
+}
 
 export interface GetStakeParams {
   addresses: string[]
@@ -53,11 +59,17 @@ export interface GetConfigurationResponse {
   minConsumptionRate: number
   maxConsumptionRate: number
   supplyCap: BN
+  verifyNodeSignature: boolean
+  lockModeBondDeposit: boolean
 }
 
 export interface GetCurrentValidatorsParams {
   subnetID?: Buffer | string
   nodeIDs?: string[]
+}
+
+export interface GetAllDepositOffersParams {
+  timestamp: number
 }
 
 export interface SampleValidatorsParams {
@@ -122,16 +134,35 @@ export interface ImportKeyParams {
   privateKey: string
 }
 
-export interface GetBalanceResponse {
-  balance: BN | number
-  unlocked: BN | number
-  lockedStakeable: BN | number
-  lockedNotStakeable: BN | number
-  utxoIDs: {
-    txID: string
-    outputIndex: number
-  }[]
+export interface UTXOID {
+  txID: string
+  outputIndex: number
 }
+
+export interface BalanceDict {
+  [assetId: string]: BN
+}
+
+export interface GetBalanceResponseAvax {
+  balance: BN
+  unlocked: BN
+  lockedStakeable: BN
+  lockedNotStakeable: BN
+  utxoIDs: UTXOID[]
+}
+
+export interface GetBalanceResponseCamino {
+  balances: BalanceDict
+  unlockedOutputs: BalanceDict
+  bondedOutputs: BalanceDict
+  depositedOutputs: BalanceDict
+  bondedDepositedOutputs: BalanceDict
+  utxoIDs: UTXOID[]
+}
+
+export type GetBalanceResponse =
+  | GetBalanceResponseAvax
+  | GetBalanceResponseCamino
 
 export interface CreateAddressParams {
   username: string
@@ -213,9 +244,119 @@ export interface GetMinStakeResponse {
   minDelegatorStake: BN
 }
 
+export interface Claimable {
+  rewardOwner?: Owner
+  validatorRewards: BN
+  expiredDepositRewards: BN
+}
+
+export interface GetClaimablesResponse {
+  claimables: Claimable[]
+}
+
+export interface GetAllDepositOffersResponse {
+  depositOffers: DepositOffer[]
+}
+
+export interface DepositOffer {
+  upgradeVersion: number
+  id: string
+  interestRateNominator: BN
+  start: BN
+  end: BN
+  minAmount: BN
+  totalMaxAmount: BN
+  depositedAmount: BN
+  minDuration: number
+  maxDuration: number
+  unlockPeriodDuration: number
+  noRewardsPeriodDuration: number
+  memo: string
+  flags: BN
+  totalMaxRewardAmount: BN
+  rewardedAmount: BN
+  ownerAddress?: string
+}
+
+export interface GetDepositsParams {
+  depositTxIDs: string[]
+}
+
+export interface GetDepositsResponse {
+  deposits: APIDeposit[]
+  availableRewards: BN[]
+  timestamp: BN
+}
+
+export interface APIDeposit {
+  depositTxID: string
+  depositOfferID: string
+  unlockedAmount: BN
+  unlockableAmount: BN
+  claimedRewardAmount: BN
+  start: BN
+  duration: number
+  amount: BN
+  rewardOwner: Owner
+}
+
 export interface GetMaxStakeAmountParams {
   subnetID?: string
   nodeID: string
-  startTime: BN
-  endTime: BN
+  startTime: string
+  endTime: string
+}
+
+export interface Owner {
+  locktime: BN
+  threshold: number
+  addresses: string[]
+}
+
+export interface OwnerParam {
+  locktime: string
+  threshold: number
+  addresses: string[]
+}
+
+export interface MultisigAliasReply extends Owner {
+  memo: string // hex encoded string
+}
+
+export interface MultisigAliasParams {
+  id?: Buffer
+  memo: string
+  owners: OutputOwners
+  auth: [number, Buffer][]
+}
+
+export interface SpendParams {
+  from: string[] | string
+  signer: string[] | string
+  to?: OwnerParam
+  change?: OwnerParam
+
+  lockMode: 0 | 1 | 2
+  amountToLock: string
+  amountToBurn: string
+  asOf: string
+  encoding?: string
+}
+
+export interface SpendReply {
+  ins: TransferableInput[]
+  out: TransferableOutput[]
+  owners: OutputOwners[]
+}
+
+export interface ClaimAmountParams {
+  id?: Buffer
+  claimType: ClaimType
+  amount: BN
+  owners: OutputOwners
+  sigIdxs: number[]
+}
+
+export interface UpgradePhasesReply {
+  SunrisePhase: number
 }

@@ -1,24 +1,35 @@
-import { Avalanche, Buffer } from "../../src"
-import { Vertex } from "../../src/apis/avm"
-import { IndexAPI } from "../../src/apis/index"
+import { Avalanche, Buffer } from "caminojs/index"
+import { Vertex } from "caminojs/apis/avm"
+import { IndexAPI } from "caminojs/apis/index"
 import {
   GetContainerByIndexResponse,
   GetLastAcceptedResponse
-} from "../../src/apis/index/interfaces"
+} from "caminojs/apis/index/interfaces"
 
-const ip: string = "indexer-demo.avax.network"
-const port: number = 443
-const protocol: string = "https"
-const networkID: number = 1
-const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID)
-const index: IndexAPI = avalanche.Index()
+import { ExamplesConfig } from "../common/examplesConfig"
+
+const config: ExamplesConfig = require("../common/examplesConfig.json")
+const avalanche: Avalanche = new Avalanche(
+  config.host,
+  config.port,
+  config.protocol,
+  config.networkID
+)
 
 const sleep = (ms: number): Promise<unknown> => {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 const mstimeout: number = 1000
 
+let index: IndexAPI
+
+const InitAvalanche = async () => {
+  await avalanche.fetchNetworkSettings()
+  index = avalanche.Index()
+}
+
 const main = async (): Promise<any> => {
+  await InitAvalanche()
   const encoding: string = "hex"
   const baseurl: string = "/ext/index/X/vtx"
   const lastAccepted: GetLastAcceptedResponse = await index.getLastAccepted(
