@@ -7,8 +7,9 @@ import { TransferableOutput } from "./outputs";
 import { TransferableInput } from "./inputs";
 import { BaseTx } from "./basetx";
 import { SerializedEncoding } from "../../utils/serialization";
-import { UpgradeVersionID } from "../../common";
+import { Credential, SigIdx, UpgradeVersionID } from "../../common";
 import { SubnetAuth } from "../../apis/platformvm/subnetauth";
+import { KeyChain } from "./keychain";
 export declare enum AddressState {
     ROLE_ADMIN = 0,
     ROLE_KYC = 1,
@@ -33,6 +34,7 @@ export declare class AddressStateTx extends BaseTx {
     protected remove: boolean;
     protected executor: Buffer;
     protected executorAuth: SubnetAuth;
+    protected sigIdxs: SigIdx[];
     /**
      * Returns the id of the [[AddressStateTx]]
      */
@@ -51,6 +53,8 @@ export declare class AddressStateTx extends BaseTx {
     getRemove(): boolean;
     getExecutor(): Buffer;
     getExecutorAuth(): SubnetAuth;
+    addSignatureIdx(addressIdx: number, address: Buffer): void;
+    sign(msg: Buffer, kc: KeyChain): Credential[];
     /**
      * Takes a {@link https://github.com/feross/buffer|Buffer} containing an [[AddressStateTx]], parses it, populates the class, and returns the length of the [[AddressStateTx]] in bytes.
      *
@@ -80,6 +84,6 @@ export declare class AddressStateTx extends BaseTx {
      * @param state Optional state to alter.
      * @param remove Optional if true remove the flag, otherwise set
      */
-    constructor(version?: number, networkID?: number, blockchainID?: Buffer, outs?: TransferableOutput[], ins?: TransferableInput[], memo?: Buffer, address?: string | Buffer, state?: number, remove?: boolean, executor?: string | Buffer, executorAuth?: SubnetAuth);
+    constructor(version?: number, networkID?: number, blockchainID?: Buffer, outs?: TransferableOutput[], ins?: TransferableInput[], memo?: Buffer, address?: Buffer, state?: number, remove?: boolean, executor?: Buffer);
 }
 //# sourceMappingURL=addressstatetx.d.ts.map

@@ -94,6 +94,12 @@ export declare class PlatformVMAPI extends JRPCAPI {
      */
     getTxFee: () => BN;
     /**
+     * Gets the CreateAssetTx fee.
+     *
+     * @returns The CreateAssetTx fee as a {@link https://github.com/indutny/bn.js/|BN}
+     */
+    getCreateAssetTxFee: () => BN;
+    /**
      * Gets the CreateSubnetTx fee.
      *
      * @returns The CreateSubnetTx fee as a {@link https://github.com/indutny/bn.js/|BN}
@@ -729,7 +735,7 @@ export declare class PlatformVMAPI extends JRPCAPI {
      *
      * @returns An unsigned AddressStateTx created from the passed in parameters.
      */
-    buildAddressStateTx: (version: number, utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], address: string | Buffer, state: number, remove?: boolean, memo?: Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
+    buildAddressStateTx: (version: number, utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], address: string | Buffer, state: number, remove?: boolean, memo?: Buffer, asOf?: BN, changeThreshold?: number, executorAddress?: string, executorAuth?: [number, string][]) => Promise<UnsignedTx>;
     /**
      * Build an unsigned [[RegisterNodeTx]].
      *

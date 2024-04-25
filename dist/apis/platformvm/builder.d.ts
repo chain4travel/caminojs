@@ -253,7 +253,7 @@ export declare class Builder {
      *
      * @returns An unsigned AddressStateTx created from the passed in parameters.
      */
-    buildAddressStateTx: (version: number, networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], address: Buffer, state: number, remove?: boolean, fee?: BN, feeAssetID?: Buffer, memo?: Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
+    buildAddressStateTx: (version: number, networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], address: Buffer, state: number, remove?: boolean, fee?: BN, feeAssetID?: Buffer, memo?: Buffer, asOf?: BN, changeThreshold?: number, executorAddress?: Buffer, executorAuth?: [number, Buffer][]) => Promise<UnsignedTx>;
     /**
      * Build an unsigned [[RegisterNodeTx]].
      *

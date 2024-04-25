@@ -89,6 +89,12 @@ export declare class AVMAPI extends JRPCAPI {
      */
     setTxFee: (fee: BN) => void;
     /**
+     * Gets the CreateAssetTx fee.
+     *
+     * @returns The CreateAssetTx fee as a {@link https://github.com/indutny/bn.js/|BN}
+     */
+    getCreateAssetTxFee: () => BN;
+    /**
      * Gets the default creation fee for this chain.
      *
      * @returns The default creation fee as a {@link https://github.com/indutny/bn.js/|BN}
