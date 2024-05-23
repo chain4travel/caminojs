@@ -93,11 +93,7 @@ beforeAll(async () => {
   const fs = require("fs")
   const path = require("path")
 
-  const configFile = fs.readFileSync(
-    path.join(__dirname, "common", "caminoConfig.json")
-  )
-  const config = JSON.parse(configFile)
-  const rpcUrl = `${config.protocol}://${config.host}:${config.port}/ext/bc/C/rpc`
+  const rpcUrl = `http://${avalanche.getHost()}:${avalanche.getPort()}/ext/bc/C/rpc`
   const web3 = new Web3(rpcUrl, null, { transactionConfirmationBlocks: 1 }) //s
 
   const abiFile = fs.readFileSync(path.join(__dirname, "abi/CaminoAdmin.abi"))

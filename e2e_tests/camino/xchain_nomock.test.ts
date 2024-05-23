@@ -6,13 +6,11 @@ const avalanche = getAvalanche()
 let keystore: KeystoreAPI
 let tx = { value: "" }
 let xChain: any
-let pChain: any
 
 beforeAll(async () => {
   await avalanche.fetchNetworkSettings()
   keystore = new KeystoreAPI(avalanche)
   xChain = avalanche.XChain()
-  pChain = avalanche.PChain()
 })
 describe("Camino-XChain", (): void => {
   let asset = { value: "" }
@@ -23,7 +21,6 @@ describe("Camino-XChain", (): void => {
   const passwd: string = "avalancheJsP1ssw4rd"
   const badUser: string = "asdfasdfsa"
   const badPass: string = "pass"
-  const memo: string = "hello world"
   const adminAddress: string =
     "X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
   const key: string =
@@ -64,12 +61,12 @@ describe("Camino-XChain", (): void => {
           addrB.value,
           [addrC.value],
           addrB.value,
-          memo
+          "incorrectUser"
         ),
       (x) => x,
       Matcher.toThrow,
       () =>
-        `problem retrieving user "${badUser}": incorrect password for user "${badUser}"`
+        `problem retrieving user "${badUser}": incorrect password: user "${badUser}"`
     ],
     [
       "incorrectPass",
@@ -82,12 +79,12 @@ describe("Camino-XChain", (): void => {
           addrB.value,
           [addrC.value],
           addrB.value,
-          memo
+          "incorrectPass"
         ),
       (x) => x,
       Matcher.toThrow,
       () =>
-        `problem retrieving user "${user}": incorrect password for user "${user}"`
+        `problem retrieving user "${user}": incorrect password: user "${user}"`
     ],
     [
       "importKey",
@@ -107,11 +104,22 @@ describe("Camino-XChain", (): void => {
           addrB.value,
           [adminAddress],
           adminAddress,
-          memo
+          "send"
         ),
       (x) => x.txID,
       Matcher.Get,
       () => tx
+    ],
+    [
+      "Verify tx has been committed",
+      () => {
+        console.log(`checking tx status of ${tx.value}`)
+        return xChain.getTxStatus(tx.value)
+      },
+      (x) => x.status,
+      Matcher.toBe,
+      () => "Committed",
+      3000
     ],
     [
       "sendMultiple",
@@ -125,11 +133,22 @@ describe("Camino-XChain", (): void => {
           ],
           [adminAddress],
           adminAddress,
-          memo
+          "sendMultiple"
         ),
       (x) => x.txID,
       Matcher.Get,
       () => tx
+    ],
+    [
+      "Verify tx has been committed",
+      () => {
+        console.log(`checking tx status of ${tx.value}`)
+        return xChain.getTxStatus(tx.value)
+      },
+      (x) => x.status,
+      Matcher.toBe,
+      () => "Committed",
+      3000
     ],
     [
       "listAddrs",
@@ -158,6 +177,17 @@ describe("Camino-XChain", (): void => {
       (x) => x,
       Matcher.Get,
       () => tx
+    ],
+    [
+      "Verify tx has been committed",
+      () => {
+        console.log(`checking tx status of ${tx.value}`)
+        return xChain.getTxStatus(tx.value)
+      },
+      (x) => x.status,
+      Matcher.toBe,
+      () => "Committed",
+      3000
     ],
     [
       "import",
