@@ -40,6 +40,12 @@ describe("AddMemberProposalTx", (): void => {
     expect(proposal.getTypeID()).toBe(proposalTypeID)
   })
 
+  test("getProposalDescription", async (): Promise<void> => {
+    const proposalDescription = "<p>asdfasd</p>"
+    const description = addProposalTx.getProposalDescription().toString()
+    expect(description).toBe(proposalDescription)
+  })
+
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
     console.log("buf: ", buf.toString("hex"))

@@ -3,21 +3,21 @@
  * @module API-PlatformVM-AddVoteTx
  */
 import { Buffer } from "buffer/"
-import { Serialization, SerializedEncoding } from "../../utils/serialization"
+import { Credential, Signature, UpgradeVersionID } from "../../common"
+import BinTools from "../../utils/bintools"
 import {
   DefaultNetworkID,
   DefaultTransactionVersionNumber
 } from "../../utils/constants"
-import BinTools from "../../utils/bintools"
+import { Serialization, SerializedEncoding } from "../../utils/serialization"
+import { DEFAULT_CAMINOGO_CODEC_VERSION } from "./addproposaltx"
 import { BaseTx } from "./basetx"
 import { PlatformVMConstants } from "./constants"
-import { SubnetAuth } from "./subnetauth"
-import { TransferableOutput } from "./outputs"
-import { TransferableInput } from "./inputs"
-import { Credential, Signature, UpgradeVersionID } from "../../common"
-import { KeyChain, KeyPair } from "./keychain"
 import { SelectCredentialClass } from "./credentials"
-import { DEFAULT_CAMINOGO_CODEC_VERSION } from "./addproposaltx"
+import { TransferableInput } from "./inputs"
+import { KeyChain, KeyPair } from "./keychain"
+import { TransferableOutput } from "./outputs"
+import { SubnetAuth } from "./subnetauth"
 /**
  * @ignore
  */
@@ -131,6 +131,11 @@ export class VoteWrapper {
 export class AddVoteTx extends BaseTx {
   protected _typeName = "AddVoteTx"
   protected _typeID = PlatformVMConstants.ADDVOTETX
+  protected upgradeVersionID = new UpgradeVersionID()
+  protected proposalID = Buffer.alloc(32)
+  protected votePayload: VoteWrapper
+  protected voterAddress = Buffer.alloc(20)
+  protected voterAuth: SubnetAuth
 
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields: object = super.serialize(encoding)
@@ -158,12 +163,6 @@ export class AddVoteTx extends BaseTx {
     this.voterAuth.deserialize(fields["voterAuth"], encoding)
     this.votePayload = this.votePayload.deserialize(fields, encoding)
   }
-
-  protected upgradeVersionID = new UpgradeVersionID()
-  protected proposalID = Buffer.alloc(32)
-  protected votePayload: VoteWrapper
-  protected voterAddress = Buffer.alloc(20)
-  protected voterAuth: SubnetAuth
 
   /**
    * Returns the id of the [[AddVoteTx]]

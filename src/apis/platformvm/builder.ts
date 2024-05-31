@@ -6,24 +6,12 @@
 import BN from "bn.js"
 
 import { Buffer } from "buffer/"
-import { OutputOwners, SigIdx, ZeroBN } from "../../common"
-import {
-  DefaultNetworkID,
-  DefaultTransactionVersionNumber,
-  UnixNow
-} from "../../utils"
-import {
-  AddressError,
-  FeeAssetError,
-  ProtocolError,
-  ThresholdError,
-  TimeError
-} from "../../utils/errors"
+import createHash from "create-hash"
 import {
   AddDelegatorTx,
-  AddressStateTx,
   AddSubnetValidatorTx,
   AddValidatorTx,
+  AddressStateTx,
   AmountOutput,
   AssetAmountDestination,
   BaseTx,
@@ -37,7 +25,9 @@ import {
   DepositTx,
   ExportTx,
   ImportTx,
+  MultisigAlias,
   MultisigAliasParams,
+  MultisigAliasTx,
   ParseableOutput,
   PlatformVMConstants,
   RegisterNodeTx,
@@ -47,20 +37,29 @@ import {
   SelectOutputClass,
   TransferableInput,
   TransferableOutput,
-  UnlockDepositTx,
-  UnsignedTx,
   UTXO,
-  MultisigAlias,
-  MultisigAliasTx
+  UnlockDepositTx,
+  UnsignedTx
 } from "."
-import { GenesisData } from "../avm"
-import createHash from "create-hash"
 import {
   AddDepositOfferTx,
   Offer
 } from "../../apis/platformvm/adddepositoffertx"
+import { OutputOwners, SigIdx, ZeroBN } from "../../common"
+import {
+  DefaultNetworkID,
+  DefaultTransactionVersionNumber,
+  UnixNow
+} from "../../utils"
+import {
+  AddressError,
+  FeeAssetError,
+  ProtocolError,
+  ThresholdError,
+  TimeError
+} from "../../utils/errors"
+import { GenesisData } from "../avm"
 import { AddProposalTx, type Proposal } from "./addproposaltx"
-import BinTools from "../../utils/bintools"
 import { AddVoteTx } from "./addvotetx"
 
 export type LockMode = "Unlocked" | "Bond" | "Deposit" | "Stake"
@@ -1880,6 +1879,7 @@ export class Builder {
    * @param blockchainID Blockchainid, default undefined
    * @param fromSigner The addresses being used to send and verify the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
    * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+   * @param proposalID The proposalID of teh proposal in Buffer
    * @param voteOptionIndex The index of vote option.
    * @param voterAddress The P-address of voter in Buffer.
    * @param voterAuth Auth for voter address

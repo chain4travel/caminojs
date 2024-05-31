@@ -309,6 +309,7 @@ export class AddProposalTx extends BaseTx {
    * @param outs Optional array of the [[TransferableOutput]]s
    * @param ins Optional array of the [[TransferableInput]]s
    * @param memo Optional {@link https://github.com/feross/buffer|Buffer} for the memo field
+   * @param proposalDescription Optional contains arbitrary bytes, up to 256 bytes
    * @param proposal the proposal payload to create.
    * @param proposerAddress the creater(proposer) address.
    * @param proposerAuth auth that allows to create a proposal.

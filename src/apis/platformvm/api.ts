@@ -3229,6 +3229,7 @@ export class PlatformVMAPI extends JRPCAPI {
    * @param utxoset A set of UTXOs that the transaction is built on
    * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
    * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+   * @param proposalID The proposalID of teh proposal in string
    * @param voteOptionIndex The index of vote option.
    * @param voterAddress The P-address of voter in Buffer.
    * @param version Optional. Transaction version number, default 0.
