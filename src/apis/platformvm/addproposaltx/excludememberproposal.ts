@@ -79,18 +79,6 @@ export class ExcludeMemberProposal extends EssentialProposal {
     } else {
       this.memberAddress = memberAddress
     }
-
-    // // Initialize options
-    // const agreeBuf = Buffer.alloc(8)
-    // agreeBuf.writeUInt32BE(1, 4)
-    // const agreeOption = new VoteOption()
-    // agreeOption.fromBuffer(agreeBuf)
-    // super.addOption(agreeOption)
-    // const disagreeBuf = Buffer.alloc(8)
-    // disagreeBuf.writeUInt32BE(0, 4)
-    // const disagreeOption = new VoteOption()
-    // disagreeOption.fromBuffer(disagreeBuf)
-    // super.addOption(disagreeOption)
   }
 
   protected memberAddress = Buffer.alloc(20)
