@@ -24,4 +24,6 @@ export * from "./unlockdeposittx";
 export * from "./utxos";
 export * from "./validationtx";
 export * from "./multisigaliastx";
+export * from "./addproposaltx";
+export * from "./addvotetx";
 //# sourceMappingURL=index.d.ts.map
