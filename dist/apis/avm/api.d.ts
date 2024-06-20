@@ -17,6 +17,7 @@ import { PersistanceOptions } from "../../utils/persistenceoptions";
 import { OutputOwners } from "../../common/output";
 import { SECPTransferOutput } from "./outputs";
 import { GetUTXOsResponse, GetAssetDescriptionResponse, GetBalanceResponse, SendResponse, SendMultipleResponse, GetAddressTxsResponse, IMinterSet } from "./interfaces";
+import { GetBlockResponse } from "../../common";
 /**
  * Class for interacting with a node endpoint that is using the AVM.
  *
@@ -47,6 +48,14 @@ export declare class AVMAPI extends JRPCAPI {
      * @returns The blockchainID
      */
     getBlockchainID: () => string;
+    /**
+     * Gets the block at given height
+     * @param height The X-Chain height to get the block at.
+     * @param encoding
+     *
+     * @returns Promise GetBlockResponse
+     */
+    getBlockByHeight: (height: number, encoding: string) => Promise<GetBlockResponse>;
     /**
      * Takes an address string and returns its {@link https://github.com/feross/buffer|Buffer} representation if valid.
      *

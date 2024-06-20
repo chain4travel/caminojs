@@ -5,17 +5,18 @@
 import { Buffer } from "buffer/";
 import BN from "bn.js";
 import AvalancheCore from "../../camino";
-import { JRPCAPI, OutputOwners } from "../../common";
+import { GetBlockResponse, JRPCAPI, OutputOwners } from "../../common";
 import { ErrorResponseObject } from "../../utils/errors";
 import { KeyChain } from "./keychain";
 import { UnsignedTx, Tx } from "./tx";
 import { PayloadBase } from "../../utils/payload";
 import { UTXOSet } from "../platformvm/utxos";
 import { PersistanceOptions } from "../../utils/persistenceoptions";
-import { ClaimAmountParams, DepositOffer, GetRewardUTXOsResponse, GetStakeResponse, GetConfigurationResponse, Subnet, GetValidatorsAtResponse, GetBalanceResponse, GetUTXOsResponse, Blockchain, GetTxStatusResponse, GetMinStakeResponse, SpendReply, MultisigAliasReply, GetClaimablesResponse, GetDepositsResponse, OwnerParam, MultisigAliasParams, UpgradePhasesReply } from "./interfaces";
+import { ClaimAmountParams, DepositOffer, GetRewardUTXOsResponse, GetStakeResponse, GetConfigurationResponse, Subnet, GetValidatorsAtResponse, GetBalanceResponse, GetUTXOsResponse, Blockchain, GetTxStatusResponse, GetMinStakeResponse, SpendReply, MultisigAliasReply, GetClaimablesResponse, GetDepositsResponse, OwnerParam, MultisigAliasParams, UpgradePhasesReply, GetCurrentSupplyResponse } from "./interfaces";
 import { GenesisData } from "../avm";
 import { Auth, LockMode, Builder, FromSigner } from "./builder";
 import { Network } from "../../utils/networks";
+import type { Proposal } from "./addproposaltx";
 type FromType = String[] | String[][];
 type NodeOwnerType = {
     address: string;
@@ -193,6 +194,14 @@ export declare class PlatformVMAPI extends JRPCAPI {
      * @returns Promise GetValidatorsAtResponse
      */
     getValidatorsAt: (height: number, subnetID?: string) => Promise<GetValidatorsAtResponse>;
+    /**
+     * Gets the block at given height
+     * @param height The P-Chain height to get the block at.
+     * @param encoding
+     *
+     * @returns Promise GetBlockResponse
+     */
+    getBlockByHeight: (height: number, encoding: string) => Promise<GetBlockResponse>;
     /**
      * Create an address in the node's keystore.
      *
@@ -416,9 +425,9 @@ export declare class PlatformVMAPI extends JRPCAPI {
      */
     issueTx: (tx: string | Buffer | Tx) => Promise<string>;
     /**
-     * Returns an upper bound on the amount of tokens that exist. Not monotonically increasing because this number can go down if a staker"s reward is denied.
+     * Returns an upper bound on the amount of tokens that exist along with the P-chain height. Not monotonically increasing because this number can go down if a staker"s reward is denied.
      */
-    getCurrentSupply: () => Promise<BN>;
+    getCurrentSupply: () => Promise<GetCurrentSupplyResponse>;
     /**
      * Returns the height of the platform chain.
      */
@@ -852,6 +861,40 @@ export declare class PlatformVMAPI extends JRPCAPI {
      */
     spend: (from: string[] | string, signer: string[] | string, to: string[], toThreshold: number, toLockTime: BN, change: string[], changeThreshold: number, lockMode: LockMode, amountToLock: BN, amountToBurn: BN, asOf: BN, encoding?: string) => Promise<SpendReply>;
     _getBuilder: (utxoSet: UTXOSet) => Builder;
+    /**
+     * Build an unsigned [[AddProposalTx]].
+     *
+     * @param utxoset A set of UTXOs that the transaction is built on
+     * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+     * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+     * @param proposalDescription Optional contains arbitrary bytes, up to 256 bytes
+     * @param proposal The proposal content that will be created.
+     * @param proposerAddress The P-address of proposer in Buffer.
+     * @param version Optional. Transaction version number, default 0.
+     * @param memo Optional contains arbitrary bytes, up to 256 bytes
+     * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+     * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+     *
+     * @returns An unsigned transaction created from the passed in parameters.
+     */
+    buildAddProposalTx: (utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], proposalDescription: Buffer, proposal: Proposal, proposerAddress: Buffer, version?: number, memo?: PayloadBase | Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
+    /**
+     * Build an unsigned [[AddVoteTx]].
+     *
+     * @param utxoset A set of UTXOs that the transaction is built on
+     * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+     * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+     * @param proposalID The proposalID of teh proposal in string
+     * @param voteOptionIndex The index of vote option.
+     * @param voterAddress The P-address of voter in Buffer.
+     * @param version Optional. Transaction version number, default 0.
+     * @param memo Optional contains arbitrary bytes, up to 256 bytes
+     * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+     * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+     *
+     * @returns An unsigned transaction created from the passed in parameters.
+     */
+    buildAddVoteTx: (utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], proposalID: string, voteOptionIndex: number, voterAddress: Buffer, version?: number, memo?: PayloadBase | Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
 }
 export {};
 //# sourceMappingURL=api.d.ts.map

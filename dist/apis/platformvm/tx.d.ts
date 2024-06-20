@@ -4,8 +4,8 @@
  */
 import { Buffer } from "buffer/";
 import { SignerKeyChain, SignerKeyPair, StandardTx, StandardUnsignedTx } from "../../common";
-import { BaseTx } from "./basetx";
 import { SerializedEncoding } from "../../utils/serialization";
+import { BaseTx } from "./basetx";
 /**
  * Takes a buffer representing the output and returns the proper [[BaseTx]] instance.
  *

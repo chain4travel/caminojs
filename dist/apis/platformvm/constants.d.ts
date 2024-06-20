@@ -38,6 +38,14 @@ export declare class PlatformVMConstants {
     static REWARDSIMPORTTX: number;
     static SECPMULTISIGCREDENTIAL: number;
     static ADDDEPOSITOFFERTX: number;
+    static ADDPROPOSALTX: number;
+    static ADDVOTETX: number;
+    static FINISHPROPOSALSTX: number;
+    static BASEFEEPORPOSAL_TYPE_ID: number;
+    static SIMPLEVOTE_TYPE_ID: number;
+    static ADDMEMBERPORPOSAL_TYPE_ID: number;
+    static ADMINPROPOSAL_TYPE_ID: number;
+    static EXCLUDEMEMBERPORPOSAL_TYPE_ID: number;
     static ASSETIDLEN: number;
     static BLOCKCHAINIDLEN: number;
     static SYMBOLMAXLEN: number;

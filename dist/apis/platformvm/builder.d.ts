@@ -4,10 +4,11 @@
  */
 import BN from "bn.js";
 import { Buffer } from "buffer/";
-import { OutputOwners } from "../../common";
-import { AssetAmountDestination, ClaimAmountParams, MultisigAliasParams, UnsignedTx, UTXO } from ".";
-import { GenesisData } from "../avm";
+import { AssetAmountDestination, ClaimAmountParams, MultisigAliasParams, UTXO, UnsignedTx } from ".";
 import { Offer } from "../../apis/platformvm/adddepositoffertx";
+import { OutputOwners } from "../../common";
+import { GenesisData } from "../avm";
+import { type Proposal } from "./addproposaltx";
 export type LockMode = "Unlocked" | "Bond" | "Deposit" | "Stake";
 export interface MinimumSpendable {
     getMinimumSpendable(aad: AssetAmountDestination, asOf: BN, locktime: BN, lockMode: LockMode): Promise<Error>;
@@ -367,5 +368,47 @@ export declare class Builder {
      * @param changeThreshold
      */
     buildAddDepositOfferTx: (networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], offer: Offer, depositOfferCreatorAddress: Buffer, depositOfferCreatorAuth?: [number, Buffer][], fee?: BN, feeAssetID?: Buffer, memo?: Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
+    /**
+     * Build an unsigned [[AddProposalTx]].
+     *
+     * @param networkID Networkid, [[DefaultNetworkID]]
+     * @param blockchainID Blockchainid, default undefined
+     * @param fromSigner The addresses being used to send and verify the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+     * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+     * @param proposalDescription Optional contains arbitrary bytes, up to 256 bytes
+     * @param proposal The proposal content that will be created.
+     * @param proposerAddress The P-address of proposer in Buffer.
+     * @param proposerAuth Auth for proposer address
+     * @param version Optional. Transaction version number, default 0.
+     * @param memo Optional contains arbitrary bytes, up to 256 bytes
+     * @param fee Optional. The amount of fees to burn in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}
+     * @param feeAssetID Optional. The assetID of the fees being burned
+     * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+     * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+     *
+     * @returns An unsigned AddProposalTx created from the passed in parameters.
+     */
+    buildAddProposalTx: (networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], proposalDescription: Buffer, proposal?: Proposal, proposerAddress?: Buffer, proposerAuth?: any, version?: number, memo?: Buffer, fee?: BN, feeAssetID?: Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
+    /**
+     * Build an unsigned [[AddVoteTx]].
+     *
+     * @param networkID Networkid, [[DefaultNetworkID]]
+     * @param blockchainID Blockchainid, default undefined
+     * @param fromSigner The addresses being used to send and verify the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+     * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+     * @param proposalID The proposalID of teh proposal in Buffer
+     * @param voteOptionIndex The index of vote option.
+     * @param voterAddress The P-address of voter in Buffer.
+     * @param voterAuth Auth for voter address
+     * @param version Optional. Transaction version number, default 0.
+     * @param memo Optional contains arbitrary bytes, up to 256 bytes
+     * @param fee Optional. The amount of fees to burn in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}
+     * @param feeAssetID Optional. The assetID of the fees being burned
+     * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+     * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+     *
+     * @returns An unsigned AddVoteTx created from the passed in parameters.
+     */
+    buildAddVoteTx: (networkID: number, blockchainID: Buffer, fromSigner: FromSigner, changeAddresses: Buffer[], proposalID?: Buffer, voteOptionIndex?: number, voterAddress?: Buffer, voterAuth?: any, version?: number, memo?: Buffer, fee?: BN, feeAssetID?: Buffer, asOf?: BN, changeThreshold?: number) => Promise<UnsignedTx>;
 }
 //# sourceMappingURL=builder.d.ts.map

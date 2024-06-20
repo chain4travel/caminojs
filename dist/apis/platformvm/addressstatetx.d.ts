@@ -14,11 +14,13 @@ export declare enum AddressState {
     ROLE_ADMIN = 0,
     ROLE_KYC = 1,
     ROLE_OFFERS_ADMIN = 2,
+    ROLE_CONSORTIUM_ADMIN_PROPOSER = 3,
     KYC_VERIFIED = 32,
     KYC_EXPIRED = 33,
     CONSORTIUM = 38,
     NODE_DEFERRED = 39,
-    OFFERS_CREATOR = 50
+    OFFERS_CREATOR = 50,
+    CAMINO_ONLY_PROPOSER = 51
 }
 /**
  * Class representing an unsigned AdressStateTx transaction.
