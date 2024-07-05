@@ -1,7 +1,9 @@
 import {
-  AddMemberProposal,
+  AddProposalTx,
+  GeneralProposal,
   KeyChain,
-  PlatformVMAPI
+  PlatformVMAPI,
+  UnsignedTx
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
 import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
@@ -42,14 +44,29 @@ const main = async (): Promise<any> => {
   let endDate = new Date(startDate)
   endDate.setDate(endDate.getDate() + 60)
 
-  let startTimestamp = Math.floor(startDate.getTime() / 1000)
+  let startTimestamp: number = Math.floor(startDate.getTime() / 1000)
   let endTimestamp = Math.floor(endDate.getTime() / 1000)
   const txs = await pchain.getUTXOs(pAddressStrings)
-  const proposal = new AddMemberProposal(
+  const proposal = new GeneralProposal(
+    1,
+    1,
+    false,
     startTimestamp,
-    endTimestamp,
-    targetAddress
+    endTimestamp
   )
+  proposal.addGeneralOption("li la lo")
+  proposal.addGeneralOption("la li lo")
+  proposal.addGeneralOption("lo li la")
+
+  //proposal.addGeneralOptions(1, 2, 3, 4)
+
+  try {
+    let buffer = proposal.toBuffer()
+    console.log(buffer)
+  } catch (e) {
+    console.log(e)
+  }
+
   try {
     let unsignedTx = await pchain.buildAddProposalTx(
       txs.utxos, // utxoset
@@ -61,6 +78,23 @@ const main = async (): Promise<any> => {
       0, // version
       Buffer.alloc(20) // memo
     )
+
+    const hex = unsignedTx.getTransaction().toStringHex().slice(2)
+
+    try {
+      const unsignedTx2 = new UnsignedTx()
+      unsignedTx2.fromBuffer(Buffer.from(hex, "hex"))
+      const addProposalTx = unsignedTx2.getTransaction() as AddProposalTx
+      const generalProposal = addProposalTx
+        .getProposalPayload()
+        .getProposal() as GeneralProposal
+
+      let allowEarlyFinish = generalProposal.getAllowEarlyFinish()
+      console.log(allowEarlyFinish)
+    } catch (e) {
+      console.log(e)
+    }
+
     const tx = unsignedTx.sign(pKeychain)
     const txid: string = await pchain.issueTx(tx)
     console.log(`Success! TXID: ${txid}`)
