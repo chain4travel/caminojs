@@ -75,6 +75,13 @@ export class GeneralProposal extends EssentialProposal {
       "Buffer"
     )
 
+    this.allowEarlyFinish = serialization.decoder(
+      fields["allowEarlyFinish"],
+      encoding,
+      "number",
+      "Buffer"
+    )
+
     this.numOptions.writeUInt32BE(this.options.length, 0)
     this.options = fields["options"].map((opt) =>
       new VoteOption().deserialize(opt, encoding)
