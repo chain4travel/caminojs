@@ -1,11 +1,15 @@
 import { getAvalanche, createTests, Matcher } from "../e2etestlib"
 import { KeystoreAPI } from "src/apis/keystore/api"
 import BN from "bn.js"
+import BinTools from "../../src/utils/bintools";
 
 const avalanche = getAvalanche()
 let keystore: KeystoreAPI
 let tx = { value: "" }
 let xChain: any
+
+const bintools: BinTools = BinTools.getInstance()
+
 
 beforeAll(async () => {
   await avalanche.fetchNetworkSettings()
@@ -111,14 +115,15 @@ describe("Camino-XChain", (): void => {
       () => tx
     ],
     [
+        // https://docs.camino.network/developer/apis/camino-node-apis/x-chain/#avmgettxstatus
       "Verify tx has been committed",
       () => {
         console.log(`checking tx status of ${tx.value}`)
         return xChain.getTxStatus(tx.value)
       },
-      (x) => x.status,
+      (x) => x,
       Matcher.toBe,
-      () => "Committed",
+      () => "Accepted",
       3000
     ],
     [
@@ -145,9 +150,9 @@ describe("Camino-XChain", (): void => {
         console.log(`checking tx status of ${tx.value}`)
         return xChain.getTxStatus(tx.value)
       },
-      (x) => x.status,
+      (x) => x,
       Matcher.toBe,
-      () => "Committed",
+      () => "Accepted",
       3000
     ],
     [
@@ -184,9 +189,9 @@ describe("Camino-XChain", (): void => {
         console.log(`checking tx status of ${tx.value}`)
         return xChain.getTxStatus(tx.value)
       },
-      (x) => x.status,
+      (x) => x,
       Matcher.toBe,
-      () => "Committed",
+      () => "Accepted",
       3000
     ],
     [
@@ -205,6 +210,17 @@ describe("Camino-XChain", (): void => {
       (x) => x,
       Matcher.Get,
       () => asset
+    ],
+    [
+      "Verify tx has been committed",
+      () => {
+        console.log(`checking tx status of ${tx.value}`)
+        return xChain.getTxStatus(tx.value)
+      },
+      (x) => x,
+      Matcher.toBe,
+      () => "Accepted",
+      3000
     ],
     [
       "createVar",
