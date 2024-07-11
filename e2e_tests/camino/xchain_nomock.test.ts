@@ -2,11 +2,12 @@ import { getAvalanche, createTests, Matcher } from "../e2etestlib"
 import { KeystoreAPI } from "src/apis/keystore/api"
 import BN from "bn.js"
 import BinTools from "../../src/utils/bintools";
+import {AVMAPI} from "../../src/apis/avm";
 
 const avalanche = getAvalanche()
 let keystore: KeystoreAPI
 let tx = { value: "" }
-let xChain: any
+let xChain: AVMAPI
 
 const bintools: BinTools = BinTools.getInstance()
 
@@ -29,11 +30,26 @@ describe("Camino-XChain", (): void => {
     "X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
   const key: string =
     "PrivateKey-vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"
+  // new user that has no mint authority
+  const userUnauthorizedMint: string = "avalancheJsXChainUser2" // used to test minting with unauthorized minter
+  const passwdUnauthorizedMint: string = "avalancheJsP1ssw4rd" // used to test minting with unauthorized minter
+  const addrD = { value: "" } // used to test minting with unauthorized minter
+  const addressUnauthorized: string = "X-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68"
+  const keyUnauthorizedMint: string = "PrivateKey-ewoqjP7PxY4yr3iLTpLisriqt94hdyDFNgchSxGGztUrTXtNN"
 
   const tests_spec: any = [
     [
       "createUser",
       () => keystore.createUser(user, passwd),
+      (x) => x,
+      Matcher.toEqual,
+      () => {
+        return {}
+      }
+    ],
+    [
+      "createUser for Unauthorized Minting",
+      () => keystore.createUser(userUnauthorizedMint, passwdUnauthorizedMint),
       (x) => x,
       Matcher.toEqual,
       () => {
@@ -96,6 +112,13 @@ describe("Camino-XChain", (): void => {
       (x) => x,
       Matcher.toBe,
       () => adminAddress
+    ],
+    [
+        "importKey for unauthorized mint",
+      () => xChain.importKey(userUnauthorizedMint, passwdUnauthorizedMint, keyUnauthorizedMint),
+      (x) => x,
+      Matcher.toBe,
+      () => addressUnauthorized
     ],
     [
       "send",
@@ -233,22 +256,24 @@ describe("Camino-XChain", (): void => {
       () => asset
     ],
     [
-      "mint",
+      "mint (authorized minter)",
       () =>
         xChain.mint(user, passwd, 1500, asset.value, addrB.value, [
           adminAddress
         ]),
       (x) => x,
-      Matcher.toThrow,
-      () =>
-        "provided addresses don't have the authority to mint the provided asset"
+      Matcher.Get,
+      () => tx
     ],
     [
-      "getTx",
-      () => xChain.getTx(tx.value), // retrieving tx via getTx is no longer possible until it's accepted
+      "mint (unauthorized minter)",
+       () =>
+           xChain.mint(userUnauthorizedMint, passwdUnauthorizedMint, 1500, asset.value, addrB.value, [
+            addressUnauthorized
+          ]),
       (x) => x,
       Matcher.toThrow,
-      () => "not found"
+      () => "provided addresses don't have the authority to mint the provided asset"
     ]
   ]
 
