@@ -19,7 +19,7 @@
     "test": "jest",
     "test-watch": "jest --watch",
     "transpile:examles": "ts-node -r tsconfig-paths/register examples/<your file>.ts",
-    "start-fresh": "rm -rf node_modules && dist && coverage && package-lock.json"
+    "clean": "rm -rf node_modules dist coverage package-lock.json yarn.lock"
   },
   "repository": {
     "type": "git",

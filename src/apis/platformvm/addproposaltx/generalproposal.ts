@@ -14,6 +14,7 @@ const bintools: BinTools = BinTools.getInstance()
 
 export class GeneralProposal extends EssentialProposal {
   private readonly _typeID = PlatformVMConstants.GENERALPROPOSAL_TYPE_ID
+  private _optionIndex = Buffer.alloc(4)
 
   //TODO: @VjeraTurk
   private totalVotedThresholdNominator: Buffer
@@ -89,24 +90,9 @@ export class GeneralProposal extends EssentialProposal {
     return this
   }
 
-  toBuffer(): Buffer {
-    const barr = [
-      this.start,
-      this.end,
-      this.totalVotedThresholdNominator,
-      this.mostVotedThresholdNominator,
-      Buffer.from([this.allowEarlyFinish ? 1 : 0])
-    ]
-    const bsize =
-      this.start.length +
-      this.end.length +
-      this.totalVotedThresholdNominator.length +
-      this.mostVotedThresholdNominator.length +
-      8
-
-    return Buffer.concat(barr, bsize)
+  getOptionIndex() {
+    return this._optionIndex
   }
-
   fromBuffer(bytes: Buffer, offset: number = 0): number {
     //this.numOptions ?
     //this.options ?
@@ -123,7 +109,50 @@ export class GeneralProposal extends EssentialProposal {
     this.allowEarlyFinish = bytes[offset] === 1 // Read allowEarlyFinish (1 byte)
     offset += 1
 
+    /*
+    this.numOptions = bintools.copyFrom(bytes, offset, offset + 4) // this.numOptions.readUInt32BE(0)
+    offset += 4
+    const optionCount = this.numOptions.readUInt32BE(0)
+    this.options = []
+    for (let i = 0; i < optionCount; i++) {
+      const option = new VoteOption()
+      offset = option.fromBuffer(bytes, offset)
+      this.options.push(option)
+    }
+*/
+
     return offset
+  }
+  toBuffer(): Buffer {
+    const buff = this.getOptionIndex()
+    const typeIdBuff = Buffer.alloc(4)
+    typeIdBuff.writeUInt32BE(this.getTypeID(), 0)
+
+    let barr = [
+      this.start,
+      this.end,
+      this.totalVotedThresholdNominator,
+      this.mostVotedThresholdNominator,
+      Buffer.from([this.allowEarlyFinish ? 1 : 0])
+    ]
+
+    let bsize =
+      this.start.length +
+      this.end.length +
+      this.totalVotedThresholdNominator.length +
+      this.mostVotedThresholdNominator.length +
+      1 // TODO: @VjeraTurk figure out the size
+
+    let bsizeOptions: number = this.numOptions.length
+    this.options.forEach((opt) => {
+      bsize += opt.getSize()
+      barr.push(opt.toBuffer())
+    })
+
+    return Buffer.concat(
+      [buff, typeIdBuff, Buffer.concat(barr, bsize)],
+      buff.length + typeIdBuff.length + bsize
+    )
   }
 
   constructor(

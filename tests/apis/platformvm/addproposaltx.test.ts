@@ -747,3 +747,105 @@ describe("ExcludeMemberAdminProposal", (): void => {
     expect(serializedAddressStateTx).toStrictEqual(expectedJSON)
   })
 })
+
+xdescribe("GeneralProposal", (): void => {
+  const bintools = BinTools.getInstance()
+  const serialization = Serialization.getInstance()
+  const addProposalTxHex: string =
+    "000003ea00000000000000000000000000000000000000000000000000000000000000000000000159eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a0000000700016bcc41ca7b80000000000000000000000001000000013cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c0000000111a783ed74c16f2d70bf950b358b0e4e3175638c8a8c61d06682df9cd940640d0000000059eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a0000000500016bcc41d9bdc000000001000000000000001400000000000000000000000000000000000000000000000d000b68656c6c6f20776f726c6400000056000000002019000000000000201900000000669664280000000066e57e2800000001000000000000000100000000006c69206c61206c6f6c61206c69206c6f6c6f206c69206c616c61206c69206c30000000000000003cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c0000000a00000001000000001a7941a1"
+  const unsignedTx = new UnsignedTx()
+  unsignedTx.fromBuffer(Buffer.from(addProposalTxHex, "hex"))
+  const addProposalTx = unsignedTx.getTransaction() as AddProposalTx
+
+  test("getTypeName", async (): Promise<void> => {
+    const addProposalTxTypeName: string = addProposalTx.getTypeName()
+    expect(addProposalTxTypeName).toBe("AddProposalTx")
+  })
+
+  test("getTypeID", async (): Promise<void> => {
+    const addProposalTxTypeID: number = addProposalTx.getTypeID()
+    expect(addProposalTxTypeID).toBe(PlatformVMConstants.ADDPROPOSALTX)
+  })
+
+  test("getProposerAddress", async (): Promise<void> => {
+    const expectedAddress: Buffer = bintools.stringToAddress(
+      "P-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
+    )
+    const address: Buffer = addProposalTx.getProposerAddress()
+    expect(address.toString()).toBe(expectedAddress.toString())
+  })
+
+  test("getProposalType", async (): Promise<void> => {
+    const proposalTypeID = PlatformVMConstants.GENERALPROPOSAL_TYPE_ID
+    const payload = addProposalTx.getProposalPayload()
+    expect(payload.getProposalType()).toBe(proposalTypeID)
+    const proposal = payload.getProposal()
+    expect(proposal.getTypeID()).toBe(proposalTypeID)
+  })
+
+  test("getProposalDescription", async (): Promise<void> => {
+    const proposalDescription = "<p>proposal description</p>"
+    const description = addProposalTx.getProposalDescription().toString()
+    expect(description).toBe(proposalDescription)
+  })
+
+  test("toBuffer and fromBuffer", async (): Promise<void> => {
+    const buf: Buffer = addProposalTx.toBuffer()
+    const asvTx: AddProposalTx = new AddProposalTx()
+    asvTx.fromBuffer(buf)
+    const buf2: Buffer = asvTx.toBuffer()
+    expect(buf.toString("hex")).toBe(buf2.toString("hex"))
+  })
+
+  test("serialize", async (): Promise<void> => {
+    const serializedAddressStateTx: object = addProposalTx.serialize()
+    const networkIDBuff = Buffer.alloc(4)
+    networkIDBuff.writeUInt32BE(1002, 0)
+    //WIP:
+    /*
+    const expectedJSON = {
+      _codecID: null,
+      _typeID: PlatformVMConstants.GENERALPROPOSAL_TYPE_ID,
+      _typeName: "AddProposalTx",
+      networkID: serialization.encoder(
+        networkIDBuff,
+        "hex",
+        "Buffer",
+        "decimalString"
+      ),
+      blockchainID: serialization.encoder(
+        Buffer.alloc(32, 0),
+        "hex",
+        "Buffer",
+        "cb58"
+      ),
+      memo: serialization
+        .typeToBuffer(bintools.cb58Encode(Buffer.from("")), "cb58")
+        .toString("hex"),
+      ins: [],
+      outs: [],
+      proposalDescription: serialization.encoder(
+        Buffer.from("<p>proposal description</p>"),
+        "hex",
+        "Buffer",
+        "cb58"
+      ),
+      proposalPayload: {
+        proposal: {
+          optionIndex: "00000000",
+          proposal: {
+            end: "00000000666881d6",
+            start: "00000000665f4756"
+          }
+        }
+      },
+      proposerAddress: "46a9c04f4bf783aa69daabd519dcf36978168b66",
+      proposerAuth: {
+        _codecID: null,
+        _typeID: 10,
+        _typeName: "SubnetAuth"
+      }
+    }
+    expect(serializedAddressStateTx).toStrictEqual(expectedJSON)*/
+  })
+})

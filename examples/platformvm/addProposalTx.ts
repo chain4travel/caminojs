@@ -1,7 +1,9 @@
 import {
   AddMemberProposal,
+  AddProposalTx,
   KeyChain,
-  PlatformVMAPI
+  PlatformVMAPI,
+  UnsignedTx
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
 import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
@@ -61,9 +63,19 @@ const main = async (): Promise<any> => {
       0, // version
       Buffer.alloc(20) // memo
     )
+
     const tx = unsignedTx.sign(pKeychain)
-    const txid: string = await pchain.issueTx(tx)
-    console.log(`Success! TXID: ${txid}`)
+    const hex = tx.toStringHex().slice(2)
+    const unsignedTx2 = new UnsignedTx()
+    unsignedTx2.fromBuffer(Buffer.from(hex, "hex"))
+    const addProposalTx = unsignedTx2.getTransaction() as AddProposalTx
+    const addProposalTxTypeName: string = addProposalTx.getTypeName()
+    const addProposalTxTypeID: number = addProposalTx.getTypeID()
+
+    console.log(addProposalTxTypeID, addProposalTxTypeName)
+    //const tx = unsignedTx.sign(pKeychain)
+    //const txid: string = await pchain.issueTx(tx)
+    //console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)
   }

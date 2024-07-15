@@ -57,6 +57,7 @@ const main = async (): Promise<any> => {
   proposal.addGeneralOption("li la lo")
   proposal.addGeneralOption("la li lo")
   proposal.addGeneralOption("lo li la")
+  proposal.addGeneralOption("la li l0")
 
   //proposal.addGeneralOptions(1, 2, 3, 4)
 
@@ -79,11 +80,27 @@ const main = async (): Promise<any> => {
       Buffer.alloc(20) // memo
     )
 
-    const hex = unsignedTx.getTransaction().toStringHex().slice(2)
+    const tx = unsignedTx.sign(pKeychain)
+    const hex = tx.toStringHex().slice(2)
+    const unsignedTx2 = new UnsignedTx()
+    unsignedTx2.fromBuffer(Buffer.from(hex, "hex"))
+    const addProposalTx = unsignedTx2.getTransaction() as AddProposalTx
+    const addProposalTxTypeName: string = addProposalTx.getTypeName()
+    const addProposalTxTypeID: number = addProposalTx.getTypeID()
 
+    console.log(addProposalTxTypeID, addProposalTxTypeName)
+
+    //TODO : @VjeraTurk resolve buffer problem
+    //couldn't issue tx: bad proposal: trailing buffer space: read 41 provided 44
+    //couldn't issue tx: bad proposal: trailing buffer space: read 41 provided 84
+    /*    const hex = unsignedTx.getTransaction().toStringHex().slice(2)
+    const type = unsignedTx.getTransaction().getTypeID()
+    console.log(type)
+    console.log(hex)
     try {
       const unsignedTx2 = new UnsignedTx()
       unsignedTx2.fromBuffer(Buffer.from(hex, "hex"))
+
       const addProposalTx = unsignedTx2.getTransaction() as AddProposalTx
       const generalProposal = addProposalTx
         .getProposalPayload()
@@ -95,9 +112,9 @@ const main = async (): Promise<any> => {
       console.log(e)
     }
 
-    const tx = unsignedTx.sign(pKeychain)
-    const txid: string = await pchain.issueTx(tx)
-    console.log(`Success! TXID: ${txid}`)
+    const tx = unsignedTx.sign(pKeychain)*/
+    //const txid: string = await pchain.issueTx(tx)
+    //console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)
   }
