@@ -1,0 +1,5 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Base Fee Proposal Example" type="NodeJSConfigurationType" application-parameters="examples/platformvm/baseFeeProposalTx.ts" path-to-node="$USER_HOME$/.nvm/versions/node/v16.20.2/bin/node" node-parameters="-r tsconfig-paths/register" path-to-js-file="node_modules/ts-node/dist/bin.js" working-dir="$PROJECT_DIR$">
+    <method v="2" />
+  </configuration>
+</component>
