@@ -18,7 +18,8 @@
     "release:prepare": "rm -rf ./dist ./node_modules && yarn install && yarn test && yarn build && yarn bundle && git status",
     "test": "jest",
     "test-watch": "jest --watch",
-    "transpile:examles": "ts-node -r tsconfig-paths/register examples/<your file>.ts"
+    "transpile:examles": "ts-node -r tsconfig-paths/register examples/<your file>.ts",
+    "start-fresh": "rm -rf node_modules && dist && coverage && package-lock.json"
   },
   "repository": {
     "type": "git",
@@ -96,7 +97,8 @@
     "store2": "2.14.2",
     "stream-browserify": "3.0.0",
     "ws": "8.12.1",
-    "xss": "1.0.14"
+    "xss": "1.0.14",
+    "yarn": "^1.22.22"
   },
   "prettier": {
     "tabWidth": 2,
