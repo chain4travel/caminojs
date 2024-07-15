@@ -5,8 +5,8 @@ import {
   Serialization,
   SerializedEncoding,
   SerializedType
-} from "caminojs/utils"
-import BinTools from "caminojs/utils/bintools"
+} from "../../../utils/serialization"
+import BinTools from "../../../utils/bintools"
 const utf8: SerializedType = "utf8"
 
 const serialization = Serialization.getInstance()
