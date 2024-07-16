@@ -19,7 +19,7 @@ export class GeneralProposal extends EssentialProposal {
   //TODO: @VjeraTurk
   private totalVotedThresholdNominator: Buffer
   private mostVotedThresholdNominator: Buffer
-  private allowEarlyFinish: boolean
+  protected allowEarlyFinish = Buffer.alloc(1)
 
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields = {
@@ -97,16 +97,20 @@ export class GeneralProposal extends EssentialProposal {
     //this.numOptions ?
     //this.options ?
 
-    this.start = bytes.slice(offset, offset + 8) // Read start (8 bytes)
+    this.start = bintools.copyFrom(bytes, offset + 8) // Read start (8 bytes)
     offset += 8
-    this.end = bytes.slice(offset, offset + 8) // Read start (8 bytes)
+    this.end = bintools.copyFrom(bytes, offset + 8) // Read start (8 bytes)
     offset += 8
-    this.totalVotedThresholdNominator = bytes.slice(offset, offset + 8) // Read totalVotedThresholdNominator (8 bytes)
+    this.totalVotedThresholdNominator = bintools.copyFrom(bytes, offset + 8) // Read totalVotedThresholdNominator (8 bytes)
     offset += 8
-    this.mostVotedThresholdNominator = bytes.slice(offset, offset + 8) // Read mostVotedThresholdNominator (8 bytes)
+    this.mostVotedThresholdNominator = bintools.copyFrom(
+      bytes,
+      offset,
+      offset + 8
+    ) // Read mostVotedThresholdNominator (8 bytes)
     offset += 8
 
-    this.allowEarlyFinish = bytes[offset] === 1 // Read allowEarlyFinish (1 byte)
+    this.allowEarlyFinish = bintools.copyFrom(bytes, offset, offset + 1)
     offset += 1
 
     /*
@@ -185,7 +189,9 @@ export class GeneralProposal extends EssentialProposal {
       mostVotedThresholdNominator,
       0
     )
-    this.allowEarlyFinish = allowEarlyFinish
+    this.allowEarlyFinish = bintools.stringToBuffer(
+      allowEarlyFinish ? "1" : "0"
+    )
   }
 
   getTypeID(): number {
@@ -207,7 +213,7 @@ export class GeneralProposal extends EssentialProposal {
     return super.addOption(voteOption)
   }
 
-  getAllowEarlyFinish(): boolean {
+  getAllowEarlyFinish(): Buffer {
     return this.allowEarlyFinish
   }
 }
