@@ -39,7 +39,7 @@ export class VoteOption extends NBytes {
 export abstract class EssentialProposal {
   protected start: Buffer = Buffer.alloc(8)
   protected end: Buffer = Buffer.alloc(8)
-  protected options: VoteOption[]
+  protected options: VoteOption[] // TODO: define in each Proposal separatelly
   protected numOptions: Buffer = Buffer.alloc(4)
 
   constructor(start?: Buffer, end?: Buffer) {
@@ -102,7 +102,7 @@ export abstract class EssentialProposal {
   }
 
   fromBuffer(bytes: Buffer, offset: number = 0): number {
-    /*    this.numOptions = bintools.copyFrom(bytes, offset, offset + 4) // this.numOptions.readUInt32BE(0)
+    this.numOptions = bintools.copyFrom(bytes, offset, offset + 4) // this.numOptions.readUInt32BE(0)
     offset += 4
     const optionCount = this.numOptions.readUInt32BE(0)
     this.options = []
@@ -110,7 +110,7 @@ export abstract class EssentialProposal {
       const option = new VoteOption()
       offset = option.fromBuffer(bytes, offset)
       this.options.push(option)
-    }*/
+    }
     this.start = bintools.copyFrom(bytes, offset, offset + 8)
     offset += 8
     this.end = bintools.copyFrom(bytes, offset, offset + 8)

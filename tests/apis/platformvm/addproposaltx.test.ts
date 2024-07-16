@@ -748,7 +748,7 @@ describe("ExcludeMemberAdminProposal", (): void => {
   })
 })
 
-describe("NewProposalTx", (): void => {
+xdescribe("NewProposalTx", (): void => {
   const bintools = BinTools.getInstance()
   const serialization = Serialization.getInstance()
   const addProposalTxHex: string =
@@ -761,7 +761,7 @@ describe("NewProposalTx", (): void => {
   const unsignedTx: UnsignedTx = new UnsignedTx()
   unsignedTx.fromBuffer(Buffer.from(addProposalTxHex, "hex"))
   console.log("end")
-  /*const addProposalTx = unsignedTx.getTransaction() as AddProposalTx
+  const addProposalTx = unsignedTx.getTransaction() as AddProposalTx
 
   test("getTypeName", async (): Promise<void> => {
     const addProposalTxTypeName: string = addProposalTx.getTypeName()
@@ -795,10 +795,9 @@ describe("NewProposalTx", (): void => {
     asvTx.fromBuffer(buf)
     const buf2: Buffer = asvTx.toBuffer()
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
-  })*/
+  })
 })
 
-/*
 xdescribe("GeneralProposal", (): void => {
   const bintools = BinTools.getInstance()
   const serialization = Serialization.getInstance()
@@ -848,12 +847,11 @@ xdescribe("GeneralProposal", (): void => {
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 
-  test("serialize", async (): Promise<void> => {
+  xtest("serialize", async (): Promise<void> => {
     const serializedAddressStateTx: object = addProposalTx.serialize()
     const networkIDBuff = Buffer.alloc(4)
     networkIDBuff.writeUInt32BE(1002, 0)
     //WIP:
-    /!*
     const expectedJSON = {
       _codecID: null,
       _typeID: PlatformVMConstants.GENERALPROPOSAL_TYPE_ID,
@@ -897,7 +895,6 @@ xdescribe("GeneralProposal", (): void => {
         _typeName: "SubnetAuth"
       }
     }
-    expect(serializedAddressStateTx).toStrictEqual(expectedJSON)*!/
+    expect(serializedAddressStateTx).toStrictEqual(expectedJSON)
   })
 })
-*/

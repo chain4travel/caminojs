@@ -12,11 +12,18 @@ const utf8: SerializedType = "utf8"
 const serialization = Serialization.getInstance()
 const bintools: BinTools = BinTools.getInstance()
 
-export class GeneralProposal extends EssentialProposal {
+//TODO: Add GeneralVoteOption
+//TODO:  addOption
+export class GeneralProposal {
   private readonly _typeID = PlatformVMConstants.GENERALPROPOSAL_TYPE_ID
   private _optionIndex = Buffer.alloc(4)
 
   //TODO: @VjeraTurk
+  protected start: Buffer = Buffer.alloc(8)
+  protected end: Buffer = Buffer.alloc(8)
+  protected options: VoteOption[]
+  protected numOptions: Buffer = Buffer.alloc(4)
+
   private totalVotedThresholdNominator: Buffer
   private mostVotedThresholdNominator: Buffer
   protected allowEarlyFinish = Buffer.alloc(1)
@@ -113,7 +120,6 @@ export class GeneralProposal extends EssentialProposal {
     this.allowEarlyFinish = bintools.copyFrom(bytes, offset, offset + 1)
     offset += 1
 
-    /*
     this.numOptions = bintools.copyFrom(bytes, offset, offset + 4) // this.numOptions.readUInt32BE(0)
     offset += 4
     const optionCount = this.numOptions.readUInt32BE(0)
@@ -123,7 +129,6 @@ export class GeneralProposal extends EssentialProposal {
       offset = option.fromBuffer(bytes, offset)
       this.options.push(option)
     }
-*/
 
     return offset
   }
@@ -174,8 +179,7 @@ export class GeneralProposal extends EssentialProposal {
     const endTime = Buffer.alloc(8) // Buffer to hold the end time, 8 bytes
     endTime.writeUInt32BE(end, 4)
 
-    super(startTime, endTime)
-
+    this.options = []
     this.start = startTime
     this.end = endTime
 
@@ -198,7 +202,7 @@ export class GeneralProposal extends EssentialProposal {
     return this._typeID
   }
 
-  addGeneralOption(option: string): number {
+  /*  addGeneralOption(option: string): number {
     const optionBuf: Buffer = Buffer.alloc(option.length)
     optionBuf.write(option, 0, option.length, utf8)
 
@@ -211,7 +215,7 @@ export class GeneralProposal extends EssentialProposal {
     voteOption.fromBuffer(optionBuf)
 
     return super.addOption(voteOption)
-  }
+  }*/
 
   getAllowEarlyFinish(): Buffer {
     return this.allowEarlyFinish
