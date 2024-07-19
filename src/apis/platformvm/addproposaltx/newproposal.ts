@@ -13,8 +13,8 @@ const serialization = Serialization.getInstance()
 const bintools = BinTools.getInstance()
 
 export class GeneralVoteOption extends Serializable {
-  protected static _typeName = "GeneralVoteOption"
-  protected static _typeID = undefined // TODO: understand WHY?
+  protected _typeName = "GeneralVoteOption"
+  protected _typeID = undefined // TODO: understand WHY?
 
   protected option: Buffer = Buffer.alloc(256) // TODO: Keep it at 256 for now, make dynamic later
 
@@ -41,16 +41,6 @@ export class GeneralVoteOption extends Serializable {
   }
   toBuffer(): Buffer {
     return this.option
-  }
-
-  clone(): this {
-    let newbase: GeneralVoteOption = new GeneralVoteOption()
-    newbase.fromBuffer(this.toBuffer())
-    return newbase as this
-  }
-
-  create(): this {
-    return new GeneralVoteOption() as this
   }
 
   //TODO: yes/no?
@@ -220,7 +210,7 @@ export class NewProposal {
   getAllowEarlyFinish(): Buffer {
     return this.allowEarlyFinish
   }
-  addOption(option: string): number {
+  addGeneralOption(option: string): number {
     const optionBuf = Buffer.alloc(256)
     optionBuf.write(option, 0, 256)
     const generalVoteOption = new GeneralVoteOption()
