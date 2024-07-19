@@ -1,7 +1,8 @@
 import { Buffer } from "buffer/"
 import { PlatformVMConstants } from "../constants"
-import { EssentialProposal, VoteOption } from "./essentialproposal"
+import { VoteOption } from "./essentialproposal"
 import {
+  Serializable,
   Serialization,
   SerializedEncoding,
   SerializedType
@@ -12,24 +13,75 @@ const utf8: SerializedType = "utf8"
 const serialization = Serialization.getInstance()
 const bintools: BinTools = BinTools.getInstance()
 
-//TODO: Add GeneralVoteOption
-//TODO:  addOption
+export class GeneralVoteOption extends Serializable {
+  protected static _typeName = "GeneralVoteOption"
+  protected static _typeID = undefined // TODO: understand WHY?
+
+  protected option: Buffer = Buffer.alloc(256) // TODO: Keep it at 256 for now, make dynamic later
+
+  serialize(encoding: SerializedEncoding = "hex"): object {
+    return {
+      option: serialization.encoder(this.option, encoding, "Buffer", "hex")
+    }
+  }
+  deserialize(fields: object, encoding: SerializedEncoding = "hex"): this {
+    this.option = serialization.decoder(
+      fields["option"],
+      encoding, // TODO: where does utf8 come arouf?
+      "Buffer", //?
+      "Buffer", //?
+      256 // TODO: what is this?
+    )
+
+    return this
+  }
+
+  fromBuffer(bytes: Buffer, offset: number = 0): number {
+    this.option = bintools.copyFrom(bytes, offset, offset + 256)
+    return offset + 256
+  }
+  toBuffer(): Buffer {
+    return this.option
+  }
+
+  clone(): this {
+    let newbase: GeneralVoteOption = new GeneralVoteOption()
+    newbase.fromBuffer(this.toBuffer())
+    return newbase as this
+  }
+
+  create(): this {
+    return new GeneralVoteOption() as this
+  }
+
+  getSize(): number {
+    return 256
+  }
+
+  //TODO: yes/no?
+  constructor() {
+    super()
+  }
+}
 export class GeneralProposal {
   private readonly _typeID = PlatformVMConstants.GENERALPROPOSAL_TYPE_ID
   private _optionIndex = Buffer.alloc(4)
 
-  //TODO: @VjeraTurk
-  protected start: Buffer = Buffer.alloc(8)
-  protected end: Buffer = Buffer.alloc(8)
-  protected options: VoteOption[]
-  protected numOptions: Buffer = Buffer.alloc(4)
+  //private _optionIndex = Buffer.alloc(4) ??
 
-  private totalVotedThresholdNominator: Buffer
-  private mostVotedThresholdNominator: Buffer
-  protected allowEarlyFinish = Buffer.alloc(1)
+  protected numOptions: Buffer = Buffer.alloc(4) //1.
+  protected options: GeneralVoteOption[] // TODO: define type //2. - one option 256 char? Always? Or add length of each option and make option 255 long?
+
+  protected start: Buffer = Buffer.alloc(8) //3.
+  protected end: Buffer = Buffer.alloc(8) //4.
+
+  protected totalVotedThresholdNominator: Buffer = Buffer.alloc(8) //5.
+  protected mostVotedThresholdNominator: Buffer = Buffer.alloc(8) //6.
+  protected allowEarlyFinish = Buffer.alloc(1) // 7.
 
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields = {
+      options: this.options.map((opt) => opt.serialize(encoding)),
       start: serialization.encoder(this.start, encoding, "Buffer", "number"),
       end: serialization.encoder(this.end, encoding, "Buffer", "number"),
       totalVotedThresholdNominator: serialization.encoder(
@@ -49,15 +101,16 @@ export class GeneralProposal {
         encoding,
         "Buffer",
         "number" // 1 and 0?
-      ),
-      options: this.options.map((option: VoteOption) =>
-        option.serialize(encoding)
       )
     }
     return fields
   }
 
   deserialize(fields: object, encoding: SerializedEncoding = "hex"): this {
+    this.numOptions.writeUInt32BE(this.options.length, 0)
+    this.options = fields["options"].map((opt) =>
+      new VoteOption().deserialize(opt, encoding)
+    )
     this.start = serialization.decoder(
       fields["start"],
       encoding,
@@ -90,19 +143,19 @@ export class GeneralProposal {
       "Buffer"
     )
 
-    this.numOptions.writeUInt32BE(this.options.length, 0)
-    this.options = fields["options"].map((opt) =>
-      new VoteOption().deserialize(opt, encoding)
-    )
     return this
   }
 
-  getOptionIndex() {
-    return this._optionIndex
-  }
   fromBuffer(bytes: Buffer, offset: number = 0): number {
-    //this.numOptions ?
-    //this.options ?
+    this.numOptions = bintools.copyFrom(bytes, offset, offset + 4) // this.numOptions.readUInt32BE(0)
+    offset += 4
+    const optionCount = this.numOptions.readUInt32BE(0)
+    this.options = []
+    for (let i = 0; i < optionCount; i++) {
+      const option = new GeneralVoteOption()
+      offset = option.fromBuffer(bytes, offset)
+      this.options.push(option)
+    }
 
     this.start = bintools.copyFrom(bytes, offset + 8) // Read start (8 bytes)
     offset += 8
@@ -119,16 +172,6 @@ export class GeneralProposal {
 
     this.allowEarlyFinish = bintools.copyFrom(bytes, offset, offset + 1)
     offset += 1
-
-    this.numOptions = bintools.copyFrom(bytes, offset, offset + 4) // this.numOptions.readUInt32BE(0)
-    offset += 4
-    const optionCount = this.numOptions.readUInt32BE(0)
-    this.options = []
-    for (let i = 0; i < optionCount; i++) {
-      const option = new VoteOption()
-      offset = option.fromBuffer(bytes, offset)
-      this.options.push(option)
-    }
 
     return offset
   }
@@ -202,22 +245,23 @@ export class GeneralProposal {
     return this._typeID
   }
 
-  /*  addGeneralOption(option: string): number {
-    const optionBuf: Buffer = Buffer.alloc(option.length)
-    optionBuf.write(option, 0, option.length, utf8)
-
-    const optionsize: Buffer = Buffer.alloc(2)
-    optionsize.writeUInt16BE(option.length, 0)
-
-    //const optionBuf: Buffer = bintools.stringToBuffer(option)
-
-    const voteOption = new VoteOption()
-    voteOption.fromBuffer(optionBuf)
-
-    return super.addOption(voteOption)
-  }*/
+  addOption(option: string): number {
+    const optionBuf = Buffer.alloc(256)
+    optionBuf.write(option, 0, 256)
+    const generalVoteOption = new GeneralVoteOption()
+    generalVoteOption.fromBuffer(optionBuf)
+    this.options.push(generalVoteOption)
+    if (this.options) {
+      this.numOptions.writeUInt32BE(this.options.length, 0)
+    }
+    return this.options.length - 1
+  }
 
   getAllowEarlyFinish(): Buffer {
     return this.allowEarlyFinish
+  }
+
+  getOptionIndex() {
+    return this._optionIndex
   }
 }

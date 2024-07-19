@@ -54,10 +54,15 @@ const main = async (): Promise<any> => {
     startTimestamp,
     endTimestamp
   )
-  proposal.addGeneralOption("li la lo")
-  proposal.addGeneralOption("la li lo")
-  proposal.addGeneralOption("lo li la")
-  proposal.addGeneralOption("la li l0")
+  proposal.addOption(
+    "THIS STRING IS 256 CHARACTERS xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  )
+  proposal.addOption(
+    "THIS STRING IS 256 CHARACTERS xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  )
+  proposal.addOption(
+    "THIS STRING IS 256 CHARACTERS xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  )
 
   //proposal.addGeneralOptions(1, 2, 3, 4)
 
@@ -90,6 +95,7 @@ const main = async (): Promise<any> => {
 
     console.log(addProposalTxTypeID, addProposalTxTypeName)
 
+    console.log(hex)
     //TODO : @VjeraTurk resolve buffer problem
     //couldn't issue tx: bad proposal: trailing buffer space: read 41 provided 44
     //couldn't issue tx: bad proposal: trailing buffer space: read 41 provided 84
