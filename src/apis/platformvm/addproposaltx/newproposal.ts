@@ -13,7 +13,7 @@ const serialization = Serialization.getInstance()
 const bintools: BinTools = BinTools.getInstance()
 
 export class NewVoteOption extends Serializable {
-  protected _typeName = "GeneralVoteOption"
+  protected _typeName = "NewVoteOption"
   protected _typeID = undefined // TODO: understand WHY?
 
   protected option: Buffer = Buffer.alloc(256) // TODO: Keep it at 256 for now, make dynamic later
@@ -229,9 +229,9 @@ export class NewProposal {
   addGeneralOption(option: string): number {
     const optionBuf = Buffer.alloc(256)
     optionBuf.write(option, 0, 256)
-    const generalVoteOption = new NewVoteOption()
-    generalVoteOption.fromBuffer(optionBuf)
-    this.options.push(generalVoteOption)
+    const newVoteOption = new NewVoteOption()
+    newVoteOption.fromBuffer(optionBuf)
+    this.options.push(newVoteOption)
     if (this.options) {
       this.numOptions.writeUInt32BE(this.options.length, 0)
     }
