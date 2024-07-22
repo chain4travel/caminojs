@@ -148,9 +148,9 @@ export class GeneralProposal {
       this.options.push(option)
     }
 
-    this.start = bintools.copyFrom(bytes, offset, offset + 8) // Read start (8 bytes)
+    this.start = bintools.copyFrom(bytes, offset, offset + 8)
     offset += 8
-    this.end = bintools.copyFrom(bytes, offset, offset + 8) // Read start (8 bytes)
+    this.end = bintools.copyFrom(bytes, offset, offset + 8)
     offset += 8
     this.totalVotedThresholdNominator = bintools.copyFrom(
       bytes,
@@ -158,7 +158,11 @@ export class GeneralProposal {
       offset + 8
     ) // Read totalVotedThresholdNominator (8 bytes)
     offset += 8
-    this.totalVotedThresholdNominator = bintools.copyFrom(bytes, offset + 8) // Read totalVotedThresholdNominator (8 bytes)
+    this.totalVotedThresholdNominator = bintools.copyFrom(
+      bytes,
+      offset,
+      offset + 8
+    ) // Read totalVotedThresholdNominator (8 bytes)
     this.mostVotedThresholdNominator = bintools.copyFrom(
       bytes,
       offset,
