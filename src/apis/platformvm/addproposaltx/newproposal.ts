@@ -58,6 +58,7 @@ export class NewVoteOption extends Serializable {
 }
 export class NewProposal {
   private readonly _typeID = PlatformVMConstants.NEWPROPOSAL_TYPE_ID
+  //private _optionIndex = Buffer.alloc(4)
 
   protected numOptions: Buffer = Buffer.alloc(4) //1.
   protected options: NewVoteOption[] // TODO: define type //2. - one option 256 char? Always? Or add length of each option and make option 255 long?
@@ -226,7 +227,7 @@ export class NewProposal {
   getAllowEarlyFinish(): Buffer {
     return this.allowEarlyFinish
   }
-  addGeneralOption(option: string): number {
+  addNewOption(option: string): number {
     const optionBuf = Buffer.alloc(256)
     optionBuf.write(option, 0, 256)
     const newVoteOption = new NewVoteOption()

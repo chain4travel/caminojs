@@ -26,7 +26,6 @@ let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
 let pAddressStrings: string[]
-const targetAddress = "P-kopernikus122gtala73kjrf34xtdq0d9vssqlccxjjam7kk8"
 const bintools: BinTools = BinTools.getInstance()
 const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()
@@ -48,19 +47,19 @@ const main = async (): Promise<any> => {
   let endTimestamp = Math.floor(endDate.getTime() / 1000)
   const txs = await pchain.getUTXOs(pAddressStrings)
   const proposal = new GeneralProposal(
-    1,
-    1,
-    false,
     startTimestamp,
-    endTimestamp
+    endTimestamp,
+    1,
+    2,
+    false
   )
-  proposal.addOption(
+  proposal.addGeneralOption(
     "THIS STRING IS 256 CHARACTERS xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   )
-  proposal.addOption(
+  proposal.addGeneralOption(
     "THIS STRING IS 256 CHARACTERS xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   )
-  proposal.addOption(
+  proposal.addGeneralOption(
     "THIS STRING IS 256 CHARACTERS xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   )
 
@@ -89,12 +88,14 @@ const main = async (): Promise<any> => {
     const hex = tx.toStringHex().slice(2)
     const unsignedTx2 = new UnsignedTx()
     unsignedTx2.fromBuffer(Buffer.from(hex, "hex"))
+
     const addProposalTx = unsignedTx2.getTransaction() as AddProposalTx
     const addProposalTxTypeName: string = addProposalTx.getTypeName()
     const addProposalTxTypeID: number = addProposalTx.getTypeID()
 
-    console.log(addProposalTxTypeID, addProposalTxTypeName)
+    const generalProposal = addProposalTx.getProposalPayload()
 
+    console.log(addProposalTxTypeID, addProposalTxTypeName)
     console.log(hex)
     //TODO : @VjeraTurk resolve buffer problem
     //couldn't issue tx: bad proposal: trailing buffer space: read 41 provided 44

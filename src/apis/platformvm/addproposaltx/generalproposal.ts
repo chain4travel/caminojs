@@ -157,12 +157,6 @@ export class GeneralProposal {
       offset,
       offset + 8
     ) // Read totalVotedThresholdNominator (8 bytes)
-    offset += 8
-    this.totalVotedThresholdNominator = bintools.copyFrom(
-      bytes,
-      offset,
-      offset + 8
-    ) // Read totalVotedThresholdNominator (8 bytes)
     this.mostVotedThresholdNominator = bintools.copyFrom(
       bytes,
       offset,
@@ -208,11 +202,11 @@ export class GeneralProposal {
   }
 
   constructor(
+    start?: number,
+    end?: number,
     totalVotedThresholdNominator?: number,
     mostVotedThresholdNominator?: number,
-    allowEarlyFinish?: boolean, // TODO: @VjeraTurk Early Finish or Early Exit?
-    start?: number,
-    end?: number
+    allowEarlyFinish?: boolean // TODO: @VjeraTurk Early Finish or Early Exit?
   ) {
     //this.numOptions ?
     //this.options ?
@@ -245,7 +239,7 @@ export class GeneralProposal {
     return this._typeID
   }
 
-  addOption(option: string): number {
+  addGeneralOption(option: string): number {
     const optionBuf = Buffer.alloc(256)
     optionBuf.write(option, 0, 256)
     const generalVoteOption = new GeneralVoteOption()

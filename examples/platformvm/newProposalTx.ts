@@ -1,6 +1,6 @@
 import {
-  NewProposal,
   AddProposalTx,
+  NewProposal,
   KeyChain,
   PlatformVMAPI,
   UnsignedTx
@@ -43,20 +43,27 @@ const main = async (): Promise<any> => {
   let endDate = new Date(startDate)
   endDate.setDate(endDate.getDate() + 60)
 
-  let startTimestamp = Math.floor(startDate.getTime() / 1000)
-  let endTimestamp = Math.floor(endDate.getTime() / 1000)
+  let startTimestamp: number = Math.floor(startDate.getTime() / 1000)
+  let endTimestamp: number = Math.floor(endDate.getTime() / 1000)
   const txs = await pchain.getUTXOs(pAddressStrings)
   const proposal = new NewProposal(startTimestamp, endTimestamp, 1, 2, true)
 
-  proposal.addGeneralOption(
+  proposal.addNewOption(
     "THIS STRING IS 256 CHARACTERS xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   )
-  proposal.addGeneralOption(
+  proposal.addNewOption(
     "THIS STRING IS 256 CHARACTERS xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   )
-  proposal.addGeneralOption(
+  proposal.addNewOption(
     "THIS STRING IS 256 CHARACTERS xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   )
+
+  try {
+    let buffer = proposal.toBuffer()
+    console.log(buffer)
+  } catch (e) {
+    console.log(e)
+  }
 
   try {
     let unsignedTx = await pchain.buildAddProposalTx(
