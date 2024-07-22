@@ -185,7 +185,7 @@ export class GeneralProposal {
       this.end,
       this.totalVotedThresholdNominator,
       this.mostVotedThresholdNominator,
-      Buffer.from([this.allowEarlyFinish ? 1 : 0])
+      this.allowEarlyFinish
     ]
 
     let bsize =
