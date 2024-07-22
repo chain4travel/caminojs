@@ -1,6 +1,5 @@
 import { Buffer } from "buffer/"
 import { PlatformVMConstants } from "../constants"
-import { VoteOption } from "./essentialproposal"
 import {
   Serializable,
   Serialization,
@@ -14,8 +13,8 @@ const serialization = Serialization.getInstance()
 const bintools: BinTools = BinTools.getInstance()
 
 export class GeneralVoteOption extends Serializable {
-  protected static _typeName = "GeneralVoteOption"
-  protected static _typeID = undefined // TODO: understand WHY?
+  protected _typeName = "GeneralVoteOption"
+  protected _typeID = undefined // TODO: understand WHY?
 
   protected option: Buffer = Buffer.alloc(256) // TODO: Keep it at 256 for now, make dynamic later
 
@@ -44,30 +43,22 @@ export class GeneralVoteOption extends Serializable {
     return this.option
   }
 
-  clone(): this {
-    let newbase: GeneralVoteOption = new GeneralVoteOption()
-    newbase.fromBuffer(this.toBuffer())
-    return newbase as this
-  }
-
-  create(): this {
-    return new GeneralVoteOption() as this
-  }
-
   getSize(): number {
     return 256
   }
 
+  getOption(): Buffer {
+    return this.option
+  }
   //TODO: yes/no?
-  constructor() {
+  constructor(option?: Buffer) {
     super()
+    if (option) this.option = option
   }
 }
 export class GeneralProposal {
   private readonly _typeID = PlatformVMConstants.GENERALPROPOSAL_TYPE_ID
   private _optionIndex = Buffer.alloc(4)
-
-  //private _optionIndex = Buffer.alloc(4) ??
 
   protected numOptions: Buffer = Buffer.alloc(4) //1.
   protected options: GeneralVoteOption[] // TODO: define type //2. - one option 256 char? Always? Or add length of each option and make option 255 long?
@@ -109,7 +100,7 @@ export class GeneralProposal {
   deserialize(fields: object, encoding: SerializedEncoding = "hex"): this {
     this.numOptions.writeUInt32BE(this.options.length, 0)
     this.options = fields["options"].map((opt) =>
-      new VoteOption().deserialize(opt, encoding)
+      new GeneralVoteOption().deserialize(opt, encoding)
     )
     this.start = serialization.decoder(
       fields["start"],
@@ -157,12 +148,17 @@ export class GeneralProposal {
       this.options.push(option)
     }
 
-    this.start = bintools.copyFrom(bytes, offset + 8) // Read start (8 bytes)
+    this.start = bintools.copyFrom(bytes, offset, offset + 8) // Read start (8 bytes)
     offset += 8
-    this.end = bintools.copyFrom(bytes, offset + 8) // Read start (8 bytes)
+    this.end = bintools.copyFrom(bytes, offset, offset + 8) // Read start (8 bytes)
+    offset += 8
+    this.totalVotedThresholdNominator = bintools.copyFrom(
+      bytes,
+      offset,
+      offset + 8
+    ) // Read totalVotedThresholdNominator (8 bytes)
     offset += 8
     this.totalVotedThresholdNominator = bintools.copyFrom(bytes, offset + 8) // Read totalVotedThresholdNominator (8 bytes)
-    offset += 8
     this.mostVotedThresholdNominator = bintools.copyFrom(
       bytes,
       offset,

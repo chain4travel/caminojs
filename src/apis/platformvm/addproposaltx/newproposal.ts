@@ -1,18 +1,18 @@
 import { Buffer } from "buffer/"
 import { PlatformVMConstants } from "../constants"
-import BinTools from "../../../utils/bintools"
 import {
   Serializable,
   Serialization,
   SerializedEncoding,
   SerializedType
 } from "../../../utils/serialization"
+import BinTools from "../../../utils/bintools"
 const utf8: SerializedType = "utf8"
 
 const serialization = Serialization.getInstance()
-const bintools = BinTools.getInstance()
+const bintools: BinTools = BinTools.getInstance()
 
-export class GeneralVoteOption extends Serializable {
+export class NewVoteOption extends Serializable {
   protected _typeName = "GeneralVoteOption"
   protected _typeID = undefined // TODO: understand WHY?
 
@@ -43,16 +43,24 @@ export class GeneralVoteOption extends Serializable {
     return this.option
   }
 
+  getSize(): number {
+    return 256
+  }
+
+  getOption(): Buffer {
+    return this.option
+  }
   //TODO: yes/no?
-  constructor() {
+  constructor(option?: Buffer) {
     super()
+    if (option) this.option = option
   }
 }
 export class NewProposal {
-  private readonly _typeID = PlatformVMConstants.GENERALPROPOSAL_TYPE_ID
+  private readonly _typeID = PlatformVMConstants.NEWPROPOSAL_TYPE_ID
 
   protected numOptions: Buffer = Buffer.alloc(4) //1.
-  protected options: GeneralVoteOption[] // TODO: define type //2. - one option 256 char? Always? Or add length of each option and make option 255 long?
+  protected options: NewVoteOption[] // TODO: define type //2. - one option 256 char? Always? Or add length of each option and make option 255 long?
 
   protected start: Buffer = Buffer.alloc(8) //3.
   protected end: Buffer = Buffer.alloc(8) //4.
@@ -91,7 +99,7 @@ export class NewProposal {
   deserialize(fields: object, encoding: SerializedEncoding = "hex"): this {
     this.numOptions.writeUInt32BE(this.options.length, 0)
     this.options = fields["options"].map((opt) =>
-      new GeneralVoteOption().deserialize(opt, encoding)
+      new NewVoteOption().deserialize(opt, encoding)
     )
     this.start = serialization.decoder(
       fields["start"],
@@ -131,7 +139,7 @@ export class NewProposal {
     const optionCount = this.numOptions.readUInt32BE(0)
     this.options = []
     for (let i = 0; i < optionCount; i++) {
-      const option = new GeneralVoteOption()
+      const option = new NewVoteOption()
       offset = option.fromBuffer(bytes, offset)
       this.options.push(option)
     }
@@ -139,9 +147,17 @@ export class NewProposal {
     offset += 8
     this.end = bintools.copyFrom(bytes, offset, offset + 8)
     offset += 8
-    this.totalVotedThresholdNominator = bintools.copyFrom(bytes, offset + 8) // Read totalVotedThresholdNominator (8 bytes)
+    this.totalVotedThresholdNominator = bintools.copyFrom(
+      bytes,
+      offset,
+      offset + 8
+    ) // Read totalVotedThresholdNominator (8 bytes)
     offset += 8
-    this.mostVotedThresholdNominator = bytes.slice(offset, offset + 8) // Read mostVotedThresholdNominator (8 bytes)
+    this.mostVotedThresholdNominator = bintools.copyFrom(
+      bytes,
+      offset,
+      offset + 8
+    ) // Read mostVotedThresholdNominator (8 bytes)
     offset += 8
     this.allowEarlyFinish = bintools.copyFrom(bytes, offset, offset + 1)
     offset += 1
@@ -213,7 +229,7 @@ export class NewProposal {
   addGeneralOption(option: string): number {
     const optionBuf = Buffer.alloc(256)
     optionBuf.write(option, 0, 256)
-    const generalVoteOption = new GeneralVoteOption()
+    const generalVoteOption = new NewVoteOption()
     generalVoteOption.fromBuffer(optionBuf)
     this.options.push(generalVoteOption)
     if (this.options) {
