@@ -58,7 +58,7 @@ export class GeneralVoteOption extends Serializable {
 }
 export class GeneralProposal {
   private readonly _typeID = PlatformVMConstants.GENERALPROPOSAL_TYPE_ID
-  private _optionIndex = Buffer.alloc(4)
+  //private _optionIndex = Buffer.alloc(4)
 
   protected numOptions: Buffer = Buffer.alloc(4) //1.
   protected options: GeneralVoteOption[] // TODO: define type //2. - one option 256 char? Always? Or add length of each option and make option 255 long?
@@ -171,11 +171,14 @@ export class GeneralProposal {
     return offset
   }
   toBuffer(): Buffer {
+    /*
     const buff = this.getOptionIndex()
     const typeIdBuff = Buffer.alloc(4)
     typeIdBuff.writeUInt32BE(this.getTypeID(), 0)
+*/
 
     let barr = [
+      this.numOptions,
       this.start,
       this.end,
       this.totalVotedThresholdNominator,
@@ -184,6 +187,7 @@ export class GeneralProposal {
     ]
 
     let bsize =
+      this.numOptions.length +
       this.start.length +
       this.end.length +
       this.totalVotedThresholdNominator.length +
@@ -196,10 +200,11 @@ export class GeneralProposal {
       barr.push(opt.toBuffer())
     })
 
-    return Buffer.concat(
+    return Buffer.concat(barr, bsize)
+    /*    return Buffer.concat(
       [buff, typeIdBuff, Buffer.concat(barr, bsize)],
       buff.length + typeIdBuff.length + bsize
-    )
+    )*/
   }
 
   constructor(
@@ -256,7 +261,7 @@ export class GeneralProposal {
     return this.allowEarlyFinish
   }
 
-  getOptionIndex() {
+  /*  getOptionIndex() {
     return this._optionIndex
-  }
+  }*/
 }
