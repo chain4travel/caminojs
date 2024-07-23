@@ -157,6 +157,7 @@ export class GeneralProposal {
       offset,
       offset + 8
     ) // Read totalVotedThresholdNominator (8 bytes)
+    offset += 8
     this.mostVotedThresholdNominator = bintools.copyFrom(
       bytes,
       offset,
