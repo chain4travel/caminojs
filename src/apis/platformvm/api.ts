@@ -785,7 +785,8 @@ export class PlatformVMAPI extends JRPCAPI {
       "platform.getUpgradePhases"
     )
     return {
-      SunrisePhase: parseInt(response.data.result.sunrisePhase)
+      AthensPhase: parseInt(response.data.result.athensPhase),
+      BerlinPhase: parseInt(response.data.result.berlinPhase)
     }
   }
 

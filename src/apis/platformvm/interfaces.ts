@@ -358,7 +358,8 @@ export interface ClaimAmountParams {
 }
 
 export interface UpgradePhasesReply {
-  SunrisePhase: number
+  AthensPhase: number
+  BerlinPhase: number
 }
 export interface GetCurrentSupplyResponse {
   supply: BN
