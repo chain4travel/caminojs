@@ -360,6 +360,7 @@ export interface ClaimAmountParams {
 export interface UpgradePhasesReply {
   AthensPhase: number
   BerlinPhase: number
+  CairoPhase?: number
 }
 export interface GetCurrentSupplyResponse {
   supply: BN

@@ -62,10 +62,22 @@ export const KopernikusID = "1002"
 export const ColumbusID = "1001"
 export const CaminoID = "1000"
 
+export const ATHENSHASETIME: Map<string, Date> = new Map([
+  [KopernikusID, new Date("2023-07-04T13:00:00Z")],
+  [ColumbusID, new Date("2023-07-07T08:00:00Z")],
+  [CaminoID, new Date("2023-07-08T08:00:00Z")]
+])
+
 export const BERLINPHASETIME: Map<string, Date> = new Map([
   [KopernikusID, new Date("2024-04-13T00:00:00Z")],
-  [ColumbusID, new Date("2024-08-07T00:00:00Z")],
-  [CaminoID, new Date("2024-08-17T00:00:00Z")]
+  [ColumbusID, new Date("2024-08-07T08:00:00Z")],
+  [CaminoID, new Date("2024-08-17T08:00:00Z")]
+])
+
+export const CAIROPHASETIME: Map<string, Date> = new Map([
+  [KopernikusID, new Date("3024-01-01T00:00:00Z")],
+  [ColumbusID, new Date("3024-01-01T00:00:00Z")],
+  [CaminoID, new Date("3024-01-01T00:00:00Z")]
 ])
 /**
  * Rules used when merging sets

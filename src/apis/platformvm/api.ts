@@ -786,7 +786,8 @@ export class PlatformVMAPI extends JRPCAPI {
     )
     return {
       AthensPhase: parseInt(response.data.result.athensPhase),
-      BerlinPhase: parseInt(response.data.result.berlinPhase)
+      BerlinPhase: parseInt(response.data.result.berlinPhase),
+      CairoPhase: parseInt(response.data.result?.cairoPhase)
     }
   }
 
