@@ -358,8 +358,9 @@ export interface ClaimAmountParams {
 }
 
 export interface UpgradePhasesReply {
-  AthensPhase: number
-  BerlinPhase: number
+  SunrisePhase?: number
+  AthensPhase?: number
+  BerlinPhase?: number
   CairoPhase?: number
 }
 export interface GetCurrentSupplyResponse {

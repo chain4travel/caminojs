@@ -74,6 +74,7 @@ export const BERLINPHASETIME: Map<string, Date> = new Map([
   [CaminoID, new Date("2024-08-17T08:00:00Z")]
 ])
 
+//TODO: @VjeraTurk FAKE DATES FIX THIS
 export const CAIROPHASETIME: Map<string, Date> = new Map([
   [KopernikusID, new Date("3024-01-01T00:00:00Z")],
   [ColumbusID, new Date("3024-01-01T00:00:00Z")],
