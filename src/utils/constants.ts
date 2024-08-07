@@ -69,9 +69,9 @@ export const ATHENSHASETIME: Map<string, Date> = new Map([
 ])
 //TODO: @VjeraTurk FAKE DATES FIX THIS
 export const BERLINPHASETIME: Map<string, Date> = new Map([
-  [KopernikusID, new Date("2023-04-13T00:00:00Z")],
-  [ColumbusID, new Date("2023-08-07T08:00:00Z")],
-  [CaminoID, new Date("2023-08-17T08:00:00Z")]
+  [KopernikusID, new Date("2024-09-15T00:00:00Z")],
+  [ColumbusID, new Date("2024-10-15T08:00:00Z")],
+  [CaminoID, new Date("2024-12-15T08:00:00Z")]
 ])
 
 //TODO: @VjeraTurk FAKE DATES FIX THIS
