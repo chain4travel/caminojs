@@ -37,6 +37,9 @@ export declare const WEI: BN;
 export declare const GWEI: BN;
 export declare const AVAXGWEI: BN;
 export declare const AVAXSTAKECAP: BN;
+export declare const KopernikusID = "1002";
+export declare const ColumbusID = "1001";
+export declare const CaminoID = "1000";
 /**
  * Rules used when merging sets
  */
