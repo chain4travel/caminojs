@@ -41,9 +41,10 @@ for ts_file in ../examples/platformvm/*.ts; do
 
   # Create or overwrite the file if allowed
   if [ "$overwrite" = true ]; then
+    application_parameters="${ts_file#../}"
     cat <<EOL > "$FILE_PATH"
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="$base_name" type="NodeJSConfigurationType" application-parameters="$ts_file" path-to-node="\$USER_HOME\$/.nvm/versions/node/v16.20.2/bin/node" node-parameters="-r tsconfig-paths/register" path-to-js-file="node_modules/ts-node/dist/bin.js" working-dir="\$PROJECT_DIR\$">
+  <configuration default="false" name="$base_name" type="NodeJSConfigurationType" application-parameters="$application_parameters" path-to-node="\$USER_HOME\$/.nvm/versions/node/v21.7.3/bin/node" node-parameters="-r tsconfig-paths/register" path-to-js-file="node_modules/ts-node/dist/bin.js" working-dir="\$PROJECT_DIR\$">
     <method v="2" />
   </configuration>
 </component>
@@ -61,4 +62,8 @@ EOL
   fi
 done
 
+```
+Remove the .run directory: 
+```shell
+rm -r ../.run | true
 ```
