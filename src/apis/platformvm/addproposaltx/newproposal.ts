@@ -117,14 +117,14 @@ export class NewProposal {
     this.totalVotedThresholdNominator = serialization.decoder(
       fields["totalVotedThresholdNominator"],
       encoding,
-      utf8, //??
-      utf8 //??
+      "number", //utf8 ?
+      "Buffer" //utf8 ?
     )
     this.mostVotedThresholdNominator = serialization.decoder(
       fields["mostVotedThresholdNominator"],
       encoding,
-      utf8, //??
-      utf8 //??
+      "number", //utf8 ?
+      "Buffer" //utf8 ?
     )
     this.allowEarlyFinish = serialization.decoder(
       fields["allowEarlyFinish"],
