@@ -294,7 +294,7 @@ describe("AddMemberProposalTx", (): void => {
         _typeName: "SubnetAuth"
       }
     }
-    expect(serializedAddressStateTx).toStrictEqual(expectedJSON)
+    expect(addMemberProposalTx).toStrictEqual(expectedJSON)
   })
 })
 
