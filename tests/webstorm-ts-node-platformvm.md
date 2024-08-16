@@ -1,4 +1,4 @@
-### WebStorm run files for debugging platformvm examples:
+### Create WebStorm run files for debugging platformvm examples:
 ```shell
 #!/bin/bash
 
@@ -61,7 +61,6 @@ EOL
     echo "Skipped creation of '$FILE_PATH'."
   fi
 done
-
 ```
 Remove the .run directory: 
 ```shell
