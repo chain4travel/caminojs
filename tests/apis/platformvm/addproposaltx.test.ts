@@ -33,14 +33,14 @@ describe("AddBaseFeeProposalTx", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const asvTx: AddProposalTx = new AddProposalTx()
-    asvTx.fromBuffer(buf)
-    const buf2: Buffer = asvTx.toBuffer()
+    const apTx: AddProposalTx = new AddProposalTx()
+    apTx.fromBuffer(buf)
+    const buf2: Buffer = apTx.toBuffer()
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 
   test("serialize", async (): Promise<void> => {
-    const serializedAddressStateTx: object = addProposalTx.serialize()
+    const serializedAddProposalTx: object = addProposalTx.serialize()
     const networkIDBuff = Buffer.alloc(4)
     networkIDBuff.writeUInt32BE(1002, 0)
 
@@ -144,7 +144,7 @@ describe("AddBaseFeeProposalTx", (): void => {
         _typeName: "SubnetAuth"
       }
     }
-    expect(serializedAddressStateTx).toStrictEqual(expectedJSON)
+    expect(serializedAddProposalTx).toStrictEqual(expectedJSON)
   })
 })
 
@@ -191,14 +191,14 @@ describe("AddMemberProposalTx", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const asvTx: AddProposalTx = new AddProposalTx()
-    asvTx.fromBuffer(buf)
-    const buf2: Buffer = asvTx.toBuffer()
+    const apTx: AddProposalTx = new AddProposalTx()
+    apTx.fromBuffer(buf)
+    const buf2: Buffer = apTx.toBuffer()
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 
   test("serialize", async (): Promise<void> => {
-    const serializedAddressStateTx: object = addProposalTx.serialize()
+    const addMemberProposalTx: object = addProposalTx.serialize()
     const networkIDBuff = Buffer.alloc(4)
     networkIDBuff.writeUInt32BE(1002, 0)
 
@@ -341,14 +341,14 @@ describe("ExcludeMemberProposalTx", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const asvTx: AddProposalTx = new AddProposalTx()
-    asvTx.fromBuffer(buf)
-    const buf2: Buffer = asvTx.toBuffer()
+    const apTx: AddProposalTx = new AddProposalTx()
+    apTx.fromBuffer(buf)
+    const buf2: Buffer = apTx.toBuffer()
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 
   test("serialize", async (): Promise<void> => {
-    const serializedAddressStateTx: object = addProposalTx.serialize()
+    const serializedAddProposalTx: object = addProposalTx.serialize()
     const networkIDBuff = Buffer.alloc(4)
     networkIDBuff.writeUInt32BE(1002, 0)
 
@@ -444,7 +444,7 @@ describe("ExcludeMemberProposalTx", (): void => {
         _typeName: "SubnetAuth"
       }
     }
-    expect(serializedAddressStateTx).toStrictEqual(expectedJSON)
+    expect(serializedAddProposalTx).toStrictEqual(expectedJSON)
   })
 })
 
@@ -488,14 +488,14 @@ describe("AddMemberAdminProposal", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const asvTx: AddProposalTx = new AddProposalTx()
-    asvTx.fromBuffer(buf)
-    const buf2: Buffer = asvTx.toBuffer()
+    const apTx: AddProposalTx = new AddProposalTx()
+    apTx.fromBuffer(buf)
+    const buf2: Buffer = apTx.toBuffer()
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 
   test("serialize", async (): Promise<void> => {
-    const serializedAddressStateTx: object = addProposalTx.serialize()
+    const serializedAddProposalTx: object = addProposalTx.serialize()
     const networkIDBuff = Buffer.alloc(4)
     networkIDBuff.writeUInt32BE(1002, 0)
 
@@ -594,7 +594,7 @@ describe("AddMemberAdminProposal", (): void => {
         _typeName: "SubnetAuth"
       }
     }
-    expect(serializedAddressStateTx).toStrictEqual(expectedJSON)
+    expect(serializedAddProposalTx).toStrictEqual(expectedJSON)
   })
 })
 
@@ -638,14 +638,14 @@ describe("ExcludeMemberAdminProposal", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const asvTx: AddProposalTx = new AddProposalTx()
-    asvTx.fromBuffer(buf)
-    const buf2: Buffer = asvTx.toBuffer()
+    const apTx: AddProposalTx = new AddProposalTx()
+    apTx.fromBuffer(buf)
+    const buf2: Buffer = apTx.toBuffer()
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 
   test("serialize", async (): Promise<void> => {
-    const serializedAddressStateTx: object = addProposalTx.serialize()
+    const serializedAddProposalTx: object = addProposalTx.serialize()
     const networkIDBuff = Buffer.alloc(4)
     networkIDBuff.writeUInt32BE(1002, 0)
 
@@ -744,7 +744,7 @@ describe("ExcludeMemberAdminProposal", (): void => {
         _typeName: "SubnetAuth"
       }
     }
-    expect(serializedAddressStateTx).toStrictEqual(expectedJSON)
+    expect(serializedAddProposalTx).toStrictEqual(expectedJSON)
   })
 })
 
@@ -791,9 +791,9 @@ xdescribe("NewProposalTx", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const asvTx: AddProposalTx = new AddProposalTx()
-    asvTx.fromBuffer(buf)
-    const buf2: Buffer = asvTx.toBuffer()
+    const apTx: AddProposalTx = new AddProposalTx()
+    apTx.fromBuffer(buf)
+    const buf2: Buffer = apTx.toBuffer()
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 })
