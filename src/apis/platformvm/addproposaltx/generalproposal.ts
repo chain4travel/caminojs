@@ -68,7 +68,7 @@ export class GeneralProposal {
 
   protected totalVotedThresholdNominator: Buffer = Buffer.alloc(8) //5.
   protected mostVotedThresholdNominator: Buffer = Buffer.alloc(8) //6.
-  protected allowEarlyFinish = Buffer.alloc(1) // 7.
+  protected allowEarlyFinish: boolean // 7.
 
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields = {
@@ -87,12 +87,7 @@ export class GeneralProposal {
         "Buffer",
         "number"
       ),
-      allowEarlyFinish: serialization.encoder(
-        this.allowEarlyFinish,
-        encoding,
-        "Buffer",
-        "number" // 1 and 0?
-      )
+      allowEarlyFinish: this.allowEarlyFinish
     }
     return fields
   }
@@ -165,7 +160,7 @@ export class GeneralProposal {
     ) // Read mostVotedThresholdNominator (8 bytes)
     offset += 8
 
-    this.allowEarlyFinish = bintools.copyFrom(bytes, offset, offset + 1)
+    this.allowEarlyFinish = bintools.copyFrom(bytes, offset, offset + 1)[0] != 0
     offset += 1
 
     return offset
@@ -183,7 +178,7 @@ export class GeneralProposal {
       this.end,
       this.totalVotedThresholdNominator,
       this.mostVotedThresholdNominator,
-      this.allowEarlyFinish
+      Buffer.from([this.allowEarlyFinish ? 1 : 0])
     ]
 
     let bsize =
@@ -192,7 +187,7 @@ export class GeneralProposal {
       this.end.length +
       this.totalVotedThresholdNominator.length +
       this.mostVotedThresholdNominator.length +
-      1 // TODO: @VjeraTurk figure out the size
+      1
 
     let bsizeOptions: number = this.numOptions.length
     this.options.forEach((opt) => {
@@ -236,9 +231,7 @@ export class GeneralProposal {
       mostVotedThresholdNominator,
       0
     )
-    this.allowEarlyFinish = bintools.stringToBuffer(
-      allowEarlyFinish ? "1" : "0"
-    )
+    this.allowEarlyFinish = allowEarlyFinish
   }
 
   getTypeID(): number {
@@ -257,7 +250,7 @@ export class GeneralProposal {
     return this.options.length - 1
   }
 
-  getAllowEarlyFinish(): Buffer {
+  getAllowEarlyFinish(): boolean {
     return this.allowEarlyFinish
   }
 
