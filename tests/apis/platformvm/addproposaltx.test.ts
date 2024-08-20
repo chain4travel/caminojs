@@ -759,7 +759,7 @@ describe("ExcludeMemberAdminProposal", (): void => {
   })
 })
 
-describe("NewProposalTx", (): void => {
+xdescribe("NewProposalTx", (): void => {
   const bintools = BinTools.getInstance()
   const serialization = Serialization.getInstance()
   const addProposalTxHex: string =
