@@ -16,17 +16,19 @@ export class GeneralVoteOption extends Serializable {
   protected _typeName = "GeneralVoteOption"
   protected _typeID = undefined // TODO: understand WHY?
 
-  protected option: Buffer = Buffer.alloc(256) // TODO: Keep it at 256 for now, make dynamic later
+  protected option: Buffer = Buffer.alloc(0) // TODO: memo is 0, should this be as well?
 
   serialize(encoding: SerializedEncoding = "hex"): object {
+    super.serialize() //TODO: @VjeraTurk do I need this?
     return {
       option: serialization.encoder(this.option, encoding, "Buffer", "hex")
     }
   }
   deserialize(fields: object, encoding: SerializedEncoding = "hex"): this {
+    super.deserialize(fields, encoding) //TODO: @VjeraTurk do I need this?
     this.option = serialization.decoder(
       fields["option"],
-      encoding, // TODO: where does utf8 come arouf?
+      encoding, // TODO: where does utf8 come around?
       "Buffer", //?
       "Buffer", //?
       256 // TODO: what is this?
@@ -36,15 +38,25 @@ export class GeneralVoteOption extends Serializable {
   }
 
   fromBuffer(bytes: Buffer, offset: number = 0): number {
-    this.option = bintools.copyFrom(bytes, offset, offset + 256)
-    return offset + 256
+    /* let optionlen: number = bintools
+      .copyFrom(bytes, offset, offset + 4)
+      .readUInt32BE(0)
+    */
+    let optionlen = 256
+    offset += 4
+    this.option = bintools.copyFrom(bytes, offset, offset + optionlen)
+    offset += optionlen
+    return offset
+
+    //this.option = bintools.copyFrom(bytes, offset, offset + 256)
+    //return offset + 256
   }
   toBuffer(): Buffer {
     return this.option
   }
 
   getSize(): number {
-    return 256
+    return this.option.length
   }
 
   getOption(): Buffer {
@@ -70,11 +82,23 @@ export class GeneralProposal {
   protected mostVotedThresholdNominator: Buffer = Buffer.alloc(8) //6.
   protected allowEarlyFinish: boolean // 7.
 
+  addGeneralOption(option: string): number {
+    const optionBuf = Buffer.alloc(4 + option.length)
+    optionBuf.write(option, 4, option.length)
+    const generalVoteOption = new GeneralVoteOption()
+    generalVoteOption.fromBuffer(optionBuf)
+    this.options.push(generalVoteOption)
+    if (this.options) {
+      this.numOptions.writeUInt32BE(this.options.length, 0)
+    }
+    return this.options.length - 1
+  }
+
   serialize(encoding: SerializedEncoding = "hex"): object {
     let fields = {
-      options: this.options.map((opt) => opt.serialize(encoding)),
       start: serialization.encoder(this.start, encoding, "Buffer", "number"),
       end: serialization.encoder(this.end, encoding, "Buffer", "number"),
+      options: this.options.map((opt) => opt.serialize(encoding)),
       totalVotedThresholdNominator: serialization.encoder(
         this.totalVotedThresholdNominator,
         encoding,
@@ -189,10 +213,14 @@ export class GeneralProposal {
       this.mostVotedThresholdNominator.length +
       1
 
-    let bsizeOptions: number = this.numOptions.length
+    //let bsizeOptions: number = this.numOptions.length
     this.options.forEach((opt) => {
-      bsize += opt.getSize()
+      let optionlen: Buffer = Buffer.alloc(4)
+      optionlen.writeUInt32BE(opt.getSize(), 0)
+      barr.push(optionlen)
       barr.push(opt.toBuffer())
+      bsize += 4
+      bsize += opt.getSize()
     })
 
     return Buffer.concat(barr, bsize)
@@ -238,23 +266,7 @@ export class GeneralProposal {
     return this._typeID
   }
 
-  addGeneralOption(option: string): number {
-    const optionBuf = Buffer.alloc(256)
-    optionBuf.write(option, 0, 256)
-    const generalVoteOption = new GeneralVoteOption()
-    generalVoteOption.fromBuffer(optionBuf)
-    this.options.push(generalVoteOption)
-    if (this.options) {
-      this.numOptions.writeUInt32BE(this.options.length, 0)
-    }
-    return this.options.length - 1
-  }
-
   getAllowEarlyFinish(): boolean {
     return this.allowEarlyFinish
   }
-
-  /*  getOptionIndex() {
-    return this._optionIndex
-  }*/
 }

@@ -759,7 +759,7 @@ describe("ExcludeMemberAdminProposal", (): void => {
   })
 })
 
-xdescribe("NewProposalTx", (): void => {
+describe("NewProposalTx", (): void => {
   const bintools = BinTools.getInstance()
   const serialization = Serialization.getInstance()
   const addProposalTxHex: string =
@@ -808,8 +808,7 @@ xdescribe("NewProposalTx", (): void => {
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 })
-
-describe("GeneralProposal", (): void => {
+describe("GeneralProposal Playground", (): void => {
   const bintools = BinTools.getInstance()
   const serialization = Serialization.getInstance()
   const addProposalTxHex: string =
@@ -853,6 +852,11 @@ describe("GeneralProposal", (): void => {
     const description = addProposalTx.getProposalDescription()
     const proposalDescription = new Buffer("hello world")
     expect(description).toStrictEqual(proposalDescription)
+  })
+
+  test("getAllowEarlyFinish", async (): Promise<void> => {
+    const payload = addProposalTx.getProposalPayload()
+    const proposal = payload.getProposal()
   })
 
   test("serialize", async (): Promise<void> => {
@@ -1122,13 +1126,390 @@ describe("GeneralProposal", (): void => {
           start: "0000000066a3b08d",
           mostVotedThresholdNominator: "0000000000000002", //
           totalVotedThresholdNominator: "0000000000000001",
-          // allowEarlyFinish: true,
-          allowEarlyFinish: serialization.encoder(
-            "01", // TODO: 01 not 1!!!
-            "hex",
-            "Buffer",
-            "hex"
-          ),
+          allowEarlyFinish: true,
+          options: [
+            {
+              //_codecID: null,
+              //_typeID: null,
+              //_typeName: "GeneralVoteOption",
+              //assetID:
+              //"59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a",
+              option: serialization.encoder(
+                Buffer.from(
+                  "THIS STRING IS 256 CHARACTERS xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                ),
+                "hex",
+                "Buffer",
+                "hex"
+              )
+            },
+            {
+              //_codecID: null,
+              //_typeID: null,
+              //_typeName: "GeneralVoteOption",
+              option: serialization.encoder(
+                Buffer.from(
+                  "THIS STRING IS 256 CHARACTERS yxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                ),
+                "hex",
+                "Buffer",
+                "hex"
+              )
+            },
+            {
+              //_codecID: null,
+              //_typeID: null,
+              //_typeName: "GeneralVoteOption",
+              option: serialization.encoder(
+                Buffer.from(
+                  "THIS STRING IS 256 CHARACTERS zxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                ),
+                "hex",
+                "Buffer",
+                "hex"
+              )
+            }
+          ]
+        }
+      },
+      proposerAddress: "46a9c04f4bf783aa69daabd519dcf36978168b66",
+      proposerAuth: {
+        _codecID: null,
+        _typeID: 10,
+        _typeName: "SubnetAuth"
+      }
+    }
+    expect(serializedAddProposalTx).toStrictEqual(expectedJSON)
+  })
+
+  test("toBuffer and fromBuffer", async (): Promise<void> => {
+    const buf: Buffer = addProposalTx.toBuffer()
+    const adpTx: AddProposalTx = new AddProposalTx()
+    adpTx.fromBuffer(buf)
+    const buf2: Buffer = adpTx.toBuffer()
+
+    //expect(buf).toStrictEqual(buf2)
+    expect(buf.toString("hex")).toStrictEqual(buf2.toString("hex"))
+  })
+})
+
+describe("GeneralProposal CaminoJs", (): void => {
+  const bintools = BinTools.getInstance()
+  const serialization = Serialization.getInstance()
+  const addProposalTxHex: string =
+    "000000002010000003ea00000000000000000000000000000000000000000000000000000000000000000000000159eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a0000000700016bcc41d9bdc0000000000000000000000001000000013cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c000000010903208c79e9d29ad5e5ea7caf771ecca4db7a218c44d7c3619deea62e6227640000000159eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a0000000500016bcc41e9000000000001000000000000001400000000000000000000000000000000000000000000000d000b68656c6c6f20776f726c6400000337000000002019000000030000000066c5f81600000000671512160000000100000000000000020000000000000001005448495320535452494e472049532032353620434841524143544552532078787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878000001005448495320535452494e472049532032353620434841524143544552532079787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878000001005448495320535452494e47204953203235362043484152414354455253207a7878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878783cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c0000000a00000001000000000000000200000009000000015383a2e7651c5c5763793964a3980840266448018b7473502bbc575335e832175900c554bd5284bf82aa749dc2c58692a37f3acb896866e3fddb43d586df5c340100000009000000015383a2e7651c5c5763793964a3980840266448018b7473502bbc575335e832175900c554bd5284bf82aa749dc2c58692a37f3acb896866e3fddb43d586df5c340103c77a89"
+
+  const unsignedTx = new UnsignedTx()
+  unsignedTx.fromBuffer(Buffer.from(addProposalTxHex, "hex"))
+  const addProposalTx = unsignedTx.getTransaction() as AddProposalTx
+
+  test("getTypeName", async (): Promise<void> => {
+    const addProposalTxTypeName: string = addProposalTx.getTypeName()
+    expect(addProposalTxTypeName).toBe("AddProposalTx")
+  })
+
+  test("getTypeID", async (): Promise<void> => {
+    const addProposalTxTypeID: number = addProposalTx.getTypeID()
+    expect(addProposalTxTypeID).toBe(PlatformVMConstants.ADDPROPOSALTX)
+  })
+
+  test("getProposerAddress", async (): Promise<void> => {
+    const expectedAddress: Buffer = bintools.stringToAddress(
+      //"P-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
+      "P-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68"
+    )
+    const address: Buffer = addProposalTx.getProposerAddress()
+    expect(address.toString()).toBe(expectedAddress.toString())
+  })
+
+  test("getProposalType", async (): Promise<void> => {
+    const proposalTypeID = PlatformVMConstants.GENERALPROPOSAL_TYPE_ID
+    const payload = addProposalTx.getProposalPayload()
+    expect(payload.getProposalType()).toBe(proposalTypeID)
+    const proposal = payload.getProposal()
+    expect(proposal.getTypeID()).toBe(proposalTypeID)
+  })
+
+  test("getProposalDescription", async (): Promise<void> => {
+    const description = addProposalTx.getProposalDescription()
+    const proposalDescription = new Buffer("hello world")
+    console.log(description.toString())
+    expect(description).toStrictEqual(proposalDescription)
+  })
+
+  test("getAllowEarlyFinish", async (): Promise<void> => {
+    const payload = addProposalTx.getProposalPayload()
+    const proposal = payload.getProposal()
+  })
+
+  test("serialize", async (): Promise<void> => {
+    const serializedAddProposalTx: object = addProposalTx.serialize()
+    const networkIDBuff = Buffer.alloc(4)
+    networkIDBuff.writeUInt32BE(1002, 0)
+
+    const expectedJSON = {
+      _typeName: "AddProposalTx",
+      _typeID: PlatformVMConstants.ADDPROPOSALTX,
+      _codecID: null,
+      networkID: serialization.encoder(
+        networkIDBuff,
+        "hex",
+        "Buffer",
+        "decimalString"
+      ),
+      blockchainID: serialization.encoder(
+        Buffer.alloc(32, 0),
+        "hex",
+        "Buffer",
+        "cb58"
+      ),
+      outs: [
+        {
+          _typeName: "TransferableOutput",
+          _typeID: null,
+          _codecID: null,
+          output: {
+            _typeName: "SECPTransferOutput",
+            _typeID: 7,
+            _codecID: null,
+            locktime: "0000000000000000",
+            threshold: "00000001",
+            addresses: [
+              {
+                _typeName: "Address",
+                _typeID: null,
+                _codecID: null,
+                bsize: "00000014",
+                bytes: "3cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c"
+              }
+            ],
+            amount: "000001d16d53c880"
+          },
+          assetID:
+            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
+        },
+        {
+          _typeName: "TransferableOutput",
+          _typeID: null,
+          _codecID: null,
+          output: {
+            _typeName: "LockedOut",
+            _typeID: 8193,
+            _codecID: null,
+            output: {
+              _typeName: "SECPTransferOutput",
+              _typeID: 7,
+              _codecID: null,
+              locktime: "0000000000000000",
+              threshold: "00000001",
+              addresses: [
+                {
+                  _typeName: "Address",
+                  _typeID: null,
+                  _codecID: null,
+                  bsize: "00000014",
+                  bytes: "46a9c04f4bf783aa69daabd519dcf36978168b66"
+                }
+              ],
+              amount: "00016bcc41d9bdc0"
+            },
+            ids: {
+              depositTxID:
+                "4b302bccad2603281f321406a8bb3f8d70400943c5465e745d9c1a4634c367d0",
+              bondTxID:
+                "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          },
+          assetID:
+            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
+        },
+        {
+          _typeName: "TransferableOutput",
+          _typeID: null,
+          _codecID: null,
+          output: {
+            _typeName: "LockedOut",
+            _typeID: 8193,
+            _codecID: null,
+            output: {
+              _typeName: "SECPTransferOutput",
+              _typeID: 7,
+              _codecID: null,
+              locktime: "0000000000000000",
+              threshold: "00000001",
+              addresses: [
+                {
+                  _typeName: "Address",
+                  _typeID: null,
+                  _codecID: null,
+                  bsize: "00000014",
+                  bytes: "46a9c04f4bf783aa69daabd519dcf36978168b66"
+                }
+              ],
+              amount: "000001ba60d33800"
+            },
+            ids: {
+              depositTxID:
+                "b61e1ebfa3c0207c1d44181321e82cd8be0e85674a1c4aed1c0102db394b5bf7",
+              bondTxID:
+                "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          },
+          assetID:
+            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
+        },
+        {
+          _typeName: "TransferableOutput",
+          _typeID: null,
+          _codecID: null,
+          output: {
+            _typeName: "LockedOut",
+            _typeID: 8193,
+            _codecID: null,
+            output: {
+              _typeName: "SECPTransferOutput",
+              _typeID: 7,
+              _codecID: null,
+              locktime: "0000000000000000",
+              threshold: "00000001",
+              addresses: [
+                {
+                  _typeName: "Address",
+                  _typeID: null,
+                  _codecID: null,
+                  bsize: "00000014",
+                  bytes: "46a9c04f4bf783aa69daabd519dcf36978168b66"
+                }
+              ],
+              amount: "000000174876e800"
+            },
+            ids: {
+              depositTxID:
+                "b61e1ebfa3c0207c1d44181321e82cd8be0e85674a1c4aed1c0102db394b5bf7",
+              bondTxID:
+                "7468697320747820696400000000000000000000000000000000000000000000"
+            }
+          },
+          assetID:
+            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
+        }
+      ],
+      ins: [
+        {
+          _typeName: "TransferableInput",
+          _typeID: null,
+          _codecID: null,
+          input: {
+            _typeName: "LockedIn",
+            _typeID: 8192,
+            _codecID: null,
+            input: {
+              _typeName: "SECPTransferInput",
+              _typeID: 5,
+              _codecID: null,
+              sigIdxs: [
+                {
+                  _typeName: "SigIdx",
+                  _typeID: null,
+                  _codecID: null,
+                  bsize: "00000004",
+                  bytes: "00000000",
+                  source: "0000000000000000000000000000000000000000"
+                }
+              ],
+              amount: "00016bcc41e90000"
+            },
+            ids: {
+              depositTxID:
+                "4b302bccad2603281f321406a8bb3f8d70400943c5465e745d9c1a4634c367d0",
+              bondTxID:
+                "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          },
+          txid: "0903208c79e9d29ad5e5ea7caf771ecca4db7a218c44d7c3619deea62e622764",
+          outputidx: "00000001", //TODO: What is the difference betwwen ...000 an ...001
+          assetID:
+            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
+        },
+        {
+          _typeName: "TransferableInput",
+          _typeID: null,
+          _codecID: null,
+          input: {
+            _typeName: "LockedIn",
+            _typeID: 8192,
+            _codecID: null,
+            input: {
+              _typeName: "SECPTransferInput",
+              _typeID: 5,
+              _codecID: null,
+              sigIdxs: [
+                {
+                  _typeName: "SigIdx",
+                  _typeID: null,
+                  _codecID: null,
+                  bsize: "00000004",
+                  bytes: "00000000",
+                  source: "0000000000000000000000000000000000000000"
+                }
+              ],
+              amount: "000001d1a94a2000"
+            },
+            ids: {
+              depositTxID:
+                "b61e1ebfa3c0207c1d44181321e82cd8be0e85674a1c4aed1c0102db394b5bf7",
+              bondTxID:
+                "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          },
+          txid: "b61e1ebfa3c0207c1d44181321e82cd8be0e85674a1c4aed1c0102db394b5bf7",
+          outputidx: "00000000",
+          assetID:
+            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
+        },
+        {
+          _typeName: "TransferableInput",
+          _typeID: null,
+          _codecID: null,
+          input: {
+            _typeName: "SECPTransferInput",
+            _typeID: 5,
+            _codecID: null,
+            sigIdxs: [
+              {
+                _typeName: "SigIdx",
+                _typeID: null,
+                _codecID: null,
+                bsize: "00000004",
+                bytes: "00000000",
+                source: "0000000000000000000000000000000000000000"
+              }
+            ],
+            amount: "000001d16d630ac0"
+          },
+          txid: "eae3599c6b10d63a2021c58e606d64a7e6f5b41f74001066147e4254bbc031a4",
+          outputidx: "00000000",
+          assetID:
+            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
+        }
+      ],
+      memo: serialization
+        .typeToBuffer(bintools.cb58Encode(Buffer.alloc(20)), "cb58")
+        .toString("hex"),
+      proposalDescription: serialization.encoder(
+        new Buffer("hello world"),
+        "hex",
+        "Buffer",
+        "hex"
+      ),
+      proposalPayload: {
+        //optionIndex: "00000000",
+        proposal: {
+          end: "0000000066a5566d",
+          start: "0000000066a3b08d",
+          mostVotedThresholdNominator: "0000000000000002", //
+          totalVotedThresholdNominator: "0000000000000001",
+          allowEarlyFinish: true,
           options: [
             {
               //_codecID: null,
