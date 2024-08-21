@@ -1308,7 +1308,7 @@ describe("GeneralProposal CaminoJs", (): void => {
                   _typeID: null,
                   _codecID: null,
                   bsize: "00000014",
-                  bytes: "46a9c04f4bf783aa69daabd519dcf36978168b66"
+                  bytes: "3cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c"
                 }
               ],
               amount: "00016bcc41d9bdc0"
@@ -1497,7 +1497,7 @@ describe("GeneralProposal CaminoJs", (): void => {
         .typeToBuffer(bintools.cb58Encode(Buffer.alloc(20)), "cb58")
         .toString("hex"),
       proposalDescription: serialization.encoder(
-        new Buffer("hello world"),
+        new Buffer([1, 2, 3, 4]),
         "hex",
         "Buffer",
         "hex"
@@ -1505,11 +1505,11 @@ describe("GeneralProposal CaminoJs", (): void => {
       proposalPayload: {
         //optionIndex: "00000000",
         proposal: {
-          end: "0000000066a5566d",
-          start: "0000000066a3b08d",
-          mostVotedThresholdNominator: "0000000000000002", //
-          totalVotedThresholdNominator: "0000000000000001",
-          allowEarlyFinish: true,
+          end: "000000006716407c",
+          start: "0000000066c7267c",
+          mostVotedThresholdNominator: "0000000200000000", //
+          totalVotedThresholdNominator: "0000000100000000",
+          allowEarlyFinish: false,
           options: [
             {
               //_codecID: null,
@@ -1555,7 +1555,7 @@ describe("GeneralProposal CaminoJs", (): void => {
           ]
         }
       },
-      proposerAddress: "46a9c04f4bf783aa69daabd519dcf36978168b66",
+      proposerAddress: "3cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c",
       proposerAuth: {
         _codecID: null,
         _typeID: 10,

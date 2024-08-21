@@ -98,6 +98,12 @@ export class GeneralProposal {
     let fields = {
       start: serialization.encoder(this.start, encoding, "Buffer", "number"),
       end: serialization.encoder(this.end, encoding, "Buffer", "number"),
+      /*numOptions: serialization.encoder(
+        this.numOptions,
+        encoding,
+        "Buffer",
+        "number"
+      ),*/
       options: this.options.map((opt) => opt.serialize(encoding)),
       totalVotedThresholdNominator: serialization.encoder(
         this.totalVotedThresholdNominator,
