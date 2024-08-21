@@ -224,14 +224,6 @@ export class GeneralProposal {
       1
 
     //let bsizeOptions: number = this.numOptions.length
-    this.options.forEach((opt) => {
-      let optionlen: Buffer = Buffer.alloc(4)
-      optionlen.writeUInt32BE(opt.getSize(), 0)
-      barr.push(optionlen)
-      barr.push(opt.toBuffer())
-      bsize += 4
-      bsize += opt.getSize()
-    })
 
     return Buffer.concat(barr, bsize)
     /*    return Buffer.concat(
