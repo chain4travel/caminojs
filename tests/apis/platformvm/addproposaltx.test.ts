@@ -31,6 +31,21 @@ describe("AddBaseFeeProposalTx", (): void => {
     expect(address.toString()).toBe(expectedAddress.toString())
   })
 
+  test("getProposalType", async (): Promise<void> => {
+    const proposalTypeID = PlatformVMConstants.BASEFEEPORPOSAL_TYPE_ID
+    const payload = addProposalTx.getProposalPayload()
+    expect(payload.getProposalType()).toBe(proposalTypeID)
+    const proposal = payload.getProposal()
+    expect(proposal.getTypeID()).toBe(proposalTypeID)
+  })
+
+  test("getProposalDescription", async (): Promise<void> => {
+    const description = addProposalTx.getProposalDescription()
+    const proposalDescription = new Buffer("<p>proposal description</p>")
+
+    expect(description.toString()).toStrictEqual(proposalDescription.toString())
+  })
+
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
     const apTx: AddProposalTx = new AddProposalTx()
