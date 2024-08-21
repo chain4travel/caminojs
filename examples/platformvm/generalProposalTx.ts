@@ -77,7 +77,7 @@ const main = async (): Promise<any> => {
       txs.utxos, // utxoset
       pAddressStrings, // fromAddresses
       pAddressStrings, // changeAddresses
-      bintools.stringToBuffer("hello world"), // description
+      new Buffer([1, 2, 3, 4]), // description
       proposal, // proposal
       pKeychain.getAddresses()[0], // proposerAddress
       0, // version
