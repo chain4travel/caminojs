@@ -196,17 +196,27 @@ export class GeneralProposal {
     typeIdBuff.writeUInt32BE(this.getTypeID(), 0)
 */
 
-    let barr = [
-      this.numOptions,
+    let barr = [this.numOptions]
+    let bsize = this.numOptions.length
+
+    this.options.forEach((opt) => {
+      let optionlen: Buffer = Buffer.alloc(4)
+      optionlen.writeUInt32BE(opt.getSize(), 0)
+      barr.push(optionlen)
+      barr.push(opt.toBuffer())
+      bsize += 4
+      bsize += opt.getSize()
+    })
+
+    barr.push(
       this.start,
       this.end,
       this.totalVotedThresholdNominator,
       this.mostVotedThresholdNominator,
       Buffer.from([this.allowEarlyFinish ? 1 : 0])
-    ]
+    )
 
-    let bsize =
-      this.numOptions.length +
+    bsize +=
       this.start.length +
       this.end.length +
       this.totalVotedThresholdNominator.length +
