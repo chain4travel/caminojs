@@ -14,24 +14,24 @@ const bintools: BinTools = BinTools.getInstance()
 
 export class GeneralVoteOption extends Serializable {
   protected _typeName = "GeneralVoteOption"
-  protected _typeID = undefined // TODO: understand WHY?
+  protected _typeID = undefined
 
-  protected option: Buffer = Buffer.alloc(0) // TODO: memo is 0, should this be as well?
+  protected option: Buffer = Buffer.alloc(0)
 
   serialize(encoding: SerializedEncoding = "hex"): object {
-    super.serialize() //TODO: @VjeraTurk do I need this?
+    super.serialize()
     return {
       option: serialization.encoder(this.option, encoding, "Buffer", "hex")
     }
   }
   deserialize(fields: object, encoding: SerializedEncoding = "hex"): this {
-    super.deserialize(fields, encoding) //TODO: @VjeraTurk do I need this?
+    super.deserialize(fields, encoding)
     this.option = serialization.decoder(
       fields["option"],
-      encoding, // TODO: where does utf8 come around?
-      "Buffer", //?
-      "Buffer", //?
-      256 // TODO: what is this?
+      encoding,
+      "Buffer",
+      "Buffer",
+      256 //max size
     )
 
     return this
@@ -60,7 +60,6 @@ export class GeneralVoteOption extends Serializable {
   getOption(): Buffer {
     return this.option
   }
-  //TODO: yes/no?
   constructor(option?: Buffer) {
     super()
     if (option) this.option = option
@@ -68,10 +67,10 @@ export class GeneralVoteOption extends Serializable {
 }
 export class GeneralProposal {
   private readonly _typeID = PlatformVMConstants.GENERALPROPOSAL_TYPE_ID
-  //private _optionIndex = Buffer.alloc(4)
 
+  // The order is important, must be followed in functions
   protected numOptions: Buffer = Buffer.alloc(4) //1.
-  protected options: GeneralVoteOption[] // TODO: define type //2. - one option 256 char? Always? Or add length of each option and make option 255 long?
+  protected options: GeneralVoteOption[] //2.
 
   protected start: Buffer = Buffer.alloc(8) //3.
   protected end: Buffer = Buffer.alloc(8) //4.
@@ -93,12 +92,6 @@ export class GeneralProposal {
     let fields = {
       start: serialization.encoder(this.start, encoding, "Buffer", "number"),
       end: serialization.encoder(this.end, encoding, "Buffer", "number"),
-      /*numOptions: serialization.encoder(
-        this.numOptions,
-        encoding,
-        "Buffer",
-        "number"
-      ),*/
       options: this.options.map((opt) => opt.serialize(encoding)),
       totalVotedThresholdNominator: serialization.encoder(
         this.totalVotedThresholdNominator,
@@ -167,7 +160,6 @@ export class GeneralProposal {
       offset = option.fromBuffer(bytes, offset)
       this.options.push(option)
     }
-
     this.start = bintools.copyFrom(bytes, offset, offset + 8)
     offset += 8
     this.end = bintools.copyFrom(bytes, offset, offset + 8)
@@ -176,13 +168,13 @@ export class GeneralProposal {
       bytes,
       offset,
       offset + 8
-    ) // Read totalVotedThresholdNominator (8 bytes)
+    )
     offset += 8
     this.mostVotedThresholdNominator = bintools.copyFrom(
       bytes,
       offset,
       offset + 8
-    ) // Read mostVotedThresholdNominator (8 bytes)
+    )
     offset += 8
 
     this.allowEarlyFinish = bintools.copyFrom(bytes, offset, offset + 1)[0] != 0
@@ -192,12 +184,6 @@ export class GeneralProposal {
   }
 
   toBuffer(): Buffer {
-    /*
-    const buff = this.getOptionIndex()
-    const typeIdBuff = Buffer.alloc(4)
-    typeIdBuff.writeUInt32BE(this.getTypeID(), 0)
-*/
-
     let barr = [this.numOptions]
     let bsize = this.numOptions.length
 
@@ -222,13 +208,7 @@ export class GeneralProposal {
       this.mostVotedThresholdNominator.length +
       1
 
-    //let bsizeOptions: number = this.numOptions.length
-
     return Buffer.concat(barr, bsize)
-    /*    return Buffer.concat(
-      [buff, typeIdBuff, Buffer.concat(barr, bsize)],
-      buff.length + typeIdBuff.length + bsize
-    )*/
   }
 
   constructor(
@@ -236,11 +216,8 @@ export class GeneralProposal {
     end?: number,
     totalVotedThresholdNominator?: number,
     mostVotedThresholdNominator?: number,
-    allowEarlyFinish?: boolean // TODO: @VjeraTurk Early Finish or Early Exit?
+    allowEarlyFinish?: boolean
   ) {
-    //this.numOptions ?
-    //this.options ?
-
     const startTime = Buffer.alloc(8) // Buffer to hold the start time, 8 bytes
     startTime.writeUInt32BE(start, 4)
     const endTime = Buffer.alloc(8) // Buffer to hold the end time, 8 bytes
