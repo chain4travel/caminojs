@@ -38,25 +38,23 @@ export class GeneralVoteOption extends Serializable {
   }
 
   fromBuffer(bytes: Buffer, offset: number = 0): number {
-    /* let optionlen: number = bintools
+    let optionLen: number = bintools
       .copyFrom(bytes, offset, offset + 4)
       .readUInt32BE(0)
-    */
-    let optionlen = 256
     offset += 4
-    this.option = bintools.copyFrom(bytes, offset, offset + optionlen)
-    offset += optionlen
+    this.option = bintools.copyFrom(bytes, offset, offset + optionLen)
+    offset += optionLen
     return offset
-
-    //this.option = bintools.copyFrom(bytes, offset, offset + 256)
-    //return offset + 256
   }
   toBuffer(): Buffer {
-    return this.option
+    let barr = [Buffer.alloc(4), this.option]
+    let bsize = 4 + this.option.length
+    barr[0].writeUInt32BE(this.option.length, 0)
+    return Buffer.concat(barr, bsize)
   }
 
   getSize(): number {
-    return this.option.length
+    return this.option.length + 4
   }
 
   getOption(): Buffer {
@@ -83,10 +81,7 @@ export class GeneralProposal {
   protected allowEarlyFinish: boolean // 7.
 
   addGeneralOption(option: string): number {
-    const optionBuf = Buffer.alloc(4 + option.length)
-    optionBuf.write(option, 4, option.length)
-    const generalVoteOption = new GeneralVoteOption()
-    generalVoteOption.fromBuffer(optionBuf)
+    const generalVoteOption = new GeneralVoteOption(Buffer.from(option))
     this.options.push(generalVoteOption)
     if (this.options) {
       this.numOptions.writeUInt32BE(this.options.length, 0)
@@ -195,6 +190,7 @@ export class GeneralProposal {
 
     return offset
   }
+
   toBuffer(): Buffer {
     /*
     const buff = this.getOptionIndex()
@@ -206,12 +202,9 @@ export class GeneralProposal {
     let bsize = this.numOptions.length
 
     this.options.forEach((opt) => {
-      let optionlen: Buffer = Buffer.alloc(4)
-      optionlen.writeUInt32BE(opt.getSize(), 0)
-      barr.push(optionlen)
-      barr.push(opt.toBuffer())
-      bsize += 4
-      bsize += opt.getSize()
+      let optBuffer = opt.toBuffer()
+      barr.push(optBuffer)
+      bsize += optBuffer.length
     })
 
     barr.push(
