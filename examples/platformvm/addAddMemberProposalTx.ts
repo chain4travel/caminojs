@@ -18,6 +18,7 @@ const avalanche: Avalanche = new Avalanche(
 )
 // BEFORE RUNNING THIS EXAMPLE:
 // crateUser, importKey to PlatformVM and setAddressState
+//You can do this via requests published in camino-postman-collection repositroy
 /**
  * @ignore
  */
@@ -73,9 +74,6 @@ const main = async (): Promise<any> => {
     const addProposalTxTypeID: number = addProposalTx.getTypeID()
 
     console.log(addProposalTxTypeID, addProposalTxTypeName)
-    //const tx = unsignedTx.sign(pKeychain)
-    //const txid: string = await pchain.issueTx(tx)
-    //console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)
   }

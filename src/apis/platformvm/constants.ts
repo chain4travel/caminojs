@@ -76,7 +76,6 @@ export class PlatformVMConstants {
     PlatformVMConstants.CUSTOM_TYPE_ID + 24
   static GENERALPROPOSAL_TYPE_ID: number =
     PlatformVMConstants.CUSTOM_TYPE_ID + 25
-  static NEWPROPOSAL_TYPE_ID: number = PlatformVMConstants.CUSTOM_TYPE_ID + 26
   // Length Constants
   static ASSETIDLEN: number = 32
 

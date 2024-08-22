@@ -63,8 +63,6 @@ const main = async (): Promise<any> => {
     "THIS STRING IS 256 CHARACTERS zxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   )
 
-  //proposal.addGeneralOptions(1, 2, 3, 4)
-
   try {
     let buffer = proposal.toBuffer()
     console.log(buffer)
@@ -97,31 +95,6 @@ const main = async (): Promise<any> => {
 
     console.log(addProposalTxTypeID, addProposalTxTypeName)
     console.log(hex)
-    //TODO : @VjeraTurk resolve buffer problem
-    //couldn't issue tx: bad proposal: trailing buffer space: read 41 provided 44
-    //couldn't issue tx: bad proposal: trailing buffer space: read 41 provided 84
-    /*    const hex = unsignedTx.getTransaction().toStringHex().slice(2)
-    const type = unsignedTx.getTransaction().getTypeID()
-    console.log(type)
-    console.log(hex)
-    try {
-      const unsignedTx2 = new UnsignedTx()
-      unsignedTx2.fromBuffer(Buffer.from(hex, "hex"))
-
-      const addProposalTx = unsignedTx2.getTransaction() as AddProposalTx
-      const generalProposal = addProposalTx
-        .getProposalPayload()
-        .getProposal() as GeneralProposal
-
-      let allowEarlyFinish = generalProposal.getAllowEarlyFinish()
-      console.log(allowEarlyFinish)
-    } catch (e) {
-      console.log(e)
-    }
-
-    const tx = unsignedTx.sign(pKeychain)*/
-    //const txid: string = await pchain.issueTx(tx)
-    //console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)
   }
