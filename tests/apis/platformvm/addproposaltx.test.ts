@@ -1280,133 +1280,28 @@ describe("GeneralProposal CaminoJs", (): void => {
       ),
       outs: [
         {
-          _typeName: "TransferableOutput",
-          _typeID: null,
           _codecID: null,
+          _typeID: null,
+          _typeName: "TransferableOutput",
+          assetID:
+            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a",
           output: {
-            _typeName: "SECPTransferOutput",
-            _typeID: 7,
             _codecID: null,
-            locktime: "0000000000000000",
-            threshold: "00000001",
+            _typeID: 7,
+            _typeName: "SECPTransferOutput",
             addresses: [
               {
-                _typeName: "Address",
-                _typeID: null,
                 _codecID: null,
+                _typeID: null,
+                _typeName: "Address",
                 bsize: "00000014",
                 bytes: "3cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c"
               }
             ],
-            amount: "000001d16d53c880"
-          },
-          assetID:
-            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
-        },
-        {
-          _typeName: "TransferableOutput",
-          _typeID: null,
-          _codecID: null,
-          output: {
-            _typeName: "LockedOut",
-            _typeID: 8193,
-            _codecID: null,
-            output: {
-              _typeName: "SECPTransferOutput",
-              _typeID: 7,
-              _codecID: null,
-              locktime: "0000000000000000",
-              threshold: "00000001",
-              addresses: [
-                {
-                  _typeName: "Address",
-                  _typeID: null,
-                  _codecID: null,
-                  bsize: "00000014",
-                  bytes: "3cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c"
-                }
-              ],
-              amount: "00016bcc41d9bdc0"
-            },
-            ids: {
-              depositTxID:
-                "4b302bccad2603281f321406a8bb3f8d70400943c5465e745d9c1a4634c367d0",
-              bondTxID:
-                "0000000000000000000000000000000000000000000000000000000000000000"
-            }
-          },
-          assetID:
-            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
-        },
-        {
-          _typeName: "TransferableOutput",
-          _typeID: null,
-          _codecID: null,
-          output: {
-            _typeName: "LockedOut",
-            _typeID: 8193,
-            _codecID: null,
-            output: {
-              _typeName: "SECPTransferOutput",
-              _typeID: 7,
-              _codecID: null,
-              locktime: "0000000000000000",
-              threshold: "00000001",
-              addresses: [
-                {
-                  _typeName: "Address",
-                  _typeID: null,
-                  _codecID: null,
-                  bsize: "00000014",
-                  bytes: "46a9c04f4bf783aa69daabd519dcf36978168b66"
-                }
-              ],
-              amount: "000001ba60d33800"
-            },
-            ids: {
-              depositTxID:
-                "b61e1ebfa3c0207c1d44181321e82cd8be0e85674a1c4aed1c0102db394b5bf7",
-              bondTxID:
-                "0000000000000000000000000000000000000000000000000000000000000000"
-            }
-          },
-          assetID:
-            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
-        },
-        {
-          _typeName: "TransferableOutput",
-          _typeID: null,
-          _codecID: null,
-          output: {
-            _typeName: "LockedOut",
-            _typeID: 8193,
-            _codecID: null,
-            output: {
-              _typeName: "SECPTransferOutput",
-              _typeID: 7,
-              _codecID: null,
-              locktime: "0000000000000000",
-              threshold: "00000001",
-              addresses: [
-                {
-                  _typeName: "Address",
-                  _typeID: null,
-                  _codecID: null,
-                  bsize: "00000014",
-                  bytes: "46a9c04f4bf783aa69daabd519dcf36978168b66"
-                }
-              ],
-              amount: "000000174876e800"
-            },
-            ids: {
-              depositTxID:
-                "b61e1ebfa3c0207c1d44181321e82cd8be0e85674a1c4aed1c0102db394b5bf7",
-              bondTxID:
-                "7468697320747820696400000000000000000000000000000000000000000000"
-            }
-          },
-          assetID:
-            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
+            amount: "00016bcc41d9bdc0",
+            locktime: "0000000000000000",
+            threshold: "00000001"
+          }
         }
       ],
       ins: [
@@ -1415,95 +1310,23 @@ describe("GeneralProposal CaminoJs", (): void => {
           _typeID: null,
           _codecID: null,
           input: {
-            _typeName: "LockedIn",
-            _typeID: 8192,
             _codecID: null,
-            input: {
-              _typeName: "SECPTransferInput",
-              _typeID: 5,
-              _codecID: null,
-              sigIdxs: [
-                {
-                  _typeName: "SigIdx",
-                  _typeID: null,
-                  _codecID: null,
-                  bsize: "00000004",
-                  bytes: "00000000",
-                  source: "0000000000000000000000000000000000000000"
-                }
-              ],
-              amount: "00016bcc41e90000"
-            },
-            ids: {
-              depositTxID:
-                "4b302bccad2603281f321406a8bb3f8d70400943c5465e745d9c1a4634c367d0",
-              bondTxID:
-                "0000000000000000000000000000000000000000000000000000000000000000"
-            }
-          },
-          txid: "0903208c79e9d29ad5e5ea7caf771ecca4db7a218c44d7c3619deea62e622764",
-          outputidx: "00000001", //TODO: What is the difference betwwen ...000 an ...001
-          assetID:
-            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
-        },
-        {
-          _typeName: "TransferableInput",
-          _typeID: null,
-          _codecID: null,
-          input: {
-            _typeName: "LockedIn",
-            _typeID: 8192,
-            _codecID: null,
-            input: {
-              _typeName: "SECPTransferInput",
-              _typeID: 5,
-              _codecID: null,
-              sigIdxs: [
-                {
-                  _typeName: "SigIdx",
-                  _typeID: null,
-                  _codecID: null,
-                  bsize: "00000004",
-                  bytes: "00000000",
-                  source: "0000000000000000000000000000000000000000"
-                }
-              ],
-              amount: "000001d1a94a2000"
-            },
-            ids: {
-              depositTxID:
-                "b61e1ebfa3c0207c1d44181321e82cd8be0e85674a1c4aed1c0102db394b5bf7",
-              bondTxID:
-                "0000000000000000000000000000000000000000000000000000000000000000"
-            }
-          },
-          txid: "b61e1ebfa3c0207c1d44181321e82cd8be0e85674a1c4aed1c0102db394b5bf7",
-          outputidx: "00000000",
-          assetID:
-            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
-        },
-        {
-          _typeName: "TransferableInput",
-          _typeID: null,
-          _codecID: null,
-          input: {
-            _typeName: "SECPTransferInput",
             _typeID: 5,
-            _codecID: null,
+            _typeName: "SECPTransferInput",
+            amount: "00016bcc41e90000",
             sigIdxs: [
               {
-                _typeName: "SigIdx",
-                _typeID: null,
                 _codecID: null,
+                _typeID: null,
+                _typeName: "SigIdx",
                 bsize: "00000004",
                 bytes: "00000000",
                 source: "0000000000000000000000000000000000000000"
               }
-            ],
-            amount: "000001d16d630ac0"
+            ]
           },
-          txid: "eae3599c6b10d63a2021c58e606d64a7e6f5b41f74001066147e4254bbc031a4",
-          outputidx: "00000000",
+          outputidx: "00000001", //TODO: What is the difference betwwen ...000 an ...001
+          txid: "0903208c79e9d29ad5e5ea7caf771ecca4db7a218c44d7c3619deea62e622764",
           assetID:
             "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
         }
