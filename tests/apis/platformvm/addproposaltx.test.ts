@@ -167,8 +167,9 @@ describe("AddMemberProposalTx", (): void => {
   const bintools = BinTools.getInstance()
   const serialization = Serialization.getInstance()
   const addProposalTxHex: string =
-    //"000000002010000003ea00000000000000000000000000000000000000000000000000000000000000000000000159eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000007000002b55c7c83000000000000000000000000010000000146a9c04f4bf783aa69daabd519dcf36978168b66000000014c8fabc9807bdfb520f713ea3ea915e4b1201addfcfaef6925705522e92a3e3f0000000059eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000005000002b55c8bc5400000000100000000000000000000001b3c703e70726f706f73616c206465736372697074696f6e3c2f703e0000002a00000000201659f116d65aceba6d22cc557e8f3ee17e22c7757d00000000665f9c700000000066aeb67046a9c04f4bf783aa69daabd519dcf36978168b660000000a00000001000000000000000200000009000000016f181711aa627ada6b026b0a5e10275a92b3985f5ef8d9db20faf659cc96f3e07b6cee8a9d2aab012c9244e8a642fdc2b4e8b685af059e312964892f8421a8700100000009000000016f181711aa627ada6b026b0a5e10275a92b3985f5ef8d9db20faf659cc96f3e07b6cee8a9d2aab012c9244e8a642fdc2b4e8b685af059e312964892f8421a87001115acab2"
-    "000000002010000003ea00000000000000000000000000000000000000000000000000000000000000000000000159eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000007000001d1e42dcf00000000000000000000000001000000013cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c000000012202d10a4489024915422013a0d048b06ee7bda83e4777bc89c55f042d7a58420000000059eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000005000001d1e43d1140000000010000000000000014000000000000000000000000000000000000000000000004010203040000002a0000000020163cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c0000000066a127130000000066f041133cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c0000000a00000001000000000000000200000009000000015dc2e6e24316c5fb453f758d22cf547aacc00b2fd30f901df0df879a46185f843da482623ee125db0f09612d9a66e15fbec0f316193e562ec8645c21204c1dd30000000009000000015dc2e6e24316c5fb453f758d22cf547aacc00b2fd30f901df0df879a46185f843da482623ee125db0f09612d9a66e15fbec0f316193e562ec8645c21204c1dd3001810f3a5"
+    "000000002010000003ea00000000000000000000000000000000000000000000000000000000000000000000000159eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000007000002b55c7c83000000000000000000000000010000000146a9c04f4bf783aa69daabd519dcf36978168b66000000014c8fabc9807bdfb520f713ea3ea915e4b1201addfcfaef6925705522e92a3e3f0000000059eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000005000002b55c8bc5400000000100000000000000000000001b3c703e70726f706f73616c206465736372697074696f6e3c2f703e0000002a00000000201659f116d65aceba6d22cc557e8f3ee17e22c7757d00000000665f9c700000000066aeb67046a9c04f4bf783aa69daabd519dcf36978168b660000000a00000001000000000000000200000009000000016f181711aa627ada6b026b0a5e10275a92b3985f5ef8d9db20faf659cc96f3e07b6cee8a9d2aab012c9244e8a642fdc2b4e8b685af059e312964892f8421a8700100000009000000016f181711aa627ada6b026b0a5e10275a92b3985f5ef8d9db20faf659cc96f3e07b6cee8a9d2aab012c9244e8a642fdc2b4e8b685af059e312964892f8421a87001115acab2"
+  //Example issued by Playground:
+  //"000000002010000003ea00000000000000000000000000000000000000000000000000000000000000000000000159eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000007000001d1e42dcf00000000000000000000000001000000013cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c000000012202d10a4489024915422013a0d048b06ee7bda83e4777bc89c55f042d7a58420000000059eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000005000001d1e43d1140000000010000000000000014000000000000000000000000000000000000000000000004010203040000002a0000000020163cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c0000000066a127130000000066f041133cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c0000000a00000001000000000000000200000009000000015dc2e6e24316c5fb453f758d22cf547aacc00b2fd30f901df0df879a46185f843da482623ee125db0f09612d9a66e15fbec0f316193e562ec8645c21204c1dd30000000009000000015dc2e6e24316c5fb453f758d22cf547aacc00b2fd30f901df0df879a46185f843da482623ee125db0f09612d9a66e15fbec0f316193e562ec8645c21204c1dd3001810f3a5"
   const unsignedTx = new UnsignedTx()
   unsignedTx.fromBuffer(Buffer.from(addProposalTxHex, "hex"))
   const addProposalTx = unsignedTx.getTransaction() as AddProposalTx
@@ -185,8 +186,8 @@ describe("AddMemberProposalTx", (): void => {
 
   test("getProposerAddress", async (): Promise<void> => {
     const expectedAddress: Buffer = bintools.stringToAddress(
-      //"P-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
-      "P-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68"
+      "P-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
+      //"P-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68"
     )
     const address: Buffer = addProposalTx.getProposerAddress()
     expect(address.toString()).toBe(expectedAddress.toString())
@@ -201,9 +202,9 @@ describe("AddMemberProposalTx", (): void => {
   })
 
   test("getProposalDescription", async (): Promise<void> => {
-    const description = addProposalTx.getProposalDescription()
-    const proposalDescription = new Buffer([1, 2, 3, 4])
-    expect(description).toStrictEqual(proposalDescription)
+    const proposalDescription = "<p>proposal description</p>"
+    const description = addProposalTx.getProposalDescription().toString()
+    expect(description).toBe(proposalDescription)
   })
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
@@ -222,8 +223,8 @@ describe("AddMemberProposalTx", (): void => {
     const expectedJSON = {
       _typeID: PlatformVMConstants.ADDPROPOSALTX,
       _typeName: "AddProposalTx",
-      assetID:
-        "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a",
+      //assetID:
+      //  "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a",
       _codecID: null,
       networkID: serialization.encoder(
         networkIDBuff,
@@ -238,19 +239,20 @@ describe("AddMemberProposalTx", (): void => {
         "cb58"
       ),
       memo: serialization
-        .typeToBuffer(bintools.cb58Encode(Buffer.alloc(20)), "cb58")
+        .typeToBuffer(bintools.cb58Encode(Buffer.from("")), "cb58")
+        //.typeToBuffer(bintools.cb58Encode(Buffer.from(20)), "cb58")
         .toString("hex"),
       ins: [
         {
           _codecID: null,
-          _typeID: 8192,
-          _typeName: "LockedIn",
-          ids: {
+          _typeID: null,
+          _typeName: "TransferableInput",
+          /*ids: {
             bondTxID:
               "0000000000000000000000000000000000000000000000000000000000000000",
             depositTxID:
               "4b302bccad2603281f321406a8bb3f8d70400943c5465e745d9c1a4634c367d0"
-          },
+          },*/
           assetID:
             "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a",
 
@@ -258,7 +260,7 @@ describe("AddMemberProposalTx", (): void => {
             _codecID: null,
             _typeID: 5,
             _typeName: "SECPTransferInput",
-            amount: "000001d1e43d1140",
+            amount: "000002b55c8bc540",
             sigIdxs: [
               {
                 _codecID: null,
@@ -271,7 +273,8 @@ describe("AddMemberProposalTx", (): void => {
             ]
           },
           outputidx: "00000000",
-          txid: "2202d10a4489024915422013a0d048b06ee7bda83e4777bc89c55f042d7a5842"
+          txid: "4c8fabc9807bdfb520f713ea3ea915e4b1201addfcfaef6925705522e92a3e3f"
+          //txid: "2202d10a4489024915422013a0d048b06ee7bda83e4777bc89c55f042d7a5842"
         }
       ],
       outs: [
@@ -291,29 +294,31 @@ describe("AddMemberProposalTx", (): void => {
                 _typeID: null,
                 _typeName: "Address",
                 bsize: "00000014",
-                bytes: "3cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c"
+                bytes: "46a9c04f4bf783aa69daabd519dcf36978168b66"
+                //bytes: "3cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c"
               }
             ],
-            amount: "000001d1e42dcf00",
+            amount: "000002b55c7c8300",
             locktime: "0000000000000000",
             threshold: "00000001"
           }
         }
       ],
       proposalDescription: serialization.encoder(
-        new Buffer([1, 2, 3, 4]),
+        //new Buffer([1, 2, 3, 4]),
+        Buffer.from("<p>proposal description</p>"),
         "hex",
         "Buffer",
-        "hex"
+        "cb58"
       ),
       proposalPayload: {
         proposal: {
-          applicantAddress: "3cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c",
-          end: "0000000066f04113",
-          start: "0000000066a12713"
+          applicantAddress: "59f116d65aceba6d22cc557e8f3ee17e22c7757d",
+          end: "0000000066aeb670",
+          start: "00000000665f9c70"
         }
       },
-      proposerAddress: "3cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c",
+      proposerAddress: "46a9c04f4bf783aa69daabd519dcf36978168b66",
       proposerAuth: {
         _codecID: null,
         _typeID: 10,

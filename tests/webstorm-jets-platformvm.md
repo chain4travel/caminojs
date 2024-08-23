@@ -75,3 +75,17 @@ Remove the .run directory:
 ```shell
 rm -r ../.run | true
 ```
+### Run all tests at once:
+To run all the tests at once, create a file named `All Tests.run.xml` in the `.run` directory with the following content:
+```xml
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="All Tests" type="JavaScriptTestRunnerJest" nameIsGenerated="true">
+    <node-interpreter value="$USER_HOME$/.nvm/versions/node/v16.20.2/bin/node" />
+    <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+    <working-dir value="$PROJECT_DIR$" />
+    <envs />
+    <scope-kind value="ALL" />
+    <method v="2" />
+  </configuration>
+</component>
+```
