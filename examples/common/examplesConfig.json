@@ -2,5 +2,5 @@
   "host": "localhost",
   "port": 9650,
   "protocol": "http",
-  "networkID": 1234
+  "networkID": 12345
 }
