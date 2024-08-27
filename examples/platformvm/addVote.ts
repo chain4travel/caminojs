@@ -59,8 +59,6 @@ const main = async (): Promise<any> => {
       ZeroBN,
       1
     )
-
-    // }
   } catch (e) {
     console.log(e)
   }

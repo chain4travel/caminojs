@@ -18,7 +18,7 @@ const avalanche: Avalanche = new Avalanche(
 )
 // BEFORE RUNNING THIS EXAMPLE:
 // crateUser, importKey to PlatformVM and setAddressState
-//You can do this via requests published in camino-postman-collection repositroy
+//You can do this via requests published in camino-postman-collection repository
 /**
  * @ignore
  */

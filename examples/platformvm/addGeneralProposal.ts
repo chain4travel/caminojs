@@ -16,8 +16,6 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-// BEFORE RUNNING THIS EXAMPLE:
-// crateUser, importKey to PlatformVM and setAddressState
 /**
  * @ignore
  */
@@ -26,6 +24,7 @@ let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
 let pAddressStrings: string[]
+const targetAddress = "P-kopernikus122gtala73kjrf34xtdq0d9vssqlccxjjam7kk8"
 const bintools: BinTools = BinTools.getInstance()
 const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()
