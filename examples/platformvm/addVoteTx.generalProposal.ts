@@ -47,19 +47,11 @@ const main = async (): Promise<any> => {
 
   const proposal = new GeneralProposal()
   try {
-    let unsignedTx = await pchain.buildAddVoteTx(
-      txs.utxos, // utxoset
-      pAddressStrings, // fromAddresses
-      pAddressStrings, // changeAddresses
-      vote.getProposalID().toString(),
-      1, // how to find this?
-      vote.getVoterAddress(),
-      DefaultTransactionVersionNumber,
-      Buffer.alloc(20), // memo
-      ZeroBN,
-      1
-    )
+    //let unsignedTx = await pchain.buildAddVoteTx()
+    //TODO:  @VjeraTurk add missing example for adding vote to General
+    //console.log(unsignedTx)
   } catch (e) {
     console.log(e)
   }
 }
+//main()
