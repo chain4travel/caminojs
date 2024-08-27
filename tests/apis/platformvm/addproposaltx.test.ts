@@ -1155,9 +1155,9 @@ describe("GeneralProposal Playground", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const adpTx: AddProposalTx = new AddProposalTx()
-    adpTx.fromBuffer(buf)
-    const buf2: Buffer = adpTx.toBuffer()
+    const addProposalTransaction: AddProposalTx = new AddProposalTx()
+    addProposalTransaction.fromBuffer(buf)
+    const buf2: Buffer = addProposalTransaction.toBuffer()
 
     //expect(buf).toStrictEqual(buf2)
     expect(buf.toString("hex")).toStrictEqual(buf2.toString("hex"))
@@ -1358,9 +1358,9 @@ describe("GeneralProposal CaminoJs", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const adpTx: AddProposalTx = new AddProposalTx()
-    adpTx.fromBuffer(buf)
-    const buf2: Buffer = adpTx.toBuffer()
+    const addProposalTransaction: AddProposalTx = new AddProposalTx()
+    addProposalTransaction.fromBuffer(buf)
+    const buf2: Buffer = addProposalTransaction.toBuffer()
 
     //expect(buf).toStrictEqual(buf2)
     expect(buf.toString("hex")).toStrictEqual(buf2.toString("hex"))
