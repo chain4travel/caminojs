@@ -42,7 +42,7 @@ const InitAvalanche = async () => {
 //TODO: @VjeraTurk add missing example for adding vote to General and Base Fee Proposal
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const txs = await pchain.getUTXOs(pAddressStrings)
+  const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
   const vote = new AddVoteTx()
 
   const proposal = new GeneralProposal()

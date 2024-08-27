@@ -46,7 +46,7 @@ const main = async (): Promise<any> => {
 
   let startTimestamp = Math.floor(startDate.getTime() / 1000)
   let endTimestamp = Math.floor(endDate.getTime() / 1000)
-  const txs = await pchain.getUTXOs(pAddressStrings)
+  const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
   const proposal = new BaseFeeProposal(startTimestamp, endTimestamp)
   proposal.addBaseFeeOption(1000000)
   proposal.addBaseFeeOption(2000000)
@@ -54,7 +54,7 @@ const main = async (): Promise<any> => {
 
   try {
     let unsignedTx = await pchain.buildAddProposalTx(
-      txs.utxos, // utxoset
+      platformVMUTXOResponse.utxos, // utxoset
       pAddressStrings, // fromAddresses
       pAddressStrings, // changeAddresses
       bintools.stringToBuffer("hello world"), // description
