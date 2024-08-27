@@ -48,9 +48,9 @@ describe("AddBaseFeeProposalTx", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const apTx: AddProposalTx = new AddProposalTx()
-    apTx.fromBuffer(buf)
-    const buf2: Buffer = apTx.toBuffer()
+    const addProposalTransaction: AddProposalTx = new AddProposalTx()
+    addProposalTransaction.fromBuffer(buf)
+    const buf2: Buffer = addProposalTransaction.toBuffer()
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 
@@ -209,9 +209,9 @@ describe("AddMemberProposalTx", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const apTx: AddProposalTx = new AddProposalTx()
-    apTx.fromBuffer(buf)
-    const buf2: Buffer = apTx.toBuffer()
+    const addProposalTransaction: AddProposalTx = new AddProposalTx()
+    addProposalTransaction.fromBuffer(buf)
+    const buf2: Buffer = addProposalTransaction.toBuffer()
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 
@@ -372,9 +372,9 @@ describe("ExcludeMemberProposalTx", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const apTx: AddProposalTx = new AddProposalTx()
-    apTx.fromBuffer(buf)
-    const buf2: Buffer = apTx.toBuffer()
+    const addProposalTransaction: AddProposalTx = new AddProposalTx()
+    addProposalTransaction.fromBuffer(buf)
+    const buf2: Buffer = addProposalTransaction.toBuffer()
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 
@@ -519,9 +519,9 @@ describe("AddMemberAdminProposal", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const apTx: AddProposalTx = new AddProposalTx()
-    apTx.fromBuffer(buf)
-    const buf2: Buffer = apTx.toBuffer()
+    const addProposalTransaction: AddProposalTx = new AddProposalTx()
+    addProposalTransaction.fromBuffer(buf)
+    const buf2: Buffer = addProposalTransaction.toBuffer()
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 
@@ -669,9 +669,9 @@ describe("ExcludeMemberAdminProposal", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const apTx: AddProposalTx = new AddProposalTx()
-    apTx.fromBuffer(buf)
-    const buf2: Buffer = apTx.toBuffer()
+    const addProposalTransaction: AddProposalTx = new AddProposalTx()
+    addProposalTransaction.fromBuffer(buf)
+    const buf2: Buffer = addProposalTransaction.toBuffer()
     expect(buf.toString("hex")).toBe(buf2.toString("hex"))
   })
 
