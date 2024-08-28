@@ -764,7 +764,7 @@ describe("ExcludeMemberAdminProposal", (): void => {
   })
 })
 
-describe("GeneralProposal Playground", (): void => {
+describe("GeneralProposal Example 1", (): void => {
   const bintools = BinTools.getInstance()
   const serialization = Serialization.getInstance()
   const addProposalTxHex: string =
@@ -1131,7 +1131,7 @@ describe("GeneralProposal Playground", (): void => {
   })
 })
 
-describe("GeneralProposal CaminoJs", (): void => {
+describe("GeneralProposal Example 2 (CaminoJs)", (): void => {
   const bintools = BinTools.getInstance()
   const serialization = Serialization.getInstance()
   const addProposalTxHex: string =
