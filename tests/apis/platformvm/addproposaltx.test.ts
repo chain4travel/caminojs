@@ -243,7 +243,6 @@ describe("AddMemberProposalTx", (): void => {
           _typeName: "TransferableInput",
           assetID:
             "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a",
-
           input: {
             _codecID: null,
             _typeID: 5,
