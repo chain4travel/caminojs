@@ -46,6 +46,7 @@ export declare class PlatformVMConstants {
     static ADDMEMBERPORPOSAL_TYPE_ID: number;
     static ADMINPROPOSAL_TYPE_ID: number;
     static EXCLUDEMEMBERPORPOSAL_TYPE_ID: number;
+    static GENERALPROPOSAL_TYPE_ID: number;
     static ASSETIDLEN: number;
     static BLOCKCHAINIDLEN: number;
     static SYMBOLMAXLEN: number;

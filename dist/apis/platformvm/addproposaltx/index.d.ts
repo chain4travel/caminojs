@@ -14,9 +14,10 @@ import { AddMemberProposal } from "./addmemberproposal";
 import { AdminProposal } from "./adminproposal";
 import { BaseFeeProposal } from "./basefeeproposal";
 import { ExcludeMemberProposal } from "./excludememberproposal";
-export { AddMemberProposal, AdminProposal, BaseFeeProposal, ExcludeMemberProposal };
+import { GeneralProposal } from "./generalproposal";
+export { AddMemberProposal, AdminProposal, BaseFeeProposal, ExcludeMemberProposal, GeneralProposal };
 export declare const DEFAULT_CAMINOGO_CODEC_VERSION = 0;
-export type Proposal = BaseFeeProposal | AddMemberProposal | ExcludeMemberProposal | AdminProposal;
+export type Proposal = BaseFeeProposal | AddMemberProposal | ExcludeMemberProposal | AdminProposal | GeneralProposal;
 export declare class ProposalWrapper {
     private _typeID;
     private proposal;
