@@ -1035,7 +1035,6 @@ export class Builder {
   buildCaminoAddValidatorTx = async (
     networkID: number = DefaultNetworkID,
     blockchainID: Buffer,
-    to: Buffer[] = undefined,
     fromSigner: FromSigner,
     change: Buffer[],
     nodeID: Buffer,
