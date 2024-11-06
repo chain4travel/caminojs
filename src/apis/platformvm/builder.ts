@@ -1035,7 +1035,7 @@ export class Builder {
   buildCaminoAddValidatorTx = async (
     networkID: number = DefaultNetworkID,
     blockchainID: Buffer,
-    to: Buffer[],
+    to: Buffer[] = undefined,
     fromSigner: FromSigner,
     change: Buffer[],
     nodeID: Buffer,
@@ -1064,7 +1064,7 @@ export class Builder {
     }
 
     const aad: AssetAmountDestination = new AssetAmountDestination(
-      to,
+      [],
       toThreshold,
       fromSigner.from,
       fromSigner.signer,
