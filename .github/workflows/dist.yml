@@ -28,6 +28,7 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn prettier-check
       - run: yarn test
+      - run: yarn build 
 
       - name: Check out dist caminojs
         uses: actions/checkout@v4
