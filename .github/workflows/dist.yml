@@ -1,0 +1,49 @@
+name: update dist
+
+on:
+  push:
+    branches:
+      - dist-workflow
+
+
+env:
+  CI: true
+
+permissions:
+  contents: write
+
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16]
+    steps:
+      - name: Check out chain4travel/caminojs
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v2
+        with:
+          cache: yarn
+          node-version: ${{ matrix.node-version }}
+      - run: yarn install --frozen-lockfile
+      - run: yarn prettier-check
+      - run: yarn test
+
+    
+      - name: Check out dist caminojs
+        uses: actions/checkout@v4
+        with:
+          ref: dist-mo
+          path: caminojs-dist
+
+      - run: |
+          rm -rf caminojs-dist/*
+          cp -ar dist documentation LICENSE README.md package.json tsconfig.json webpack.config.js ./caminojs-dist/
+          cd caminojs-dist
+          git commit -a -m "Update dist"
+          git push origin dist-mo
+
+
+
+
