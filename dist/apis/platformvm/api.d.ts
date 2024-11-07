@@ -727,7 +727,7 @@ export declare class PlatformVMAPI extends JRPCAPI {
      *
      * @returns An unsigned transaction created from the passed in parameters.
      */
-    buildCaminoAddValidatorTx: (utxoset: UTXOSet, toAddresses: string[], fromAddresses: FromType, changeAddresses: string[], nodeID: string, nodeOwner: NodeOwnerType, startTime: BN, endTime: BN, stakeAmount: BN, rewardAddresses: string[], rewardLocktime?: BN, rewardThreshold?: number, memo?: PayloadBase | Buffer, asOf?: BN, toThreshold?: number, changeThreshold?: number) => Promise<UnsignedTx>;
+    buildCaminoAddValidatorTx: (utxoset: UTXOSet, fromAddresses: FromType, changeAddresses: string[], nodeID: string, nodeOwner: NodeOwnerType, startTime: BN, endTime: BN, stakeAmount: BN, rewardAddresses: string[], rewardLocktime?: BN, rewardThreshold?: number, memo?: PayloadBase | Buffer, asOf?: BN, toThreshold?: number, changeThreshold?: number) => Promise<UnsignedTx>;
     /**
      * Build an unsigned [[AddressStateTx]].
      *

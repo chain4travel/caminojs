@@ -234,7 +234,7 @@ export declare class Builder {
      *
      * @returns An unsigned transaction created from the passed in parameters.
      */
-    buildCaminoAddValidatorTx: (networkID: number, blockchainID: Buffer, to: Buffer[], fromSigner: FromSigner, change: Buffer[], nodeID: Buffer, nodeOwner: NodeOwner, startTime: BN, endTime: BN, stakeAmount: BN, stakeAssetID: Buffer, rewards: Buffer[], rewardLocktime?: BN, rewardThreshold?: number, memo?: Buffer, asOf?: BN, toThreshold?: number, changeThreshold?: number) => Promise<UnsignedTx>;
+    buildCaminoAddValidatorTx: (networkID: number, blockchainID: Buffer, fromSigner: FromSigner, change: Buffer[], nodeID: Buffer, nodeOwner: NodeOwner, startTime: BN, endTime: BN, stakeAmount: BN, stakeAssetID: Buffer, rewards: Buffer[], rewardLocktime?: BN, rewardThreshold?: number, memo?: Buffer, asOf?: BN, toThreshold?: number, changeThreshold?: number) => Promise<UnsignedTx>;
     /**
      * Build an unsigned [[AddressStateTx]].
      *
