@@ -40,5 +40,7 @@ jobs:
           rm -rf caminojs-dist/*
           cp -ar dist documentation LICENSE README.md package.json tsconfig.json webpack.config.js ./caminojs-dist/
           cd caminojs-dist
+          git config --global user.email "github@chain4travel.com"
+          git config --global user.name "Auto Push"
           git commit -a -m "Update dist"
           git push origin dist-mo
