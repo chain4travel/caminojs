@@ -74,6 +74,10 @@ const main = async (): Promise<any> => {
     const addProposalTxTypeID: number = addProposalTx.getTypeID()
 
     console.log(addProposalTxTypeID, addProposalTxTypeName)
+    console.log(hex)
+    // TODO: @VjeraTurk issue a valid transaction
+    const txid: string = await pchain.issueTx(tx)
+    console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)
   }

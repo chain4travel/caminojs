@@ -24,8 +24,6 @@ let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
 let pAddressStrings: string[]
-const targetAddress = "P-kopernikus122gtala73kjrf34xtdq0d9vssqlccxjjam7kk8"
-const bintools: BinTools = BinTools.getInstance()
 const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()
   pchain = avalanche.PChain()
@@ -40,7 +38,7 @@ const main = async (): Promise<any> => {
   let startDate = new Date()
   startDate.setDate(startDate.getDate() + 1)
   let endDate = new Date(startDate)
-  endDate.setDate(endDate.getDate() + 60)
+  endDate.setDate(endDate.getDate() + 2)
 
   let startTimestamp: number = Math.floor(startDate.getTime() / 1000)
   let endTimestamp = Math.floor(endDate.getTime() / 1000)
@@ -94,6 +92,9 @@ const main = async (): Promise<any> => {
 
     console.log(addProposalTxTypeID, addProposalTxTypeName)
     console.log(hex)
+    // TODO: @VjeraTurk issue a valid transaction
+    const txid: string = await pchain.issueTx(tx)
+    console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)
   }
