@@ -56,7 +56,6 @@ const main = async (): Promise<any> => {
     targetAddress
   )
   try {
-    const locktime: BN = new BN(0) // TODO: What should be the lock time?
     let unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos, // utxoset
       pAddressStrings, // fromAddresses
@@ -65,8 +64,7 @@ const main = async (): Promise<any> => {
       proposal, // proposal
       pKeychain.getAddresses()[0], // proposerAddress
       0, // version
-      Buffer.alloc(20), // memo
-      locktime
+      Buffer.alloc(20) // memo
     )
 
     const tx = unsignedTx.sign(pKeychain)
