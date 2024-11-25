@@ -1841,8 +1841,7 @@ export class Builder {
         changeAddresses,
         changeThreshold
       )
-      //aad.addAssetAmount(feeAssetID, zero, fee)
-      aad.addAssetAmount(stakeAssetID, stakeAmount, fee) // TODO: @VjeraTurk Is it ok like so?
+      aad.addAssetAmount(stakeAssetID, stakeAmount, fee)
 
       const minSpendableErr: Error = await this.spender.getMinimumSpendable(
         aad,
