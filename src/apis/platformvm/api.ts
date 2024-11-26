@@ -3201,7 +3201,6 @@ export class PlatformVMAPI extends JRPCAPI {
     version: number = DefaultTransactionVersionNumber,
     memo: PayloadBase | Buffer = undefined,
     asOf: BN = ZeroBN
-    //changeThreshould: number = 1 // TODO: Is it safe to remove?
   ): Promise<UnsignedTx> => {
     const caller = "buildAddProposalTx"
 
