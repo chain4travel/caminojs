@@ -8,6 +8,7 @@ import {
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
 import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
+import BN from "bn.js"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
 const avalanche: Avalanche = new Avalanche(
@@ -35,10 +36,11 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
+  const bondAmount: any = await pchain.getMinStake()
   let startDate = new Date()
   startDate.setDate(startDate.getDate() + 1)
   let endDate = new Date(startDate)
-  endDate.setDate(endDate.getDate() + 2)
+  endDate.setDate(endDate.getDate() + 10)
 
   let startTimestamp: number = Math.floor(startDate.getTime() / 1000)
   let endTimestamp = Math.floor(endDate.getTime() / 1000)
@@ -92,7 +94,6 @@ const main = async (): Promise<any> => {
 
     console.log(addProposalTxTypeID, addProposalTxTypeName)
     console.log(hex)
-    // TODO: @VjeraTurk issue a valid transaction
     const txid: string = await pchain.issueTx(tx)
     console.log(`Success! TXID: ${txid}`)
   } catch (e) {
