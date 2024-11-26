@@ -97,7 +97,6 @@ const main = async (): Promise<any> => {
     const txid: string = await pchain.issueTx(tx)
     console.log(`Success! TXID: ${txid}`)
   } catch (e) {
-    // TODO: give instructions to overcome "couldn't issue tx: proposal is semantically invalid: no active validator"
     console.log(e)
   }
 }

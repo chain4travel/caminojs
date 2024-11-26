@@ -41,7 +41,7 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  // TODO: @VjeraTurk should be able to get bondAmount from node?
+  // TODO: @VjeraTurk get bondAmount from node
   let startDate = new Date()
   startDate.setDate(startDate.getDate() + 1)
   let endDate = new Date(startDate)
@@ -78,7 +78,6 @@ const main = async (): Promise<any> => {
     console.log(addProposalTxTypeID, addProposalTxTypeName)
     console.log(`Success! TXID: ${txid}`)
   } catch (e) {
-    // TODO: @VjeraTurk give instruction how to overcome "couldn't issue tx: proposal is semantically invalid: there is already active proposal of this type"
     console.log(e)
   }
 }

@@ -3216,6 +3216,7 @@ export class PlatformVMAPI extends JRPCAPI {
     const avaxAssetID: Buffer = await this.getAVAXAssetID()
     const networkID: number = this.core.getNetworkID()
 
+    // TODO: @VjeraTurk get bondAmount from node
     let stakeAmount = new BN(1000000000000)
 
     if (networkID == 1002 || networkID == 1001) {
