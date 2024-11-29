@@ -1,9 +1,7 @@
-import { Avalanche, BN } from "caminojs/index"
-import {
-  GetCurrentSupplyResponse,
-  PlatformVMAPI
-} from "caminojs/apis/platformvm"
+import { Avalanche } from "caminojs/index"
+import { PlatformVMAPI } from "caminojs/apis/platformvm"
 import { ExamplesConfig } from "../common/examplesConfig"
+import { GetBlockResponse } from "caminojs/common"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
 const avalanche: Avalanche = new Avalanche(
@@ -22,10 +20,13 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
+  const height: number = 0
+  const encoding: string = "hexnc"
+  const block: GetBlockResponse = await pchain.getBlockByHeight(
+    height,
+    encoding
+  )
 
-  const currentSupply: GetCurrentSupplyResponse =
-    await pchain.getCurrentSupply()
-  console.log(currentSupply)
+  console.log(block)
 }
-
 main()

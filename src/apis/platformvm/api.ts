@@ -6,6 +6,8 @@ import { Buffer } from "buffer/"
 import BN from "bn.js"
 import AvalancheCore from "../../camino"
 import {
+  GetBlockByHeightParams,
+  GetBlockResponse,
   JRPCAPI,
   OutputOwners,
   RequestResponseData,
@@ -82,7 +84,8 @@ import {
   Owner,
   OwnerParam,
   MultisigAliasParams,
-  UpgradePhasesReply
+  UpgradePhasesReply,
+  GetCurrentSupplyResponse
 } from "./interfaces"
 import { TransferableInput } from "./inputs"
 import { TransferableOutput } from "./outputs"
@@ -92,6 +95,8 @@ import { Auth, LockMode, Builder, FromSigner, NodeOwner } from "./builder"
 import { Network } from "../../utils/networks"
 import { Spender } from "./spender"
 import { Offer } from "./adddepositoffertx"
+import type { Proposal } from "./addproposaltx"
+import { SubnetAuth } from "./subnetauth"
 
 /**
  * @ignore
@@ -449,6 +454,28 @@ export class PlatformVMAPI extends JRPCAPI {
     )
     return response.data.result
   }
+  /**
+   * Gets the block at given height
+   * @param height The P-Chain height to get the block at.
+   * @param encoding
+   *
+   * @returns Promise GetBlockResponse
+   */
+  getBlockByHeight = async (
+    height: number,
+    encoding: string
+  ): Promise<GetBlockResponse> => {
+    const params: GetBlockByHeightParams = {
+      height,
+      encoding
+    }
+    const response: RequestResponseData = await this.callMethod(
+      "platform.getBlockByHeight",
+      params
+    )
+
+    return response.data.result
+  }
 
   /**
    * Create an address in the node's keystore.
@@ -758,7 +785,10 @@ export class PlatformVMAPI extends JRPCAPI {
       "platform.getUpgradePhases"
     )
     return {
-      SunrisePhase: parseInt(response.data.result.sunrisePhase)
+      SunrisePhase: parseInt(response.data.result?.sunrisePhase),
+      AthensPhase: parseInt(response.data.result?.athensPhase),
+      BerlinPhase: parseInt(response.data.result?.berlinPhase),
+      CairoPhase: parseInt(response.data.result?.cairoPhase)
     }
   }
 
@@ -1114,13 +1144,16 @@ export class PlatformVMAPI extends JRPCAPI {
   }
 
   /**
-   * Returns an upper bound on the amount of tokens that exist. Not monotonically increasing because this number can go down if a staker"s reward is denied.
+   * Returns an upper bound on the amount of tokens that exist along with the P-chain height. Not monotonically increasing because this number can go down if a staker"s reward is denied.
    */
-  getCurrentSupply = async (): Promise<BN> => {
+  getCurrentSupply = async (): Promise<GetCurrentSupplyResponse> => {
     const response: RequestResponseData = await this.callMethod(
       "platform.getCurrentSupply"
     )
-    return new BN(response.data.result.supply, 10)
+    return {
+      supply: new BN(response.data.result.supply, 10),
+      height: new BN(response.data.result.height, 10)
+    }
   }
 
   /**
@@ -2274,7 +2307,6 @@ export class PlatformVMAPI extends JRPCAPI {
    */
   buildCaminoAddValidatorTx = async (
     utxoset: UTXOSet,
-    toAddresses: string[],
     fromAddresses: FromType,
     changeAddresses: string[],
     nodeID: string,
@@ -2291,8 +2323,6 @@ export class PlatformVMAPI extends JRPCAPI {
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
     const caller = "buildCaminoAddValidatorTx"
-
-    const to: Buffer[] = this._cleanAddressArrayBuffer(toAddresses, caller)
 
     const fromSigner = this._parseFromSigner(fromAddresses, caller)
 
@@ -2339,7 +2369,6 @@ export class PlatformVMAPI extends JRPCAPI {
     ).buildCaminoAddValidatorTx(
       this.core.getNetworkID(),
       bintools.cb58Decode(this.blockchainID),
-      to,
       fromSigner,
       change,
       NodeIDStringToBuffer(nodeID),
@@ -3144,5 +3173,163 @@ export class PlatformVMAPI extends JRPCAPI {
       return new Builder(new Spender(this), true)
     }
     return new Builder(utxoSet, false)
+  }
+
+  /**
+   * Build an unsigned [[AddProposalTx]].
+   *
+   * @param utxoset A set of UTXOs that the transaction is built on
+   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+   * @param proposalDescription Optional contains arbitrary bytes, up to 256 bytes
+   * @param proposal The proposal content that will be created.
+   * @param proposerAddress The P-address of proposer in Buffer.
+   * @param version Optional. Transaction version number, default 0.
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   *
+   * @returns An unsigned transaction created from the passed in parameters.
+   */
+  buildAddProposalTx = async (
+    utxoset: UTXOSet,
+    fromAddresses: FromType,
+    changeAddresses: string[],
+    proposalDescription: Buffer,
+    proposal: Proposal,
+    proposerAddress: Buffer,
+    version: number = DefaultTransactionVersionNumber,
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = ZeroBN
+  ): Promise<UnsignedTx> => {
+    const caller = "buildAddProposalTx"
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+    const networkID: number = this.core.getNetworkID()
+
+    // TODO: @VjeraTurk get bondAmount from node
+    let stakeAmount = new BN(1000000000000)
+
+    if (networkID == 1002 || networkID == 1001) {
+      stakeAmount = new BN(100000000000)
+    }
+
+    const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
+    const fee: BN = this.getTxFee()
+    const proposerAuth = new SubnetAuth()
+    const addressIdx = Buffer.alloc(4)
+    proposerAuth.addAddressIndex(addressIdx)
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildAddProposalTx(
+      networkID,
+      blockchainID,
+      fromSigner,
+      change,
+      proposalDescription,
+      proposal,
+      proposerAddress,
+      proposerAuth,
+      version,
+      memo,
+      fee,
+      avaxAssetID,
+      asOf,
+      stakeAmount,
+      avaxAssetID
+    )
+
+    if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
+      /* istanbul ignore next */
+      throw new GooseEggCheckError("Failed Goose Egg Check")
+    }
+
+    return builtUnsignedTx
+  }
+
+  /**
+   * Build an unsigned [[AddVoteTx]].
+   *
+   * @param utxoset A set of UTXOs that the transaction is built on
+   * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
+   * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
+   * @param proposalID The proposalID of teh proposal in string
+   * @param voteOptionIndex The index of vote option.
+   * @param voterAddress The P-address of voter in Buffer.
+   * @param version Optional. Transaction version number, default 0.
+   * @param memo Optional contains arbitrary bytes, up to 256 bytes
+   * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
+   *
+   * @returns An unsigned transaction created from the passed in parameters.
+   */
+  buildAddVoteTx = async (
+    utxoset: UTXOSet,
+    fromAddresses: FromType,
+    changeAddresses: string[],
+    proposalID: string,
+    voteOptionIndex: number,
+    voterAddress: Buffer,
+    version: number = DefaultTransactionVersionNumber,
+    memo: PayloadBase | Buffer = undefined,
+    asOf: BN = ZeroBN,
+    changeThreshold: number = 1
+  ): Promise<UnsignedTx> => {
+    const caller = "buildAddVoteTx"
+
+    const fromSigner = this._parseFromSigner(fromAddresses, caller)
+    const change: Buffer[] = this._cleanAddressArrayBuffer(
+      changeAddresses,
+      caller
+    )
+
+    if (memo instanceof PayloadBase) {
+      memo = memo.getPayload()
+    }
+
+    const avaxAssetID: Buffer = await this.getAVAXAssetID()
+    const networkID: number = this.core.getNetworkID()
+    const blockchainID: Buffer = bintools.cb58Decode(this.blockchainID)
+    const fee: BN = this.getTxFee()
+    const proposalIDBuf = bintools.cb58Decode(proposalID)
+    const voterAuth = new SubnetAuth()
+    const addressIdx = Buffer.alloc(4)
+    voterAuth.addAddressIndex(addressIdx)
+
+    const builtUnsignedTx: UnsignedTx = await this._getBuilder(
+      utxoset
+    ).buildAddVoteTx(
+      networkID,
+      blockchainID,
+      fromSigner,
+      change,
+      proposalIDBuf,
+      voteOptionIndex,
+      voterAddress,
+      voterAuth,
+      version,
+      memo,
+      fee,
+      avaxAssetID,
+      asOf,
+      changeThreshold
+    )
+
+    if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
+      /* istanbul ignore next */
+      throw new GooseEggCheckError("Failed Goose Egg Check")
+    }
+
+    return builtUnsignedTx
   }
 }
