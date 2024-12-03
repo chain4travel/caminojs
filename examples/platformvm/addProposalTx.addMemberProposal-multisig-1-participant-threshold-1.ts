@@ -1,16 +1,25 @@
-import { Avalanche, Buffer } from "caminojs/index"
+import { Avalanche, BinTools, BN, Buffer } from "caminojs/index"
 import {
   PlatformVMAPI,
   KeyChain,
-  AddMemberProposal
+  AddMemberProposal,
+  PlatformVMConstants,
+  Tx
 } from "caminojs/apis/platformvm"
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey2,
-  Serialization
+  Serialization,
+  DefaultLocalGenesisPrivateKey,
+  PChainAlias
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
-
+import createHash from "create-hash"
+import {
+  MultisigKeyChain,
+  MultisigKeyPair,
+  OutputOwners
+} from "caminojs/common"
+const bintools = BinTools.getInstance()
 const serialization = Serialization.getInstance()
 const config: ExamplesConfig = require("../common/examplesConfig.json")
 const avalanche: Avalanche = new Avalanche(
@@ -20,22 +29,9 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 
-// Owner address:
-// P-kopernikus1auqztcq6nf6qxvswuzluxxea8ua85sxr9l5tpp
-// PrivateKey-A6sGxNKkf8U1CG41EkgrFEEQSxk6HS1hfDocaUpsaCmxao1dE
-
-// Multisig (1 owner, 1 participant, threshold 1):
-// P-kopernikus1fyddgjw0vgqy498vsutlgtc998ltjxe4l2fy4a
-
+let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 // Mutisig allias:
-const msigAlias = "P-kopernikus1fyddgjw0vgqy498vsutlgtc998ltjxe4l2fy4a"
-
-const pkeys = ["PrivateKey-A6sGxNKkf8U1CG41EkgrFEEQSxk6HS1hfDocaUpsaCmxao1dE"] // privateKey of the owner
-const owner = {
-  addresses: ["P-kopernikus1auqztcq6nf6qxvswuzluxxea8ua85sxr9l5tpp"], // address of the owner
-  threshold: 1,
-  locktime: 0
-}
+const msigAlias = "P-kopernikus1z5tv4tg04kf4l9ghclw6ssek8zugs7yd65prpl"
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -46,7 +42,8 @@ const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()
   pchain = avalanche.PChain()
   pKeychain = pchain.keyChain()
-  pKeychain.importKey(pkeys[0])
+  pKeychain.importKey(privKey)
+
   pAddresses = pchain.keyChain().getAddresses()
   pAddressStrings = pchain.keyChain().getAddressStrings()
 }
@@ -55,7 +52,7 @@ const main = async (): Promise<any> => {
   await InitAvalanche()
   const msigAliasBuffer = pchain.parseAddress(msigAlias)
   const memo: Buffer = Buffer.from("hello world")
-  const txs = await pchain?.getUTXOs([msigAlias])
+  const platformVMUTXOResponse = await pchain?.getUTXOs([msigAlias])
   let startDate = new Date()
   startDate.setDate(startDate.getDate() + 1)
   let endDate = new Date(startDate)
@@ -69,21 +66,63 @@ const main = async (): Promise<any> => {
     "P-kopernikus13kyf72ftu4l77kss7xm0kshm0au29s48zjaygq" //target address
   )
   try {
+    const owner = await pchain.getMultisigAlias(msigAlias)
+
     const unsignedTx = await pchain.buildAddProposalTx(
-      txs.utxos,
-      [msigAlias, ...owner.addresses],
-      [],
+      platformVMUTXOResponse.utxos,
+      [msigAlias, ...owner.addresses], // TODO: @VjeraTurk how to determine the fromAddresses?
+      [], // TODO: @VjeraTurk how to determine the changeAddresses?
       serialization.typeToBuffer("Heelloooo world", "utf8"),
       proposal,
       msigAliasBuffer,
-      0
+      0,
+      memo
     )
-    console.log({ unsignedTx })
-    const tx = unsignedTx.sign(pKeychain)
+
+    // Create the hash from the tx
+    const txbuff = unsignedTx.toBuffer()
+    const msg: Buffer = Buffer.from(
+      createHash("sha256").update(txbuff).digest()
+    )
+
+    // create MSKeychein to create proper signidx
+    const msKeyChain = new MultisigKeyChain(
+      avalanche.getHRP(),
+      PChainAlias,
+      msg,
+      PlatformVMConstants.SECPMULTISIGCREDENTIAL,
+      unsignedTx.getTransaction().getOutputOwners(),
+      new Map([
+        [
+          msigAliasBuffer.toString("hex"),
+          new OutputOwners(
+            owner.addresses.map((a) => bintools.parseAddress(a, "P")),
+            new BN(owner.locktime),
+            owner.threshold
+          )
+        ]
+      ])
+    )
+
+    for (let address of pAddresses) {
+      // We need the keychain for signing
+      const keyPair = pKeychain.getKey(address)
+      // The signature
+      const signature = keyPair.sign(msg)
+      // add the signature
+      msKeyChain.addKey(new MultisigKeyPair(msKeyChain, address, signature))
+    }
+
+    msKeyChain.buildSignatureIndices()
+
+    // Send TX
+    const tx: Tx = unsignedTx.sign(msKeyChain)
     const txid: string = await pchain.issueTx(tx)
     console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)
+
+    // TODO: @VjeraTurk  message: "Not enough signatures"
   }
 
   // const unsignedTx: UnsignedTx = await pchain.buildAddProposalTx()
