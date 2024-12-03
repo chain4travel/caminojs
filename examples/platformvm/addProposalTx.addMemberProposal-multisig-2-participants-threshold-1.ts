@@ -33,7 +33,7 @@ const avalanche: Avalanche = new Avalanche(
 let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 let privKey2: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 // Mutisig allias:
-const msigAlias = "P-kopernikus1t5qgr9hcmf2vxj7k0hz77kawf9yr389cxte5j0"
+const msigAlias = "P-kopernikus" // TODO: add to genesis msig with 2 adresses and therehold 1
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
