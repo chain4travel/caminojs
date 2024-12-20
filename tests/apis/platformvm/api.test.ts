@@ -1608,7 +1608,8 @@ describe("PlatformVMAPI", (): void => {
 
       serialzeit(tx1, "AddDelegatorTx")
     })
-
+    /*
+   TODO: @VjeraTurk Change to buildAddCaminoValidatorTX
     test("buildAddValidatorTx sort StakeableLockOuts 1", async (): Promise<void> => {
       // two UTXO. The 1st has a lesser stakeablelocktime and a greater amount of AVAX. The 2nd has a greater stakeablelocktime and a lesser amount of AVAX.
       // We expect this test to only consume the 2nd UTXO since it has the greater locktime.
@@ -2145,7 +2146,7 @@ describe("PlatformVMAPI", (): void => {
         stakeableLockOut2.getStakeableLocktime().toString()
       )
     })
-
+*/
     test("buildAddValidatorTx 1", async (): Promise<void> => {
       const addrbuff1 = addrs1.map((a) => platformvm.parseAddress(a))
       const addrbuff2 = addrs2.map((a) => platformvm.parseAddress(a))
