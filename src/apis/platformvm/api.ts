@@ -2639,7 +2639,7 @@ export class PlatformVMAPI extends JRPCAPI {
     })
 
     if (depositOfferOwnerAuth.length !== depositOfferOwnerSigs.length) {
-      throw new Error("OwnerAuth length must mathch OwnerSigs length")
+      throw new Error("OwnerAuth length must match OwnerSigs length")
     }
 
     const o_auth: [number, Buffer][] = []
@@ -2694,17 +2694,18 @@ export class PlatformVMAPI extends JRPCAPI {
    * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs.
    * @param memo Optional contains arbitrary bytes, up to 256 bytes
    * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
+   * @param amountToUnlock The amount of tokens to unlock from the deposit
    * @param changeThreshold Optional. The number of signatures required to spend the funds in the resultant change UTXO
    *
    * @returns An unsigned transaction created from the passed in parameters.
    */
   buildUnlockDepositTx = async (
     utxoset: UTXOSet,
-    fromAddresses: string[],
+    fromAddresses: FromType,
     changeAddresses: string[] = undefined,
     memo: PayloadBase | Buffer = undefined,
     asOf: BN = ZeroBN,
-    amountToLock: BN,
+    amountToUnlock: BN,
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
     const caller = "buildUnlockDepositTx"
@@ -2733,6 +2734,7 @@ export class PlatformVMAPI extends JRPCAPI {
       avaxAssetID,
       memo,
       asOf,
+      amountToUnlock,
       changeThreshold
     )
 
