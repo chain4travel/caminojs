@@ -96,6 +96,7 @@ import { GenesisData } from "../avm"
 import { Auth, LockMode, Builder, FromSigner, NodeOwner } from "./builder"
 import { Network } from "../../utils/networks"
 import { Spender } from "./spender"
+import { Undepositer } from "./undepositer"
 import { Offer } from "./adddepositoffertx"
 import type { Proposal } from "./addproposaltx"
 import { SubnetAuth } from "./subnetauth"
@@ -3220,9 +3221,9 @@ export class PlatformVMAPI extends JRPCAPI {
 
   _getBuilder = (utxoSet: UTXOSet): Builder => {
     if (this.core.getNetwork().P.lockModeBondDeposit) {
-      return new Builder(new Spender(this), true)
+      return new Builder(new Spender(this), new Undepositer(this),true,)
     }
-    return new Builder(utxoSet, false)
+    return new Builder(utxoSet, new Undepositer(this), true)
   }
 
   /**

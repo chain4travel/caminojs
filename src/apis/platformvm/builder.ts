@@ -74,9 +74,9 @@ export interface MinimumSpendable {
 }
 // TODO: change the naming
 export interface Undepositable {
-  getUndeposit(
+  getUndepositable(
     aad: AssetAmountDestination,
-    asOf: BN,
+    // asOf: BN,
     depositTxIDs: string[]
   ): Promise<Error>
 }
@@ -105,9 +105,10 @@ export class Builder {
 
   caminoEnabled: boolean
 
-  constructor(spender: MinimumSpendable, caminoEnabled: boolean) {
+  constructor(spender: MinimumSpendable, undepositer: Undepositable, caminoEnabled: boolean) {
     this.spender = spender
     this.caminoEnabled = caminoEnabled
+    this.undepositer = undepositer
   }
 
   /**
@@ -1476,9 +1477,9 @@ export class Builder {
       aad.addAssetAmount(feeAssetID, zero, fee)
 
       // TODO: undeposit
-      const undepositableErr: Error = await this.undepositer.getUndeposit(
+      const undepositableErr: Error = await this.undepositer.getUndepositable(
         aad,
-        asOf,
+        // asOf,
         // zero, // NO NEED TO SPECIFY LOCKTIME
         // "Unlocked", // NO NEED TO SPECIFY MODE - only one mode is needed
         []

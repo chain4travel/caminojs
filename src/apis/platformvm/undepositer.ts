@@ -1,6 +1,6 @@
 /**
  * @packageDocumentation
- * @module API-PlatformVM-Spender
+ * @module API-PlatformVM-Undepositer
  */
 
 import BN from "bn.js"
@@ -8,21 +8,20 @@ import BN from "bn.js"
 import { AssetAmountDestination, PlatformVMAPI } from "."
 import { FeeAssetError } from "../../utils/errors"
 
-import { LockMode } from "./builder"
 
-export class Spender {
+export class Undepositer {
   platformAPI: PlatformVMAPI
 
   constructor(platformAPI: PlatformVMAPI) {
     this.platformAPI = platformAPI
   }
-
-  getMinimumSpendable = async (
+  // CAN BE THE SAME
+  getUndepositable = async (
     aad: AssetAmountDestination,
-    asOf: BN,
-    lockTime: BN,
-    lockMode: LockMode
+    // asOf: BN,
+    depositTxIDs: string[]
   ): Promise<Error> => {
+    // TODO: does what spend does - change the logic to undeposit
     if (aad.getAmounts().length !== 1) {
       return new FeeAssetError("spender -- multiple assets not yet supported")
     }
@@ -45,18 +44,17 @@ export class Spender {
 
     const aa = aad.getAmounts()[0]
 
-    const result = await this.platformAPI.spend(
+    const result = await this.platformAPI.undeposit(
       addr,
       signer,
       to,
       aad.getDestinationsThreshold(),
-      lockTime,
       change,
       aad.getChangeAddressesThreshold(),
-      lockMode,
       aa.getAmount(),
       aa.getBurn(),
-      asOf
+      // asOf,
+      depositTxIDs,
     )
 
     result.ins.forEach((inp) => {
@@ -65,7 +63,7 @@ export class Spender {
     result.out.forEach((out) => {
       aad.addOutput(out)
     })
-    aad.setOutputOwners(result.owners)
+    aad.setOutputOwners(result.signers)
     return
   }
 }
