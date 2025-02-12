@@ -345,13 +345,15 @@ export interface SpendParams {
 
 export interface UndepositParams {
   from: string[] | string
-  depositTxIDs: string[]
+  depositTxIDs: string[],
+  amountToBurn: BN
 }
 
 export interface UndepositReply {
   ins: TransferableInput[]
   out: TransferableOutput[]
-  signers: OutputOwners[] // TODO: @VjeraTurk check if this is correct + what is the difference between Reply and Response
+  signers: OutputOwners[] // TODO: @VjeraTurk Swap for OutputSigners, check if this is correct + what is the difference between Reply and Response
+  owners: OutputOwners[]
 }
 
 export interface SpendReply {

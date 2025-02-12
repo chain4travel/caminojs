@@ -77,8 +77,6 @@ export interface Undepositable {
   getUndeposit(
     aad: AssetAmountDestination,
     asOf: BN,
-    locktime: BN,
-    lockMode: LockMode,
     depositTxIDs: string[]
   ): Promise<Error>
 }
@@ -1453,6 +1451,14 @@ export class Builder {
     asOf: BN = zero,
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
+
+    // X TODO: 1. call to spend API to burn the already unlocked UTXOs
+    // X 1.1. define already unlocked UTXOs
+    // X 1.2 call spend API to burn the already unlocked UTXOs - what is the lockMode for burn?!
+
+    // TODO: 2. call to undeposit API to unlock the deposit
+    // 2.1. define the DepositTxIDs
+
     let ins: TransferableInput[] = []
     let outs: TransferableOutput[] = []
 
@@ -1466,28 +1472,15 @@ export class Builder {
         changeThreshold
       )
 
+      // TODO: see it aad structure is correct or a similar structure is needed
       aad.addAssetAmount(feeAssetID, zero, fee)
-
-      const minSpendableErr: Error = await this.spender.getMinimumSpendable(
-        aad,
-        asOf,
-        zero,
-        // TODO: no lockMode to burn the fee?
-        "Unlocked"
-      )
-      if (typeof minSpendableErr === "undefined") {
-        ins = aad.getInputs()
-        outs = aad.getAllOutputs()
-      } else {
-        throw minSpendableErr
-      }
 
       // TODO: undeposit
       const undepositableErr: Error = await this.undepositer.getUndeposit(
         aad,
         asOf,
-        zero,
-        "Unlocked",
+        // zero, // NO NEED TO SPECIFY LOCKTIME
+        // "Unlocked", // NO NEED TO SPECIFY MODE - only one mode is needed
         []
       )
     }

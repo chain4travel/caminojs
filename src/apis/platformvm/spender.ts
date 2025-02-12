@@ -69,11 +69,10 @@ export class Spender {
     return
   }
 
+  // CAN BE THE SAME
   getUndeposit = async (
     aad: AssetAmountDestination,
-    asOf: BN,
-    lockTime: BN,
-    lockMode: LockMode,
+    // asOf: BN,
     depositTxIDs: string[]
   ): Promise<Error> => {
     // TODO: does what spend does - change the logic to undeposit
@@ -104,13 +103,11 @@ export class Spender {
       signer,
       to,
       aad.getDestinationsThreshold(),
-      lockTime,
       change,
       aad.getChangeAddressesThreshold(),
-      lockMode,
       aa.getAmount(),
       aa.getBurn(),
-      asOf,
+      // asOf,
       depositTxIDs,
     )
 
