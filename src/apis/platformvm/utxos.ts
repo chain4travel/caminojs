@@ -587,4 +587,275 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
     })
     return undefined
   }
+
+  getUndeposit = async (
+    aad: AssetAmountDestination,
+    asOf: BN = zeroBN,
+    lockTime: BN = zeroBN,
+    lockMode: LockMode = "Unlocked"
+  ): Promise<Error> => {
+    // TODO: does what spend does - change the logic to undeposit
+    if (asOf.isZero()) asOf = UnixNow()
+
+    let utxoArray: UTXO[] = this.getConsumableUXTO(asOf, lockMode == "Stake")
+    let tmpUTXOArray: UTXO[] = []
+    if (lockMode == "Stake") {
+      // If this is a stakeable transaction then have StakeableLockOut come before SECPTransferOutput
+      // so that users first stake locked tokens before staking unlocked tokens
+      utxoArray.forEach((utxo: UTXO) => {
+        // StakeableLockOuts
+        if (utxo.getOutput().getTypeID() === 22) {
+          tmpUTXOArray.push(utxo)
+        }
+      })
+
+      // Sort the StakeableLockOuts by StakeableLocktime so that the greatest StakeableLocktime are spent first
+      tmpUTXOArray.sort((a: UTXO, b: UTXO) => {
+        let stakeableLockOut1 = a.getOutput() as StakeableLockOut
+        let stakeableLockOut2 = b.getOutput() as StakeableLockOut
+        return (
+          stakeableLockOut2.getStakeableLocktime().toNumber() -
+          stakeableLockOut1.getStakeableLocktime().toNumber()
+        )
+      })
+
+      utxoArray.forEach((utxo: UTXO) => {
+        // SECPTransferOutputs
+        if (utxo.getOutput().getTypeID() === 7) {
+          tmpUTXOArray.push(utxo)
+        }
+      })
+      utxoArray = tmpUTXOArray
+    }
+
+    // outs is a map from assetID to a tuple of (lockedStakeable, unlocked)
+    // which are arrays of outputs.
+    const outs: object = {}
+
+    // We only need to iterate over UTXOs until we have spent sufficient funds
+    // to met the requested amounts.
+    utxoArray.forEach((utxo: UTXO) => {
+      const assetID: Buffer = utxo.getAssetID()
+      const assetKey: string = assetID.toString("hex")
+      const fromAddresses: Buffer[] = aad.getSenders()
+      const output: BaseOutput = utxo.getOutput()
+      const amountOutput =
+        output instanceof ParseableOutput ? output.getOutput() : output
+      if (
+        !(amountOutput instanceof AmountOutput) ||
+        !aad.assetExists(assetKey) ||
+        !output.meetsThreshold(fromAddresses, asOf)
+      ) {
+        // We should only try to spend fungible assets.
+        // We should only spend {{ assetKey }}.
+        // We need to be able to spend the output.
+        return
+      }
+
+      const assetAmount: AssetAmount = aad.getAssetAmount(assetKey)
+      if (assetAmount.isFinished()) {
+        // We've already spent the needed UTXOs for this assetID.
+        return
+      }
+
+      if (!(assetKey in outs)) {
+        // If this is the first time spending this assetID, we need to
+        // initialize the outs object correctly.
+        outs[`${assetKey}`] = {
+          lockedStakeable: [],
+          unlocked: []
+        }
+      }
+
+      // amount is the amount of funds available from this UTXO.
+      const amount = amountOutput.getAmount()
+
+      // Set up the SECP input with the same amount as the output.
+      let input: BaseInput = new SECPTransferInput(amount)
+
+      let locked: boolean = false
+      if (output instanceof StakeableLockOut) {
+        const stakeableOutput: StakeableLockOut = output as StakeableLockOut
+        const stakeableLocktime: BN = stakeableOutput.getStakeableLocktime()
+
+        if (stakeableLocktime.gt(asOf)) {
+          // Add a new input and mark it as being locked.
+          input = new StakeableLockIn(
+            amount,
+            stakeableLocktime,
+            new ParseableInput(input)
+          )
+
+          // Mark this UTXO as having been re-locked.
+          locked = true
+        }
+      }
+
+      assetAmount.spendAmount(amount, locked)
+      if (locked) {
+        // Track the UTXO as locked.
+        outs[`${assetKey}`].lockedStakeable.push(output)
+      } else {
+        // Track the UTXO as unlocked.
+        outs[`${assetKey}`].unlocked.push(output)
+      }
+
+      // Get the indices of the outputs that should be used to authorize the
+      // spending of this input.
+
+      // TODO: getSpenders should return an array of indices rather than an
+      // array of addresses.
+      const spenders: Buffer[] = amountOutput.getSpenders(fromAddresses, asOf)
+      spenders.forEach((spender: Buffer) => {
+        const idx: number = amountOutput.getAddressIdx(spender)
+        if (idx === -1) {
+          // This should never happen, which is why the error is thrown rather
+          // than being returned. If this were to ever happen this would be an
+          // error in the internal logic rather having called this function with
+          // invalid arguments.
+
+          /* istanbul ignore next */
+          throw new AddressError(
+            "Error - UTXOSet.getMinimumSpendable: no such " +
+              `address in output: ${spender}`
+          )
+        }
+        input.addSignatureIdx(idx, spender)
+      })
+
+      const txID: Buffer = utxo.getTxID()
+      const outputIdx: Buffer = utxo.getOutputIdx()
+      const transferInput: TransferableInput = new TransferableInput(
+        txID,
+        outputIdx,
+        assetID,
+        input
+      )
+      aad.addInput(transferInput)
+    })
+
+    if (!aad.canComplete()) {
+      // After running through all the UTXOs, we still weren't able to get all
+      // the necessary funds, so this transaction can't be made.
+      return new InsufficientFundsError(
+        "Error - UTXOSet.getMinimumSpendable: insufficient " +
+          "funds to create the transaction"
+      )
+    }
+
+    // TODO: We should separate the above functionality into a single function
+    // that just selects the UTXOs to consume.
+
+    const zero: BN = new BN(0)
+
+    // assetAmounts is an array of asset descriptions and how much is left to
+    // spend for them.
+    const assetAmounts: AssetAmount[] = aad.getAmounts()
+    assetAmounts.forEach((assetAmount: AssetAmount) => {
+      // change is the amount that should be returned back to the source of the
+      // funds.
+      const change: BN = assetAmount.getChange()
+      // isStakeableLockChange is if the change is locked or not.
+      const isStakeableLockChange: boolean =
+        assetAmount.getStakeableLockChange()
+      // lockedChange is the amount of locked change that should be returned to
+      // the sender
+      const lockedChange: BN = isStakeableLockChange ? change : zero.clone()
+
+      const assetID: Buffer = assetAmount.getAssetID()
+      const assetKey: string = assetAmount.getAssetIDString()
+      const lockedOutputs: StakeableLockOut[] =
+        outs[`${assetKey}`].lockedStakeable
+      lockedOutputs.forEach((lockedOutput: StakeableLockOut, i: number) => {
+        const stakeableLocktime: BN = lockedOutput.getStakeableLocktime()
+
+        // We know that parseableOutput contains an AmountOutput because the
+        // first loop filters for fungible assets.
+        const output: AmountOutput = lockedOutput.getOutput() as AmountOutput
+
+        let outputAmountRemaining: BN = output.getAmount()
+        // The only output that could generate change is the last output.
+        // Otherwise, any further UTXOs wouldn't have needed to be spent.
+        if (i == lockedOutputs.length - 1 && lockedChange.gt(zero)) {
+          // update outputAmountRemaining to no longer hold the change that we
+          // are returning.
+          outputAmountRemaining = outputAmountRemaining.sub(lockedChange)
+          let newLockedChangeOutput: StakeableLockOut = SelectOutputClass(
+            lockedOutput.getOutputID(),
+            lockedChange,
+            output.getAddresses(),
+            output.getLocktime(),
+            output.getThreshold(),
+            stakeableLocktime
+          ) as StakeableLockOut
+          const transferOutput: TransferableOutput = new TransferableOutput(
+            assetID,
+            newLockedChangeOutput
+          )
+          aad.addChange(transferOutput)
+        }
+
+        // We know that outputAmountRemaining > 0. Otherwise, we would never
+        // have consumed this UTXO, as it would be only change.
+        const newLockedOutput: StakeableLockOut = SelectOutputClass(
+          lockedOutput.getOutputID(),
+          outputAmountRemaining,
+          output.getAddresses(),
+          output.getLocktime(),
+          output.getThreshold(),
+          stakeableLocktime
+        ) as StakeableLockOut
+        const transferOutput: TransferableOutput = new TransferableOutput(
+          assetID,
+          newLockedOutput
+        )
+        aad.addOutput(transferOutput)
+      })
+
+      // unlockedChange is the amount of unlocked change that should be returned
+      // to the sender
+      const unlockedChange: BN = isStakeableLockChange ? zero.clone() : change
+      if (unlockedChange.gt(zero)) {
+        const newChangeOutput: AmountOutput = new SECPTransferOutput(
+          unlockedChange,
+          aad.getChangeAddresses(),
+          zero.clone(), // make sure that we don't lock the change output.
+          aad.getChangeAddressesThreshold()
+        ) as AmountOutput
+        const transferOutput: TransferableOutput = new TransferableOutput(
+          assetID,
+          newChangeOutput
+        )
+        aad.addChange(transferOutput)
+      }
+
+      // totalAmountSpent is the total amount of tokens consumed.
+      const totalAmountSpent: BN = assetAmount.getSpent()
+      // stakeableLockedAmount is the total amount of locked tokens consumed.
+      const stakeableLockedAmount: BN = assetAmount.getStakeableLockSpent()
+      // totalUnlockedSpent is the total amount of unlocked tokens consumed.
+      const totalUnlockedSpent: BN = totalAmountSpent.sub(stakeableLockedAmount)
+      // amountBurnt is the amount of unlocked tokens that must be burn.
+      const amountBurnt: BN = assetAmount.getBurn()
+      // totalUnlockedAvailable is the total amount of unlocked tokens available
+      // to be produced.
+      const totalUnlockedAvailable: BN = totalUnlockedSpent.sub(amountBurnt)
+      // unlockedAmount is the amount of unlocked tokens that should be sent.
+      const unlockedAmount: BN = totalUnlockedAvailable.sub(unlockedChange)
+      if (unlockedAmount.gt(zero)) {
+        const newOutput: AmountOutput = new SECPTransferOutput(
+          unlockedAmount,
+          aad.getDestinations(),
+          lockTime,
+          aad.getDestinationsThreshold()
+        ) as AmountOutput
+        const transferOutput: TransferableOutput = new TransferableOutput(
+          assetID,
+          newOutput
+        )
+        aad.addOutput(transferOutput)
+      }
+    })
+    return undefined
+  }
 }

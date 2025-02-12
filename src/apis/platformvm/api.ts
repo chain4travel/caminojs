@@ -73,6 +73,8 @@ import {
   GetMinStakeResponse,
   GetMaxStakeAmountParams,
   SpendParams,
+  UndepositParams,
+  UndepositReply,
   SpendReply,
   AddressParams,
   MultisigAliasReply,
@@ -2707,7 +2709,22 @@ export class PlatformVMAPI extends JRPCAPI {
     amountToLock: BN,
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
-    const caller = "buildUnlockDepositTx"
+
+    // // const caller = "buildUnlockDepositTx"
+
+    // TODO: 1. call to spend API to burn the already unlocked UTXOs
+
+    // 1.1. define already unlocked UTXOs
+    // 1.2 call spend API to burn the already unlocked UTXOs - what is the lockMode for burn?!
+    let caller = "platform.spend"
+
+
+
+    // TODO: 2. call to undeposit API to unlock the deposit
+    // 2.1. define the DepositTxIDs
+
+    caller = "platform.undeposit"
+
     const fromSigner = this._parseFromSigner(fromAddresses, caller)
     const change: Buffer[] = this._cleanAddressArrayBuffer(
       changeAddresses,
@@ -3164,6 +3181,55 @@ export class PlatformVMAPI extends JRPCAPI {
       out: TransferableOutput.fromArray(Buffer.from(r.outs.slice(2), "hex")),
       owners: r.owners
         ? OutputOwners.fromArray(Buffer.from(r.owners.slice(2), "hex"))
+        : []
+    }
+  }
+
+  undeposit = async (
+    from: string[] | string,
+    signer: string[] | string,
+    to: string[],
+    toThreshold: number,
+    toLockTime: BN,
+    change: string[],
+    changeThreshold: number,
+    lockMode: LockMode,
+    amountToLock: BN,
+    amountToBurn: BN,
+    asOf: BN,
+    depositTxIDs: string[],
+    encoding?: string
+  ): Promise<UndepositReply> => {
+    // TODO: NOW mimics spend, alter the logic to undeposit:
+    if (!["Unlocked", "Deposit", "Bond"].includes(lockMode)) {
+      throw new ProtocolError(
+        "Error -- PlatformAPI.undeposit: invalid lockMode"
+      )
+    }
+    const params: UndepositParams = {
+      from,
+      depositTxIDs
+    }
+
+    const response: RequestResponseData = await this.callMethod(
+      "platform.undeposit",
+      params
+    )
+    const r = response.data.result
+
+    // We need to update signature index source here
+    const ins = TransferableInput.fromArray(Buffer.from(r.ins.slice(2), "hex"))
+    ins.forEach((e, idx) =>
+      e.getSigIdxs().forEach((s, sidx) => {
+        s.setSource(bintools.cb58Decode(r.signers[`${idx}`][`${sidx}`]))
+      })
+    )
+
+    return {
+      ins,
+      out: TransferableOutput.fromArray(Buffer.from(r.outs.slice(2), "hex")),
+      signers: r.signers // TODO: send back the signers ?
+        ? OutputOwners.fromArray(Buffer.from(r.signers.slice(2), "hex"))
         : []
     }
   }

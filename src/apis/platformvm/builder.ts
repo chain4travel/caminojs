@@ -72,6 +72,16 @@ export interface MinimumSpendable {
     lockMode: LockMode
   ): Promise<Error>
 }
+// TODO: change the naming
+export interface Undepositable {
+  getUndeposit(
+    aad: AssetAmountDestination,
+    asOf: BN,
+    locktime: BN,
+    lockMode: LockMode,
+    depositTxIDs: string[]
+  ): Promise<Error>
+}
 
 export type FromSigner = {
   from: Buffer[]
@@ -93,6 +103,8 @@ const zero: BN = new BN(0)
 
 export class Builder {
   spender: MinimumSpendable
+  undepositer: Undepositable // TODO:: do I need this?
+
   caminoEnabled: boolean
 
   constructor(spender: MinimumSpendable, caminoEnabled: boolean) {
@@ -1460,6 +1472,7 @@ export class Builder {
         aad,
         asOf,
         zero,
+        // TODO: no lockMode to burn the fee?
         "Unlocked"
       )
       if (typeof minSpendableErr === "undefined") {
@@ -1468,6 +1481,15 @@ export class Builder {
       } else {
         throw minSpendableErr
       }
+
+      // TODO: undeposit
+      const undepositableErr: Error = await this.undepositer.getUndeposit(
+        aad,
+        asOf,
+        zero,
+        "Unlocked",
+        []
+      )
     }
 
     const unlockDepositTx: UnlockDepositTx = new UnlockDepositTx(

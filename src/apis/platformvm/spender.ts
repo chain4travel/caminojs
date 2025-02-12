@@ -68,4 +68,59 @@ export class Spender {
     aad.setOutputOwners(result.owners)
     return
   }
+
+  getUndeposit = async (
+    aad: AssetAmountDestination,
+    asOf: BN,
+    lockTime: BN,
+    lockMode: LockMode,
+    depositTxIDs: string[]
+  ): Promise<Error> => {
+    // TODO: does what spend does - change the logic to undeposit
+    if (aad.getAmounts().length !== 1) {
+      return new FeeAssetError("spender -- multiple assets not yet supported")
+    }
+
+    const addr = aad
+      .getSenders()
+      .map((a) => this.platformAPI.addressFromBuffer(a))
+
+    const signer = aad
+      .getSigners()
+      .map((a) => this.platformAPI.addressFromBuffer(a))
+
+    const to = aad
+      .getDestinations()
+      .map((a) => this.platformAPI.addressFromBuffer(a))
+
+    const change = aad
+      .getChangeAddresses()
+      .map((a) => this.platformAPI.addressFromBuffer(a))
+
+    const aa = aad.getAmounts()[0]
+
+    const result = await this.platformAPI.undeposit(
+      addr,
+      signer,
+      to,
+      aad.getDestinationsThreshold(),
+      lockTime,
+      change,
+      aad.getChangeAddressesThreshold(),
+      lockMode,
+      aa.getAmount(),
+      aa.getBurn(),
+      asOf,
+      depositTxIDs,
+    )
+
+    result.ins.forEach((inp) => {
+      aad.addInput(inp)
+    })
+    result.out.forEach((out) => {
+      aad.addOutput(out)
+    })
+    aad.setOutputOwners(result.signers)
+    return
+  }
 }
