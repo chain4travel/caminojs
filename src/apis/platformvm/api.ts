@@ -3180,17 +3180,15 @@ export class PlatformVMAPI extends JRPCAPI {
     toThreshold: number,
     change: string[],
     changeThreshold: number,
-    // amountToLock: BN
     amountToBurn: BN,
-    asOf: BN,
     depositTxIDs: string[],
     encoding?: string
   ): Promise<UndepositReply> => {
     // TODO: NOW mimics spend, alter the logic to undeposit:
     const params: UndepositParams = {
-      from,
-      depositTxIDs,
-      amountToBurn
+      from: from,
+      amountToBurn : amountToBurn.toString(10),
+      depositTxIDs : depositTxIDs,
     }
 
     const response: RequestResponseData = await this.callMethod(

@@ -345,8 +345,8 @@ export interface SpendParams {
 
 export interface UndepositParams {
   from: string[] | string
-  depositTxIDs: string[],
-  amountToBurn: BN
+  depositTxIDs: string[] | string, // | string - is it ok?
+  amountToBurn: string
 }
 
 export interface UndepositReply {

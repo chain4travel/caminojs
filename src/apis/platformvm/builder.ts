@@ -1479,10 +1479,7 @@ export class Builder {
       // TODO: undeposit
       const undepositableErr: Error = await this.undepositer.getUndepositable(
         aad,
-        // asOf,
-        // zero, // NO NEED TO SPECIFY LOCKTIME
-        // "Unlocked", // NO NEED TO SPECIFY MODE - only one mode is needed
-        []
+        ["2iNuXtadEPabNiC5SuCTBXeALnyqvSFPjTKCjGuuMzPv4syMAf"]
       )
     }
 
