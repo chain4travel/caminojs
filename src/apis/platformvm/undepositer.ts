@@ -51,9 +51,7 @@ export class Undepositer {
       aad.getDestinationsThreshold(),
       change,
       aad.getChangeAddressesThreshold(),
-      aa.getAmount(),
       aa.getBurn(),
-      // asOf,
       depositTxIDs,
     )
 
