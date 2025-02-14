@@ -352,7 +352,7 @@ export interface UndepositParams {
 export interface UndepositReply {
   ins: TransferableInput[]
   out: TransferableOutput[]
-  signers: OutputOwners[] // TODO: @VjeraTurk Swap for OutputSigners, check if this is correct + what is the difference between Reply and Response
+  sigIdxs: number[] // TODO: @VjeraTurk Swap for OutputSigners, check if this is correct + what is the difference between Reply and Response
   owners: OutputOwners[]
 }
 

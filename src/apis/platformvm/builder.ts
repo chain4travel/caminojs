@@ -1462,6 +1462,7 @@ export class Builder {
 
     let ins: TransferableInput[] = []
     let outs: TransferableOutput[] = []
+    let owners: OutputOwners[] = []
 
     if (this._feeCheck(fee, feeAssetID)) {
       const aad: AssetAmountDestination = new AssetAmountDestination(
@@ -1476,11 +1477,20 @@ export class Builder {
       // TODO: see it aad structure is correct or a similar structure is needed
       aad.addAssetAmount(feeAssetID, zero, fee)
 
+      // TODO: const depositTxIDs: string[] = await
+
       // TODO: undeposit
       const undepositableErr: Error = await this.undepositer.getUndepositable(
         aad,
         ["2iNuXtadEPabNiC5SuCTBXeALnyqvSFPjTKCjGuuMzPv4syMAf"]
       )
+      if (typeof undepositableErr === "undefined") {
+        ins = aad.getInputs()
+        outs = aad.getAllOutputs()
+        owners = aad.getOutputOwners()
+      } else {
+        throw undepositableErr
+      }
     }
 
     const unlockDepositTx: UnlockDepositTx = new UnlockDepositTx(

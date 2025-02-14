@@ -38,13 +38,10 @@ const InitAvalanche = async () => {
 const main = async (): Promise<any> => {
   await InitAvalanche()
   const amount_cam = 0.3
-  const amountToUnLock = new BN(amount_cam*1000000000)
-  const memo: Buffer = Buffer.from(
-    "unDepositTx with singlesig deposit "
-  )
+  const amountToUnLock = new BN(amount_cam * 1000000000)
+  const memo: Buffer = Buffer.from("unDepositTx with singlesig deposit ")
 
-
-  let utxoStrings:  string[] = [""]       
+  let utxoStrings: string[] = [""]
   let platformvmUTXOResponse: GetUTXOsResponse
   let utxoSet: UTXOSet
   // utxoset takes time to be updated. here we check if the utxoset is the same like the previous one
@@ -52,8 +49,11 @@ const main = async (): Promise<any> => {
   while (true) {
     platformvmUTXOResponse = await pchain.getUTXOs(pAddressStrings)
     utxoSet = platformvmUTXOResponse.utxos
-    
-    if (utxoSet.getAllUTXOStrings().sort().toString() != utxoStrings.sort().toString()){
+
+    if (
+      utxoSet.getAllUTXOStrings().sort().toString() !=
+      utxoStrings.sort().toString()
+    ) {
       utxoStrings = utxoSet.getAllUTXOStrings()
       break
     }
@@ -68,16 +68,17 @@ const main = async (): Promise<any> => {
     pAddressStrings,
     memo,
     new BN(0),
-    amountToUnLock,
+    amountToUnLock
   )
 
   const tx: Tx = unsignedTx.sign(pKeychain)
   const txid: string = await pchain.issueTx(tx)
   console.log(`Success! TXID: ${txid}`)
+  console.log(`Success! TX: ${tx}`)
 }
 
 function delay(ms: number) {
-  return new Promise( resolve => setTimeout(resolve, ms) );
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 main()
