@@ -61,7 +61,8 @@ export class Undepositer {
     result.out.forEach((out) => {
       aad.addOutput(out)
     })
-    aad.setOutputOwners(result.signers)
+   aad.setOutputOwners(result.owners)
+   // TODO: what do I do with signers?
     return
   }
 }

@@ -3205,12 +3205,17 @@ export class PlatformVMAPI extends JRPCAPI {
       })
     )
 
+    let outs =TransferableOutput.fromArray(Buffer.from(r.outs.slice(2), "hex"));
+    // If multisig -> must expect multiple signers
     return {
       ins,
-      out: TransferableOutput.fromArray(Buffer.from(r.outs.slice(2), "hex")),
-      signers: r.signers // TODO: send back the signers ?
-        ? OutputOwners.fromArray(Buffer.from(r.signers.slice(2), "hex"))
-        : [],
+      out: outs,
+    //   signers: r.signers // TODO: send back the signers ?
+    //   ? OutputOwners.fromArray(Buffer.from(r.signers.slice(0), "hex"))
+    //    : [],
+      sigIdxs: r.signers
+      ? r.signers
+      : [0],
       owners: r.owners
       ?  OutputOwners.fromArray(Buffer.from(r.owners.slice(2), "hex"))
       : []
