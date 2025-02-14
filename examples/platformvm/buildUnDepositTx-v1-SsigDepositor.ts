@@ -62,13 +62,16 @@ const main = async (): Promise<any> => {
 
   utxoStrings = utxoSet.getAllUTXOStrings()
 
+  // This gets all deposit transaction IDs. Specify certain (1) deposit transaction IDs
+  const depositTxIDs: string[] = utxoSet.getLockedTxIDs().depositIDs
   const unsignedTx: UnsignedTx = await pchain.buildUnlockDepositTx(
     utxoSet,
     pAddressStrings,
     pAddressStrings,
     memo,
     new BN(0),
-    amountToUnLock
+    amountToUnLock,
+    depositTxIDs
   )
 
   const tx: Tx = unsignedTx.sign(pKeychain)

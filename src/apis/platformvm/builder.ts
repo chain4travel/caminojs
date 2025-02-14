@@ -1450,7 +1450,8 @@ export class Builder {
     feeAssetID: Buffer = undefined,
     memo: Buffer = undefined,
     asOf: BN = zero,
-    changeThreshold: number = 1
+    changeThreshold: number = 1,
+    depositTxIDs: string[]
   ): Promise<UnsignedTx> => {
 
     // X TODO: 1. call to spend API to burn the already unlocked UTXOs
@@ -1482,7 +1483,7 @@ export class Builder {
       // TODO: undeposit
       const undepositableErr: Error = await this.undepositer.getUndepositable(
         aad,
-        ["2iNuXtadEPabNiC5SuCTBXeALnyqvSFPjTKCjGuuMzPv4syMAf"]
+        depositTxIDs
       )
       if (typeof undepositableErr === "undefined") {
         ins = aad.getInputs()
@@ -1500,7 +1501,8 @@ export class Builder {
       ins,
       memo
     )
-
+    // owners.push(new OutputOwners([], ZeroBN, 1))
+    unlockDepositTx.setOutputOwners(owners)
     return new UnsignedTx(unlockDepositTx)
   }
 

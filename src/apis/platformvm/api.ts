@@ -2708,6 +2708,7 @@ export class PlatformVMAPI extends JRPCAPI {
     memo: PayloadBase | Buffer = undefined,
     asOf: BN = ZeroBN,
     amountToLock: BN,
+    depositTxIDs: string[],
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
 
@@ -2738,7 +2739,8 @@ export class PlatformVMAPI extends JRPCAPI {
       avaxAssetID,
       memo,
       asOf,
-      changeThreshold
+      changeThreshold,
+      depositTxIDs
     )
 
     if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
@@ -3184,7 +3186,6 @@ export class PlatformVMAPI extends JRPCAPI {
     depositTxIDs: string[],
     encoding?: string
   ): Promise<UndepositReply> => {
-    // TODO: NOW mimics spend, alter the logic to undeposit:
     const params: UndepositParams = {
       from: from,
       amountToBurn : amountToBurn.toString(10),
