@@ -14,13 +14,11 @@ export class Undepositer {
   constructor(platformAPI: PlatformVMAPI) {
     this.platformAPI = platformAPI
   }
-  // CAN BE THE SAME
   getUndepositable = async (
     aad: AssetAmountDestination,
     // asOf: BN,
     depositTxIDs: string[]
   ): Promise<Error> => {
-    // TODO: does what spend does - change the logic to undeposit
     if (aad.getAmounts().length !== 1) {
       return new FeeAssetError("spender -- multiple assets not yet supported")
     }

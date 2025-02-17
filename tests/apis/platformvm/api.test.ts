@@ -1140,8 +1140,8 @@ describe("PlatformVMAPI", (): void => {
       platformvm.setAVAXAssetID(assetID)
       set = new UTXOSet()
       lset = new UTXOSet()
-      builder = new Builder(set, false)
-      lbuilder = new Builder(lset, false)
+      builder = new Builder(set, set, false)
+      lbuilder = new Builder(lset, set, false)
       platformvm.newKeyChain()
       keymgr2 = new KeyChain(avalanche.getHRP(), alias)
       keymgr3 = new KeyChain(avalanche.getHRP(), alias)
@@ -3007,7 +3007,7 @@ describe("PlatformVMAPI", (): void => {
       ZeroBN,
       1
     )
-    const spendResponse = {
+    const undepositResponse = {
       ins: [
         new TransferableInput(
           txID,
@@ -3020,7 +3020,7 @@ describe("PlatformVMAPI", (): void => {
       owners: []
     }
 
-    api.spend = jest.fn().mockReturnValue(spendResponse)
+    api.undeposit = jest.fn().mockReturnValue(undepositResponse)
 
     const result = api.buildUnlockDepositTx(
       undefined,
@@ -3028,16 +3028,16 @@ describe("PlatformVMAPI", (): void => {
       [defaultAddr],
       Buffer.from("memo"),
       ZeroBN,
-      new BN(1),
-      1
+      new BN(0),
+      [txID.toString()]
     )
 
     const txu1 = await result
     const expectedUnlockDepositTx = new UnlockDepositTx(
       networkID,
       Buffer.alloc(32, 0),
-      spendResponse.out,
-      spendResponse.ins,
+      undepositResponse.out,
+      undepositResponse.ins,
       Buffer.from("memo")
     )
     const expectedUnsignedTx = new UnsignedTx(expectedUnlockDepositTx)

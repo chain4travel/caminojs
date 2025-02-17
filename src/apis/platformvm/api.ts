@@ -3221,8 +3221,7 @@ export class PlatformVMAPI extends JRPCAPI {
     if (this.core.getNetwork().P.lockModeBondDeposit) {
       return new Builder(new Spender(this), new Undepositer(this), true)
     }
-    // TODO: null is not a valid undepositer
-    return new Builder(utxoSet, null, true)
+    return new Builder(utxoSet, utxoSet, true)
   }
 
   /**
