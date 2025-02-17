@@ -105,7 +105,11 @@ export class Builder {
 
   caminoEnabled: boolean
 
-  constructor(spender: MinimumSpendable, undepositer: Undepositable, caminoEnabled: boolean) {
+  constructor(
+    spender: MinimumSpendable,
+    undepositer: Undepositable,
+    caminoEnabled: boolean
+  ) {
     this.spender = spender
     this.undepositer = undepositer
     this.caminoEnabled = caminoEnabled
@@ -1453,7 +1457,6 @@ export class Builder {
     changeThreshold: number = 1,
     depositTxIDs: string[]
   ): Promise<UnsignedTx> => {
-
     let ins: TransferableInput[] = []
     let outs: TransferableOutput[] = []
     let owners: OutputOwners[] = []

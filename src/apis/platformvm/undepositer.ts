@@ -8,7 +8,6 @@ import BN from "bn.js"
 import { AssetAmountDestination, PlatformVMAPI } from "."
 import { FeeAssetError } from "../../utils/errors"
 
-
 export class Undepositer {
   platformAPI: PlatformVMAPI
 
@@ -52,7 +51,7 @@ export class Undepositer {
       change,
       aad.getChangeAddressesThreshold(),
       aa.getBurn(),
-      depositTxIDs,
+      depositTxIDs
     )
 
     result.ins.forEach((inp) => {
@@ -61,8 +60,8 @@ export class Undepositer {
     result.out.forEach((out) => {
       aad.addOutput(out)
     })
-   aad.setOutputOwners(result.owners)
-   // TODO: what do I do with signers?
+    aad.setOutputOwners(result.owners)
+    // TODO: what do I do with signers?
     return
   }
 }

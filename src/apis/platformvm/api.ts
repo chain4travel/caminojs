@@ -2711,7 +2711,6 @@ export class PlatformVMAPI extends JRPCAPI {
     depositTxIDs: string[],
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
-
     const caller = "buildUnlockDepositTx"
 
     const fromSigner = this._parseFromSigner(fromAddresses, caller)
@@ -3188,8 +3187,8 @@ export class PlatformVMAPI extends JRPCAPI {
   ): Promise<UndepositReply> => {
     const params: UndepositParams = {
       from: from,
-      amountToBurn : amountToBurn.toString(10),
-      depositTxIDs : depositTxIDs,
+      amountToBurn: amountToBurn.toString(10),
+      depositTxIDs: depositTxIDs
     }
 
     const response: RequestResponseData = await this.callMethod(
@@ -3206,17 +3205,15 @@ export class PlatformVMAPI extends JRPCAPI {
       })
     )
 
-    let outs =TransferableOutput.fromArray(Buffer.from(r.outs.slice(2), "hex"));
+    let outs = TransferableOutput.fromArray(Buffer.from(r.outs.slice(2), "hex"))
     // If multisig -> must expect multiple signers
     return {
       ins,
       out: outs,
-      sigIdxs: r.signers
-      ? r.signers
-      : [0],
+      sigIdxs: r.signers ? r.signers : [0],
       owners: r.owners
-      ?  OutputOwners.fromArray(Buffer.from(r.owners.slice(2), "hex"))
-      : []
+        ? OutputOwners.fromArray(Buffer.from(r.owners.slice(2), "hex"))
+        : []
     }
   }
 

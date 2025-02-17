@@ -10,7 +10,6 @@ import {
 import { ExamplesConfig } from "../common/examplesConfig"
 import BN from "bn.js"
 
-
 //const config: ExamplesConfig = require("../common/examplesConfig.json")
 const avalanche: Avalanche = new Avalanche(
   "kopernikus.camino.network",
@@ -18,7 +17,6 @@ const avalanche: Avalanche = new Avalanche(
   "https",
   1002
 )
-
 
 const privKey: string = "PrivateKey-XXXX"
 let pchain: PlatformVMAPI
