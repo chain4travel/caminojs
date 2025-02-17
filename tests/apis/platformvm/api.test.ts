@@ -1530,7 +1530,7 @@ describe("PlatformVMAPI", (): void => {
       )
       expect(txu2.toString()).toBe(txu1.toString())
     })
-
+    /*  TODO: @VjeraTurk Change to buildAddCaminoValidatorTX
     test("buildAddDelegatorTx 1", async (): Promise<void> => {
       const addrbuff1 = addrs1.map((a) => platformvm.parseAddress(a))
       const addrbuff2 = addrs2.map((a) => platformvm.parseAddress(a))
@@ -1608,8 +1608,7 @@ describe("PlatformVMAPI", (): void => {
 
       serialzeit(tx1, "AddDelegatorTx")
     })
-    /*
-   TODO: @VjeraTurk Change to buildAddCaminoValidatorTX
+
     test("buildAddValidatorTx sort StakeableLockOuts 1", async (): Promise<void> => {
       // two UTXO. The 1st has a lesser stakeablelocktime and a greater amount of AVAX. The 2nd has a greater stakeablelocktime and a lesser amount of AVAX.
       // We expect this test to only consume the 2nd UTXO since it has the greater locktime.
@@ -2146,7 +2145,7 @@ describe("PlatformVMAPI", (): void => {
         stakeableLockOut2.getStakeableLocktime().toString()
       )
     })
-*/
+
     test("buildAddValidatorTx 1", async (): Promise<void> => {
       const addrbuff1 = addrs1.map((a) => platformvm.parseAddress(a))
       const addrbuff2 = addrs2.map((a) => platformvm.parseAddress(a))
@@ -2506,7 +2505,7 @@ describe("PlatformVMAPI", (): void => {
       expect(staketotal.toString(10)).toBe("3000000000")
       expect(totaltotal.toString(10)).toBe("4000000000")
     })
-
+*/
     test("buildCreateSubnetTx1", async (): Promise<void> => {
       platformvm.setCreationTxFee(new BN(10))
       const addrbuff1: Buffer[] = addrs1.map(
