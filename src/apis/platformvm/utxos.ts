@@ -588,17 +588,19 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
     return undefined
   }
 
-  getUndeposit = async (
+  getUndepositable = async (
     aad: AssetAmountDestination,
-    asOf: BN = zeroBN,
-    lockTime: BN = zeroBN,
-    lockMode: LockMode = "Unlocked"
+    depositTxIDs: string[]
+    // asOf: BN = zeroBN,
+    // lockTime: BN = zeroBN,
+    // lockMode: LockMode = "Unlocked"
   ): Promise<Error> => {
     // TODO: does what spend does - change the logic to undeposit
-    if (asOf.isZero()) asOf = UnixNow()
+    // if (asOf.isZero()) asOf = UnixNow()
 
-    let utxoArray: UTXO[] = this.getConsumableUXTO(asOf, lockMode == "Stake")
+    let utxoArray: UTXO[] = this.getConsumableUXTO(null, true)
     let tmpUTXOArray: UTXO[] = []
+    /*
     if (lockMode == "Stake") {
       // If this is a stakeable transaction then have StakeableLockOut come before SECPTransferOutput
       // so that users first stake locked tokens before staking unlocked tokens
@@ -627,7 +629,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
       })
       utxoArray = tmpUTXOArray
     }
-
+    */
     // outs is a map from assetID to a tuple of (lockedStakeable, unlocked)
     // which are arrays of outputs.
     const outs: object = {}
@@ -639,19 +641,18 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
       const assetKey: string = assetID.toString("hex")
       const fromAddresses: Buffer[] = aad.getSenders()
       const output: BaseOutput = utxo.getOutput()
+
       const amountOutput =
         output instanceof ParseableOutput ? output.getOutput() : output
       if (
         !(amountOutput instanceof AmountOutput) ||
-        !aad.assetExists(assetKey) ||
-        !output.meetsThreshold(fromAddresses, asOf)
+        !aad.assetExists(assetKey)
       ) {
         // We should only try to spend fungible assets.
         // We should only spend {{ assetKey }}.
         // We need to be able to spend the output.
         return
       }
-
       const assetAmount: AssetAmount = aad.getAssetAmount(assetKey)
       if (assetAmount.isFinished()) {
         // We've already spent the needed UTXOs for this assetID.
@@ -674,6 +675,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
       let input: BaseInput = new SECPTransferInput(amount)
 
       let locked: boolean = false
+      /*
       if (output instanceof StakeableLockOut) {
         const stakeableOutput: StakeableLockOut = output as StakeableLockOut
         const stakeableLocktime: BN = stakeableOutput.getStakeableLocktime()
@@ -689,7 +691,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
           // Mark this UTXO as having been re-locked.
           locked = true
         }
-      }
+      }*/
 
       assetAmount.spendAmount(amount, locked)
       if (locked) {
@@ -705,7 +707,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
 
       // TODO: getSpenders should return an array of indices rather than an
       // array of addresses.
-      const spenders: Buffer[] = amountOutput.getSpenders(fromAddresses, asOf)
+      const spenders: Buffer[] = amountOutput.getSpenders(fromAddresses, null)
       spenders.forEach((spender: Buffer) => {
         const idx: number = amountOutput.getAddressIdx(spender)
         if (idx === -1) {
@@ -716,7 +718,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
 
           /* istanbul ignore next */
           throw new AddressError(
-            "Error - UTXOSet.getMinimumSpendable: no such " +
+            "Error - UTXOSet.getUndepositable: no such " +
               `address in output: ${spender}`
           )
         }
@@ -846,7 +848,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
         const newOutput: AmountOutput = new SECPTransferOutput(
           unlockedAmount,
           aad.getDestinations(),
-          lockTime,
+          null,
           aad.getDestinationsThreshold()
         ) as AmountOutput
         const transferOutput: TransferableOutput = new TransferableOutput(
