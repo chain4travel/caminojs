@@ -101,14 +101,14 @@ const zero: BN = new BN(0)
 
 export class Builder {
   spender: MinimumSpendable
-  undepositer: Undepositable // TODO:: do I need this?
+  undepositer: Undepositable
 
   caminoEnabled: boolean
 
   constructor(spender: MinimumSpendable, undepositer: Undepositable, caminoEnabled: boolean) {
     this.spender = spender
-    this.caminoEnabled = caminoEnabled
     this.undepositer = undepositer
+    this.caminoEnabled = caminoEnabled
   }
 
   /**
@@ -1454,13 +1454,6 @@ export class Builder {
     depositTxIDs: string[]
   ): Promise<UnsignedTx> => {
 
-    // X TODO: 1. call to spend API to burn the already unlocked UTXOs
-    // X 1.1. define already unlocked UTXOs
-    // X 1.2 call spend API to burn the already unlocked UTXOs - what is the lockMode for burn?!
-
-    // TODO: 2. call to undeposit API to unlock the deposit
-    // 2.1. define the DepositTxIDs
-
     let ins: TransferableInput[] = []
     let outs: TransferableOutput[] = []
     let owners: OutputOwners[] = []
@@ -1477,10 +1470,6 @@ export class Builder {
 
       // TODO: see it aad structure is correct or a similar structure is needed
       aad.addAssetAmount(feeAssetID, zero, fee)
-
-      // TODO: const depositTxIDs: string[] = await
-
-      // TODO: undeposit
       const undepositableErr: Error = await this.undepositer.getUndepositable(
         aad,
         depositTxIDs
@@ -1501,7 +1490,6 @@ export class Builder {
       ins,
       memo
     )
-    // owners.push(new OutputOwners([], ZeroBN, 1))
     unlockDepositTx.setOutputOwners(owners)
     return new UnsignedTx(unlockDepositTx)
   }

@@ -3211,9 +3211,6 @@ export class PlatformVMAPI extends JRPCAPI {
     return {
       ins,
       out: outs,
-    //   signers: r.signers // TODO: send back the signers ?
-    //   ? OutputOwners.fromArray(Buffer.from(r.signers.slice(0), "hex"))
-    //    : [],
       sigIdxs: r.signers
       ? r.signers
       : [0],
@@ -3225,9 +3222,10 @@ export class PlatformVMAPI extends JRPCAPI {
 
   _getBuilder = (utxoSet: UTXOSet): Builder => {
     if (this.core.getNetwork().P.lockModeBondDeposit) {
-      return new Builder(new Spender(this), new Undepositer(this),true,)
+      return new Builder(new Spender(this), new Undepositer(this), true)
     }
-    return new Builder(utxoSet, new Undepositer(this), true)
+    // TODO: null is not a valid undepositer
+    return new Builder(utxoSet, null, true)
   }
 
   /**
