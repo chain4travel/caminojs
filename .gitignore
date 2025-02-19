@@ -123,4 +123,3 @@ package
 .vscode
 examples/*.lock
 *.diff
-examples/common/examplesConfig.json
