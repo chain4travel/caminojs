@@ -32,16 +32,21 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 const bintools = BinTools.getInstance()
-const member1 = "P-kopernikus1jla8ty5c9ud6lsj8s4re2dvzvfxpzrxdcrd8q7"
-const member2 = "P-kopernikus13kyf72ftu4l77kss7xm0kshm0au29s48zjaygq"
+
+// seed3y
+const member1 = "P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav"
+// presale3y
+const member2 = "P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj"
 
 // Multisig creator:
 const multiSigAliasMember1PrivateKey =
-  "PrivateKey-2Vtf2ZhTRz6WcVcSH7cS7ghKneZxZ2L5W8assdCcaNDVdpoYfY" // P-kopernikus1jla8ty5c9ud6lsj8s4re2dvzvfxpzrxdcrd8q7
-const multiSigAliasMember2PrivateKey =
-  "PrivateKey-Ge71NJhUY3TjZ9dLohijSnNq46QxobjqxHGMUDAPoVsNFA93w" // P-kopernikus13kyf72ftu4l77kss7xm0kshm0au29s48zjaygq
+"PrivateKey-XXX" // P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav
 
-const msigAlias = "P-kopernikus15fpw65ge47lhnxgsnwxwmwm9ncpa8jg0yt0c97"
+const multiSigAliasMember2PrivateKey =
+"PrivateKey-XXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
+  
+
+const msigAlias = "P-kopernikus1cwnua4x8ay3mnzm6t6ys0ymfp2nuswkylqa80p"
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -106,9 +111,7 @@ const main = async (): Promise<any> => {
     let signatures: [string, string][] = []
     let unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos, // utxoset
-      [[proposalMsigCreator]], // fromAddresses
-      // [[proposalMsigCreator], pAddressStrings], // fromAddresses
-      //[proposalMsigCreator], // changeAddresses
+      [[proposalMsigCreator]], // or [[proposalMsigCreator], pAddressStrings], // fromAddresses
       [], // changeAddresses
       Buffer.from("hello world"), // description
       proposal, // proposal
