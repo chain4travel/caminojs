@@ -1849,7 +1849,7 @@ export class Builder {
         aad,
         asOf,
         zero,
-        "Bond"
+        "Bond" // Unlocked or Bond?
       )
       if (typeof minSpendableErr === "undefined") {
         ins = aad.getInputs()
@@ -1872,6 +1872,7 @@ export class Builder {
       proposerAddress,
       proposerAuth
     )
+    // TODO: are owners ok?
     owners.push(new OutputOwners([proposerAddress], ZeroBN, 1))
     baseTx.setOutputOwners(owners)
     return new UnsignedTx(baseTx)
