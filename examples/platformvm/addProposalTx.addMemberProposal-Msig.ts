@@ -77,9 +77,7 @@ const main = async (): Promise<any> => {
   const platformVMUTXOResponse = await pchain.getUTXOs([msigAlias])
 
   const proposalMsigCreator = msigAlias
-  const proposalMsigCreatorAuth: [number, string | Buffer][] = [
-    [0, proposalMsigCreator]
-  ]
+
   const proposal = new AddMemberProposal(
     startTimestamp,
     endTimestamp,
@@ -97,13 +95,12 @@ const main = async (): Promise<any> => {
     let signatures: [string, string][] = []
     let unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos, // utxoset
-      [[proposalMsigCreator], pAddressStrings], // or [[proposalMsigCreator], pAddressStrings], // fromAddresses
+      [[proposalMsigCreator], pAddressStrings], // fromAddresses
       [], // changeAddresses
       Buffer.from("hello world"), // description
       proposal, // proposal
       Buffer.from(proposalMsigCreator), // proposerAddress
       0, // version
-      // proposalMsigCreatorAuth,
       Buffer.alloc(20) // memo
     )
 
@@ -144,7 +141,6 @@ const main = async (): Promise<any> => {
       let address = pchain.parseAddress(addressString)
       let signature = Buffer.from(hexSignature, "hex")
       msKeyChain.addKey(new MultisigKeyPair(msKeyChain, address, signature))
-      // msKeyChain.addKey(new MultisigKeyPair(msKeyChain, address, signature))
     }
 
     msKeyChain.buildSignatureIndices()

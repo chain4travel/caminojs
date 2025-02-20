@@ -39,14 +39,14 @@ const member2 = "P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj"
 const multiSigAliasMember1PrivateKey =
   "PrivateKey-XXX" // P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav
 const multiSigAliasMember2PrivateKey =
-"PrivateKey-XXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
+  "PrivateKey-XXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
 const msig_one_owner = "P-kopernikus1r2udpjtvlkj6muetx3906vfvuna4nmg5mv5vxn"
-
-const msig_one_threshold = "P-kopernikus1jht6eknptgycuykg6zd50sg8he5t4fap0a36fq"
-const msig_two_threshold = "P-kopernikus1fa2tyhqvh408pk7gx375wkcqunl2zczcl4acht"
+const msig_two_owners_threshold_1 =
+  "P-kopernikus1ece6f9yym6939galcvlwzr0dc0tqh4a8jdmmpu"
 
 const new_member_address = "P-kopernikus1fa2tyhqvh408pk7gx375wkcqunl2zczcl4acht"
-const msigAliasAddr = msig_one_owner
+// const msigAliasAddr = msig_one_owner
+const msigAliasAddr = msig_two_owners_threshold_1
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -58,7 +58,7 @@ const InitAvalanche = async () => {
   pchain = avalanche.PChain()
   pKeychain = pchain.keyChain()
   pKeychain.importKey(multiSigAliasMember1PrivateKey)
-  //pKeychain.importKey(multiSigAliasMember2PrivateKey)
+  // pKeychain.importKey(multiSigAliasMember2PrivateKey) // uncomment if using msig_two_owners_threshold_1
 
   pAddresses = pchain.keyChain().getAddresses()
   pAddressStrings = pchain.keyChain().getAddressStrings()
@@ -78,10 +78,6 @@ const main = async (): Promise<any> => {
   ])
 
   const bondAmount: any = await pchain.getMinStake()
-  // let startDate =
-  // startDate.setDate(startDate.getDate() + 1)
-  // let endDate = new Date(startDate)
-  // endDate.setDate(endDate.getDate() + 10)
 
   let startTimestamp: number = Date.now() / 1000 + 600 // start after 10 minutes
   let endTimestamp: number = startTimestamp + 5184000 // exact 60 days
@@ -119,12 +115,14 @@ const main = async (): Promise<any> => {
       createHash("sha256").update(txbuff).digest()
     )
     for (let address of pAddresses) {
+      // for (let address of [...pAddresses].reverse()) { // uncomment for signing with last added address
       // We need the keychain for signing
       const keyPair = pKeychain.getKey(address)
       // The signature
       const signature = keyPair.sign(msg)
       // save the signature
       signatures.push([keyPair.getAddressString(), signature.toString("hex")])
+      // break // Uncomment for single signature
     }
 
     const msKeyChain = new MultisigKeyChain(
@@ -164,7 +162,7 @@ const main = async (): Promise<any> => {
     const addProposalTxTypeName: string = addProposalTx.getTypeName()
     const addProposalTxTypeID: number = addProposalTx.getTypeID()
 
-    const generalProposal = addProposalTx.getProposalPayload()
+    const memberProposal = addProposalTx.getProposalPayload()
 
     console.log(addProposalTxTypeID, addProposalTxTypeName)
     console.log(hex)
