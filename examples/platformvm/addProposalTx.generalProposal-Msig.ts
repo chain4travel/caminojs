@@ -46,7 +46,7 @@ const multiSigAliasMember2PrivateKey =
 "PrivateKey-XXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
 
 // 1000
-const msigAlias = "P-kopernikus1cwnua4x8ay3mnzm6t6ys0ymfp2nuswkylqa80p"
+const msigAliasAddr = "P-kopernikus1cwnua4x8ay3mnzm6t6ys0ymfp2nuswkylqa80p"
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -66,29 +66,37 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const msigAliasBuffer = pchain.parseAddress(msigAlias)
-  const owner = await pchain.getMultisigAlias(msigAlias)
+  const msigAliasAddrBuffer = pchain.parseAddress(msigAliasAddr) // proposer and ins owner
+  const msigAlias = await pchain.getMultisigAlias(msigAliasAddr)
+  const msigAliasOwners = new OutputOwners(
+    msigAlias.addresses.map((a) => bintools.parseAddress(a, "P")),
+    new BN(msigAlias.locktime),
+    msigAlias.threshold
+  )
+  const aliasesMap = new Map([
+    [msigAliasAddrBuffer.toString("hex"), msigAliasOwners]
+  ])
 
   const bondAmount: any = await pchain.getMinStake()
-  let startDate = new Date()
-  startDate.setDate(startDate.getDate() + 1)
-  let endDate = new Date(startDate)
-  endDate.setDate(endDate.getDate() + 10)
+  // let startDate = new Date()
+  // startDate.setDate(startDate.getDate() + 1)
+  // let endDate = new Date(startDate)
+  // endDate.setDate(endDate.getDate() + 10)
 
-  let startTimestamp: number = Math.floor(startDate.getTime() / 1000)
-  let endTimestamp = Math.floor(endDate.getTime() / 1000)
-  const platformVMUTXOResponse = await pchain.getUTXOs([msigAlias])
+  // let startTimestamp: number = Math.floor(startDate.getTime() / 1000)
+  //let endTimestamp = Math.floor(endDate.getTime() / 1000)
 
-  const proposalMsigCreator = msigAlias
-  const proposalMsigCreatorAuth: [number, string | Buffer][] = [
-    [0, proposalMsigCreator]
-  ]
+  let startTimestamp: number = Date.now() / 1000 + 600 // start after 10 minutes
+  let endTimestamp: number = startTimestamp + 2592000 // exact 60 days
+
+  const platformVMUTXOResponse = await pchain.getUTXOs([msigAliasAddr])
+
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
     390000,
     680000,
-    false
+    true
   )
   proposal.addGeneralOption(
     "THIS OPTION CONTENT IS 256 CHARACTERS LONG xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -111,11 +119,11 @@ const main = async (): Promise<any> => {
     let signatures: [string, string][] = []
     let unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos, // utxoset
-      [[proposalMsigCreator], pAddressStrings], // or [[proposalMsigCreator], pAddressStrings], // fromAddresses
+      [[msigAliasAddr], pAddressStrings], // or [[proposalMsigCreator], pAddressStrings], // fromAddresses
       [], // changeAddresses
       Buffer.from("hello world"), // description
       proposal, // proposal
-      Buffer.from(proposalMsigCreator), // proposerAddress
+      msigAliasAddrBuffer, // proposerAddress
       0, // version
       Buffer.alloc(20) // memo
     )
@@ -142,11 +150,11 @@ const main = async (): Promise<any> => {
       unsignedTx.getTransaction().getOutputOwners(),
       new Map([
         [
-          msigAliasBuffer.toString("hex"),
+          msigAliasAddrBuffer.toString("hex"),
           new OutputOwners(
-            owner.addresses.map((a) => bintools.parseAddress(a, "P")),
-            new BN(owner.locktime),
-            owner.threshold
+            msigAlias.addresses.map((a) => bintools.parseAddress(a, "P")),
+            new BN(msigAlias.locktime),
+            msigAlias.threshold
           )
         ]
       ])
