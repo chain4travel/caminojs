@@ -44,8 +44,8 @@ const multiSigAliasMember1PrivateKey =
 
 const multiSigAliasMember2PrivateKey =
 "PrivateKey-XXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
-  
 
+// 1000
 const msigAlias = "P-kopernikus1cwnua4x8ay3mnzm6t6ys0ymfp2nuswkylqa80p"
 
 let pchain: PlatformVMAPI
