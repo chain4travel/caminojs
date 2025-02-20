@@ -111,7 +111,7 @@ const main = async (): Promise<any> => {
     let signatures: [string, string][] = []
     let unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos, // utxoset
-      [[proposalMsigCreator]], // or [[proposalMsigCreator], pAddressStrings], // fromAddresses
+      [[proposalMsigCreator], pAddressStrings], // or [[proposalMsigCreator], pAddressStrings], // fromAddresses
       [], // changeAddresses
       Buffer.from("hello world"), // description
       proposal, // proposal
