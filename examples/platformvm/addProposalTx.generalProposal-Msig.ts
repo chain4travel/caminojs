@@ -95,7 +95,7 @@ const main = async (): Promise<any> => {
     startTimestamp,
     endTimestamp,
     390000,
-    680000,
+    500000, // For easier testing
     true
   )
   proposal.addGeneralOption(
