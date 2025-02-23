@@ -9,8 +9,6 @@ import {
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
 import {
-  DefaultLocalGenesisPrivateKey,
-  PrivateKeyPrefix,
   PChainAlias
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -73,18 +71,8 @@ const main = async (): Promise<any> => {
     new BN(msigAlias.locktime),
     msigAlias.threshold
   )
-  const aliasesMap = new Map([
-    [msigAliasAddrBuffer.toString("hex"), msigAliasOwners]
-  ])
 
   const bondAmount: any = await pchain.getMinStake()
-  // let startDate = new Date()
-  // startDate.setDate(startDate.getDate() + 1)
-  // let endDate = new Date(startDate)
-  // endDate.setDate(endDate.getDate() + 10)
-
-  // let startTimestamp: number = Math.floor(startDate.getTime() / 1000)
-  //let endTimestamp = Math.floor(endDate.getTime() / 1000)
 
   let startTimestamp: number = Date.now() / 1000 + 600 // start after 10 minutes
   let endTimestamp: number = startTimestamp + 2592000 // exact 60 days
@@ -114,7 +102,7 @@ const main = async (): Promise<any> => {
   } catch (e) {
     console.log(e)
   }
-  // https://github.com/chain4travel/camino-suite-voting/blob/suite-c4t/src/hooks/useProposals.ts#L410
+
   try {
     let signatures: [string, string][] = []
     let unsignedTx = await pchain.buildAddProposalTx(

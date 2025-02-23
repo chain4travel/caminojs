@@ -12,7 +12,6 @@ import { PChainAlias } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 import BN from "bn.js"
 import {
-  Address,
   MultisigKeyChain,
   MultisigKeyPair,
   OutputOwners
@@ -41,12 +40,17 @@ const multiSigAliasMember1PrivateKey =
 const multiSigAliasMember2PrivateKey =
   "PrivateKey-XXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
 const msig_one_owner = "P-kopernikus1r2udpjtvlkj6muetx3906vfvuna4nmg5mv5vxn"
-const msig_two_owners_threshold_1 =
-  "P-kopernikus1ece6f9yym6939galcvlwzr0dc0tqh4a8jdmmpu"
 
-const new_member_address = "P-kopernikus1fa2tyhqvh408pk7gx375wkcqunl2zczcl4acht"
+const msig_two_owners_threshold_1 =
+  "P-kopernikus1gd7l5hf4ydaaxs7a47pj8ltlq46q23d6tdvcn5"
+const msig_two_owners_threshold_2 =
+  "P-kopernikus1gd7l5hf4ydaaxs7a47pj8ltlq46q23d6tdvcn5" // change the threshold manually
+
+const new_member_address = "P-kopernikus1auqztcq6nf6qxvswuzluxxea8ua85sxr9l5tpp"
+
 // const msigAliasAddr = msig_one_owner
-const msigAliasAddr = msig_two_owners_threshold_1
+// const msigAliasAddr = msig_two_owners_threshold_1
+const msigAliasAddr = msig_two_owners_threshold_2
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -58,7 +62,7 @@ const InitAvalanche = async () => {
   pchain = avalanche.PChain()
   pKeychain = pchain.keyChain()
   pKeychain.importKey(multiSigAliasMember1PrivateKey)
-  // pKeychain.importKey(multiSigAliasMember2PrivateKey) // uncomment if using msig_two_owners_threshold_1
+  pKeychain.importKey(multiSigAliasMember2PrivateKey) // uncomment if using msig_two_owners_threshold_1
 
   pAddresses = pchain.keyChain().getAddresses()
   pAddressStrings = pchain.keyChain().getAddressStrings()
@@ -73,9 +77,6 @@ const main = async (): Promise<any> => {
     new BN(msigAlias.locktime),
     msigAlias.threshold
   )
-  const aliasesMap = new Map([
-    [msigAliasAddrBuffer.toString("hex"), msigAliasOwners]
-  ])
 
   const bondAmount: any = await pchain.getMinStake()
 
@@ -95,7 +96,7 @@ const main = async (): Promise<any> => {
   } catch (e) {
     console.log(e)
   }
-  // https://github.com/chain4travel/camino-suite-voting/blob/suite-c4t/src/hooks/useProposals.ts#L410
+
   try {
     let signatures: [string, string][] = []
     let unsignedTx = await pchain.buildAddProposalTx(

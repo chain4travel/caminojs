@@ -1878,7 +1878,7 @@ export class Builder {
       proposerAddress,
       proposerAuth
     )
-    // TODO: are owners ok?
+
     owners.push(new OutputOwners([proposerAddress], ZeroBN, 1))
     baseTx.setOutputOwners(owners)
     return new UnsignedTx(baseTx)

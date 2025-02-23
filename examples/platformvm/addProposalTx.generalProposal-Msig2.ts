@@ -34,6 +34,11 @@ const member1 = "P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav"
 // presale3y
 const member2 = "P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj"
 
+// Multisig creator:
+const multiSigAliasMember1PrivateKey = "PrivateKey-XXX" // P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav
+
+const multiSigAliasMember2PrivateKey = "PrivateKey-XXXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
+
 const msigAliasAddr = "P-kopernikus1gd7l5hf4ydaaxs7a47pj8ltlq46q23d6tdvcn5"
 
 let pchain: PlatformVMAPI
@@ -61,18 +66,8 @@ const main = async (): Promise<any> => {
     new BN(msigAlias.locktime),
     msigAlias.threshold
   )
-  const aliasesMap = new Map([
-    [msigAliasAddrBuffer.toString("hex"), msigAliasOwners]
-  ])
 
   const bondAmount: any = await pchain.getMinStake()
-  // let startDate = new Date()
-  // startDate.setDate(startDate.getDate() + 1)
-  // let endDate = new Date(startDate)
-  // endDate.setDate(endDate.getDate() + 10)
-
-  // let startTimestamp: number = Math.floor(startDate.getTime() / 1000)
-  //let endTimestamp = Math.floor(endDate.getTime() / 1000)
 
   let startTimestamp: number = Date.now() / 1000 + 600 // start after 10 minutes
   let endTimestamp: number = startTimestamp + 2592000 // exact 60 days
@@ -86,15 +81,9 @@ const main = async (): Promise<any> => {
     500000, // For easier testing
     true
   )
-  proposal.addGeneralOption(
-    "Option 1"
-  )
-  proposal.addGeneralOption(
-    "Option 2"
-  )
-  proposal.addGeneralOption(
-    "Option 3"
-  )
+  proposal.addGeneralOption("Option 1")
+  proposal.addGeneralOption("Option 2")
+  proposal.addGeneralOption("Option 3")
 
   try {
     let buffer = proposal.toBuffer()
