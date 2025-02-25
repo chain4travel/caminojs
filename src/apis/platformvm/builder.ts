@@ -1856,7 +1856,7 @@ export class Builder {
       aad,
       asOf,
       zero,
-      "Bond" // Unlocked or Bond?
+      "Bond"
     )
     if (typeof minSpendableErr === "undefined") {
       ins = aad.getInputs()
