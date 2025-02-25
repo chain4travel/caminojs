@@ -8,7 +8,11 @@ import {
   Tx
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
-import { PChainAlias } from "caminojs/utils"
+import {
+  DefaultLocalGenesisPrivateKey,
+  PChainAlias,
+  PrivateKeyPrefix
+} from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 import BN from "bn.js"
 import {
@@ -28,18 +32,11 @@ const avalanche: Avalanche = new Avalanche(
 )
 const bintools = BinTools.getInstance()
 
-// seed3y
-const member1 = "P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav"
-// presale3y
-const member2 = "P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj"
-
 // Multisig creator:
-const multiSigAliasMember1PrivateKey = "PrivateKey-XXX" // P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav
-const multiSigAliasMember2PrivateKey = "PrivateKey-XXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
-
-const msig_one_owner = "P-kopernikus1r2udpjtvlkj6muetx3906vfvuna4nmg5mv5vxn"
-
-const new_member_address = "P-kopernikus1fa2tyhqvh408pk7gx375wkcqunl2zczcl4acht"
+const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+// Multisig Example where creator is an address with 1 owner (threshold 1)
+const msig_one_owner = "" // Multisig Address with 1 owner (threshold 1)
+const new_member_address = "" // New member address
 
 const msigAlias = msig_one_owner
 

@@ -8,7 +8,12 @@ import {
   Tx
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
-import { PChainAlias } from "caminojs/utils"
+import {
+  DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
+  PChainAlias,
+  PrivateKeyPrefix
+} from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 import BN from "bn.js"
 import {
@@ -27,18 +32,11 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 const bintools = BinTools.getInstance()
-
-// seed3y
-const member1 = "P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav"
-// presale3y
-const member2 = "P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj"
-
 // Multisig creator:
-const multiSigAliasMember1PrivateKey = "PrivateKey-XXX" // P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav
-
-const multiSigAliasMember2PrivateKey = "PrivateKey-XXXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
-
-const msigAliasAddr = "P-kopernikus1gd7l5hf4ydaaxs7a47pj8ltlq46q23d6tdvcn5"
+const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const multiSigAliasMember2PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+// Multisig Address with 2 owners  (threshold 1 or 2)
+const msigAliasAddr = ""
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
