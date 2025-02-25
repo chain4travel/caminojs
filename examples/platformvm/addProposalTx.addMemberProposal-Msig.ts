@@ -34,7 +34,7 @@ const bintools = BinTools.getInstance()
 
 // Multisig creator:
 const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
-// Multisig Example where creator is an address with 1 owner (threshold 1)
+// Multisig Example where creator is an Multisig address with 1 owner (threshold 1)
 const msig_one_owner = "" // Multisig Address with 1 owner (threshold 1)
 const new_member_address = "" // New member address
 
