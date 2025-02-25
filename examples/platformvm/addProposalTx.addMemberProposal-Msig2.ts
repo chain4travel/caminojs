@@ -35,10 +35,8 @@ const member1 = "P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav"
 const member2 = "P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj"
 
 // Multisig creator:
-const multiSigAliasMember1PrivateKey =
-  "PrivateKey-XXX" // P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav
-const multiSigAliasMember2PrivateKey =
-  "PrivateKey-XXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
+const multiSigAliasMember1PrivateKey = "PrivateKey-XXX" // P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav
+const multiSigAliasMember2PrivateKey = "PrivateKey-XXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
 const msig_one_owner = "P-kopernikus1r2udpjtvlkj6muetx3906vfvuna4nmg5mv5vxn"
 
 const msig_two_owners_threshold_1 =

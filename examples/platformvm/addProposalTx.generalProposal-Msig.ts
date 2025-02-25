@@ -8,9 +8,7 @@ import {
   Tx
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
-import {
-  PChainAlias
-} from "caminojs/utils"
+import { PChainAlias } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 import BN from "bn.js"
 import {
@@ -37,12 +35,9 @@ const member1 = "P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav"
 const member2 = "P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj"
 
 // Multisig creator:
-const multiSigAliasMember1PrivateKey =
-"PrivateKey-XXX" // P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav
+const multiSigAliasMember1PrivateKey = "PrivateKey-XXX" // P-kopernikus1qfyvkqnv8yd9rmlf6sv0gdx20dgg4erslxurav
 
-const multiSigAliasMember2PrivateKey =
-"PrivateKey-XXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
-
+const multiSigAliasMember2PrivateKey = "PrivateKey-XXX" // P-kopernikus102uap4au55t22m797rr030wyrw0jlgw25ut8vj
 // 1000
 const msigAliasAddr = "P-kopernikus1cwnua4x8ay3mnzm6t6ys0ymfp2nuswkylqa80p"
 
@@ -107,7 +102,7 @@ const main = async (): Promise<any> => {
     let signatures: [string, string][] = []
     let unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos, // utxoset
-      [[msigAliasAddr], pAddressStrings], // or [[proposalMsigCreator], pAddressStrings], // fromAddresses
+      [[msigAliasAddr], pAddressStrings], // fromAddresses
       [], // changeAddresses
       Buffer.from("hello world"), // description
       proposal, // proposal

@@ -91,12 +91,12 @@ const main = async (): Promise<any> => {
   } catch (e) {
     console.log(e)
   }
-  // https://github.com/chain4travel/camino-suite-voting/blob/suite-c4t/src/hooks/useProposals.ts#L410
+
   try {
     let signatures: [string, string][] = []
     let unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos, // utxoset
-      [[msigAliasAddr], pAddressStrings], // or [[proposalMsigCreator], pAddressStrings], // fromAddresses
+      [[msigAliasAddr], pAddressStrings], // fromAddresses
       [], // changeAddresses
       Buffer.from("hello world"), // description
       proposal, // proposal
