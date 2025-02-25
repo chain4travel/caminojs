@@ -92,7 +92,7 @@ const main = async (): Promise<any> => {
       [], // changeAddresses
       Buffer.from("hello world"), // description
       proposal, // proposal
-      Buffer.from(proposalMsigCreator), // proposerAddress
+      msigAliasBuffer, // proposerAddress
       0, // version
       Buffer.alloc(20) // memo
     )
