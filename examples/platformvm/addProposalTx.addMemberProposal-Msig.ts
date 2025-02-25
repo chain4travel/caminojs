@@ -18,8 +18,7 @@ import {
 } from "caminojs/common"
 import createHash from "create-hash"
 
-// const config: ExamplesConfig = require("../common/examplesConfigDevKopernikus.json")
-const config: ExamplesConfig = require("../common/examplesConfigDevKopernikus.json")
+const config: ExamplesConfig = require("../common/examplesConfig.json")
 
 const avalanche: Avalanche = new Avalanche(
   config.host,
