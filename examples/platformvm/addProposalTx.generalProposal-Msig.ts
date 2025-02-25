@@ -68,6 +68,10 @@ const main = async (): Promise<any> => {
 
   const bondAmount: any = await pchain.getMinStake()
 
+  const proposalDescription = Buffer.from(
+    "This is a description of this general proposal. Vote on new color of the Camino logo."
+  )
+
   let startTimestamp: number = Date.now() / 1000 + 600 // start after 10 minutes
   let endTimestamp: number = startTimestamp + 2592000 // exact 60 days
 
@@ -80,15 +84,9 @@ const main = async (): Promise<any> => {
     500000, // For easier testing
     true
   )
-  proposal.addGeneralOption(
-    "THIS OPTION CONTENT IS 256 CHARACTERS LONG xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  )
-  proposal.addGeneralOption(
-    "THIS OPTION CONTENT IS 250 CHARACTERS LONG yxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  )
-  proposal.addGeneralOption(
-    "THIS OPTION CONTENT IS 256 CHARACTERS LONG zxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  )
+  proposal.addGeneralOption("Blue")
+  proposal.addGeneralOption("Red")
+  proposal.addGeneralOption("Green")
 
   try {
     let buffer = proposal.toBuffer()
@@ -103,7 +101,7 @@ const main = async (): Promise<any> => {
       platformVMUTXOResponse.utxos, // utxoset
       [[msigAliasAddr], pAddressStrings], // fromAddresses
       [], // changeAddresses
-      Buffer.from("hello world"), // description
+      proposalDescription, // description
       proposal, // proposal
       msigAliasAddrBuffer, // proposerAddress
       0, // version

@@ -77,6 +77,8 @@ const main = async (): Promise<any> => {
 
   const bondAmount: any = await pchain.getMinStake()
 
+  const proposalDescription = Buffer.from("Proposal for new member.")
+
   let startTimestamp: number = Date.now() / 1000 + 600 // start after 10 minutes
   let endTimestamp: number = startTimestamp + 5184000 // exact 60 days
   const platformVMUTXOResponse = await pchain.getUTXOs([msigAliasAddr])
@@ -100,7 +102,7 @@ const main = async (): Promise<any> => {
       platformVMUTXOResponse.utxos, // utxoset
       [[msigAliasAddr], pAddressStrings], // fromAddresses
       [], // changeAddresses
-      Buffer.from("hello world"), // description
+      proposalDescription, // description
       proposal, // proposal
       msigAliasAddrBuffer, // proposerAddress
       0, // version
