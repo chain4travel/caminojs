@@ -1834,30 +1834,36 @@ export class Builder {
     let outs: TransferableOutput[] = []
     let owners: OutputOwners[] = []
 
-    if (this._feeCheck(fee, feeAssetID)) {
-      const aad: AssetAmountDestination = new AssetAmountDestination(
-        [],
-        toThreshold,
-        fromSigner.from,
-        fromSigner.signer,
-        changeAddresses,
-        changeThreshold
-      )
-      aad.addAssetAmount(stakeAssetID, stakeAmount, fee)
+    const aad: AssetAmountDestination = new AssetAmountDestination(
+      [],
+      toThreshold,
+      fromSigner.from,
+      fromSigner.signer,
+      changeAddresses,
+      changeThreshold
+    )
 
-      const minSpendableErr: Error = await this.spender.getMinimumSpendable(
-        aad,
-        asOf,
-        zero,
-        "Bond"
-      )
-      if (typeof minSpendableErr === "undefined") {
-        ins = aad.getInputs()
-        outs = aad.getAllOutputs()
-        owners = aad.getOutputOwners()
-      } else {
-        throw minSpendableErr
+    if (stakeAssetID.toString("hex") === feeAssetID.toString("hex")) {
+      aad.addAssetAmount(stakeAssetID, stakeAmount, fee)
+    } else {
+      aad.addAssetAmount(stakeAssetID, stakeAmount, zero)
+      if (this._feeCheck(fee, feeAssetID)) {
+        aad.addAssetAmount(feeAssetID, zero, fee)
       }
+    }
+
+    const minSpendableErr: Error = await this.spender.getMinimumSpendable(
+      aad,
+      asOf,
+      zero,
+      "Bond"
+    )
+    if (typeof minSpendableErr === "undefined") {
+      ins = aad.getInputs()
+      outs = aad.getAllOutputs()
+      owners = aad.getOutputOwners()
+    } else {
+      throw minSpendableErr
     }
 
     const baseTx: AddProposalTx = new AddProposalTx(
@@ -1872,6 +1878,7 @@ export class Builder {
       proposerAddress,
       proposerAuth
     )
+
     owners.push(new OutputOwners([proposerAddress], ZeroBN, 1))
     baseTx.setOutputOwners(owners)
     return new UnsignedTx(baseTx)

@@ -83,10 +83,8 @@ const main = async (): Promise<any> => {
 
     const tx = unsignedTx.sign(pKeychain)
     const hex = tx.toStringHex().slice(2)
-    const unsignedTx2 = new UnsignedTx()
-    unsignedTx2.fromBuffer(Buffer.from(hex, "hex"))
 
-    const addProposalTx = unsignedTx2.getTransaction() as AddProposalTx
+    const addProposalTx = unsignedTx.getTransaction() as AddProposalTx
     const addProposalTxTypeName: string = addProposalTx.getTypeName()
     const addProposalTxTypeID: number = addProposalTx.getTypeID()
 
