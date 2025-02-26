@@ -73,6 +73,8 @@ import {
   GetMinStakeResponse,
   GetMaxStakeAmountParams,
   SpendParams,
+  UndepositParams,
+  UndepositReply,
   SpendReply,
   AddressParams,
   MultisigAliasReply,
@@ -94,6 +96,7 @@ import { GenesisData } from "../avm"
 import { Auth, LockMode, Builder, FromSigner, NodeOwner } from "./builder"
 import { Network } from "../../utils/networks"
 import { Spender } from "./spender"
+import { Undepositer } from "./undepositer"
 import { Offer } from "./adddepositoffertx"
 import type { Proposal } from "./addproposaltx"
 import { SubnetAuth } from "./subnetauth"
@@ -2705,9 +2708,11 @@ export class PlatformVMAPI extends JRPCAPI {
     memo: PayloadBase | Buffer = undefined,
     asOf: BN = ZeroBN,
     amountToLock: BN,
+    depositTxIDs: string[],
     changeThreshold: number = 1
   ): Promise<UnsignedTx> => {
     const caller = "buildUnlockDepositTx"
+
     const fromSigner = this._parseFromSigner(fromAddresses, caller)
     const change: Buffer[] = this._cleanAddressArrayBuffer(
       changeAddresses,
@@ -2733,7 +2738,8 @@ export class PlatformVMAPI extends JRPCAPI {
       avaxAssetID,
       memo,
       asOf,
-      changeThreshold
+      changeThreshold,
+      depositTxIDs
     )
 
     if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
@@ -3168,11 +3174,54 @@ export class PlatformVMAPI extends JRPCAPI {
     }
   }
 
+  undeposit = async (
+    from: string[] | string,
+    signer: string[] | string,
+    to: string[],
+    toThreshold: number,
+    change: string[],
+    changeThreshold: number,
+    amountToBurn: BN,
+    depositTxIDs: string[],
+    encoding?: string
+  ): Promise<UndepositReply> => {
+    const params: UndepositParams = {
+      from: from,
+      amountToBurn: amountToBurn.toString(10),
+      depositTxIDs: depositTxIDs
+    }
+
+    const response: RequestResponseData = await this.callMethod(
+      "platform.undeposit",
+      params
+    )
+    const r = response.data.result
+
+    // We need to update signature index source here
+    const ins = TransferableInput.fromArray(Buffer.from(r.ins.slice(2), "hex"))
+    ins.forEach((e, idx) =>
+      e.getSigIdxs().forEach((s, sidx) => {
+        s.setSource(bintools.cb58Decode(r.signers[`${idx}`][`${sidx}`]))
+      })
+    )
+
+    let outs = TransferableOutput.fromArray(Buffer.from(r.outs.slice(2), "hex"))
+    // If multisig -> must expect multiple signers
+    return {
+      ins,
+      out: outs,
+      sigIdxs: r.signers ? r.signers : [0],
+      owners: r.owners
+        ? OutputOwners.fromArray(Buffer.from(r.owners.slice(2), "hex"))
+        : []
+    }
+  }
+
   _getBuilder = (utxoSet: UTXOSet): Builder => {
     if (this.core.getNetwork().P.lockModeBondDeposit) {
-      return new Builder(new Spender(this), true)
+      return new Builder(new Spender(this), new Undepositer(this), true)
     }
-    return new Builder(utxoSet, false)
+    return new Builder(utxoSet, utxoSet, true)
   }
 
   /**

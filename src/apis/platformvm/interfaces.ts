@@ -343,6 +343,19 @@ export interface SpendParams {
   encoding?: string
 }
 
+export interface UndepositParams {
+  from: string[] | string
+  depositTxIDs: string[]
+  amountToBurn: string
+}
+
+export interface UndepositReply {
+  ins: TransferableInput[]
+  out: TransferableOutput[]
+  sigIdxs: number[] // TODO: @VjeraTurk Swap for OutputSigners, check if this is correct + what is the difference between Reply and Response
+  owners: OutputOwners[]
+}
+
 export interface SpendReply {
   ins: TransferableInput[]
   out: TransferableOutput[]
