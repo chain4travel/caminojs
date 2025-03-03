@@ -48,9 +48,9 @@ const main = async (): Promise<any> => {
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
-    390000,
-    680000,
-    false
+    0,
+    30*10000,
+    true
   )
   proposal.addGeneralOption(
     "THIS OPTION CONTENT IS 256 CHARACTERS LONG xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"

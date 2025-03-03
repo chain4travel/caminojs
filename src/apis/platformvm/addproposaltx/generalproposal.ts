@@ -230,12 +230,12 @@ export class GeneralProposal {
     this.totalVotedThresholdNominator = Buffer.alloc(8)
     this.totalVotedThresholdNominator.writeUInt32BE(
       totalVotedThresholdNominator,
-      0
+      4
     )
     this.mostVotedThresholdNominator = Buffer.alloc(8)
     this.mostVotedThresholdNominator.writeUInt32BE(
       mostVotedThresholdNominator,
-      0
+      4
     )
     this.allowEarlyFinish = allowEarlyFinish
   }
