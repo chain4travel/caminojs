@@ -48,8 +48,8 @@ const main = async (): Promise<any> => {
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
-    0,
-    30 * 10000,
+    50 / 100,
+    30 / 100,
     true
   )
   proposal.addGeneralOption(
