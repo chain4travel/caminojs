@@ -2,13 +2,11 @@ import {
   AddProposalTx,
   GeneralProposal,
   KeyChain,
-  PlatformVMAPI,
-  UnsignedTx
+  PlatformVMAPI
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
 import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
-import BN from "bn.js"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
 const avalanche: Avalanche = new Avalanche(
@@ -42,15 +40,19 @@ const main = async (): Promise<any> => {
   let endDate = new Date(startDate)
   endDate.setDate(endDate.getDate() + 10)
 
-  let startTimestamp: number = Math.floor(startDate.getTime() / 1000)
-  let endTimestamp = Math.floor(endDate.getTime() / 1000)
+  let startTimestamp: number = Date.now() / 1000 + 60 // add + 60 to start in 1 minute
+  let endTimestamp: number = startTimestamp + 2592000 // exact 60 days
+
   const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
+
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
-    390000,
-    680000,
-    false
+    // 50, 50 If 1 of 2 voters vote, the proposal should pass - with just one vote
+    // 0, 30 If 3 of 5 voters vote the same option, the proposal should pass - with 3 same votes
+    0 * 10000, // 0 - 100
+    30 * 10000, // 0 - 100
+    true // allow early finish
   )
   proposal.addGeneralOption(
     "THIS OPTION CONTENT IS 256 CHARACTERS LONG xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
