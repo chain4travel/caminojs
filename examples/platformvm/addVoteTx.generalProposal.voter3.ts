@@ -16,7 +16,7 @@ const avalanche: Avalanche = new Avalanche(
 /**
  * @ignore
  */
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+let privKey: string = `${PrivateKeyPrefix}ADD_PRIVATE_KEY_HERE`
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain

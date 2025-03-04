@@ -48,9 +48,10 @@ const main = async (): Promise<any> => {
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
-    // If 1 of 2 voters vote, the proposal should pass - with just one vote
-    40 * 100000,
-    40 * 100000,
+    // 50, 50 If 1 of 2 voters vote, the proposal should pass - with just one vote
+    // 0, 30 If 3 of 5 voters vote the same option, the proposal should pass - with 3 same votes
+    0 * 10000, // 0 - 100
+    30 * 10000, // 0 - 100
     true // allow early finish
   )
   proposal.addGeneralOption(

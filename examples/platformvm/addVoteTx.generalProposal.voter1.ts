@@ -34,7 +34,7 @@ const main = async (): Promise<any> => {
   // 2. The transaction ID returned from issueTx() is your proposal ID
   // 3. You can also get it from the blockchain explorer or by querying the node
   // Example proposal ID (replace with your actual proposal ID):
-  const proposalID = "2NEF1Bq87YnfzyhBKn5k7FdZ9uzpkFhzATbWj3uFc1TCu9yhuq" // This is an example ID, replace with your actual proposal ID
+  const proposalID = "2fCDUyUDjdiFYFHu62dKmsEESewFwSR96SnmaDMGrnMUAwmEVf" // This is an example ID, replace with your actual proposal ID
 
   // Both voters will vote for option 0
   const voteOptionIndex = 0
