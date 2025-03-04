@@ -139,19 +139,13 @@ export class GeneralProposal {
       "number",
       "Buffer"
     )
-
-    this.allowEarlyFinish = serialization.decoder(
-      fields["allowEarlyFinish"],
-      encoding,
-      "number",
-      "Buffer"
-    )
+    this.allowEarlyFinish = fields["allowEarlyFinish"]
 
     return this
   }
 
   fromBuffer(bytes: Buffer, offset: number = 0): number {
-    this.numOptions = bintools.copyFrom(bytes, offset, offset + 4) // this.numOptions.readUInt32BE(0)
+    this.numOptions = bintools.copyFrom(bytes, offset, offset + 4)
     offset += 4
     const optionCount = this.numOptions.readUInt32BE(0)
     this.options = []
@@ -177,7 +171,8 @@ export class GeneralProposal {
     )
     offset += 8
 
-    this.allowEarlyFinish = bintools.copyFrom(bytes, offset, offset + 1)[0] != 0
+    this.allowEarlyFinish =
+      bintools.copyFrom(bytes, offset, offset + 1).readUInt8(0) === 1
     offset += 1
 
     return offset
@@ -228,14 +223,16 @@ export class GeneralProposal {
     this.end = endTime
 
     this.totalVotedThresholdNominator = Buffer.alloc(8)
-    this.totalVotedThresholdNominator.writeUInt32BE(
+    this.totalVotedThresholdNominator.writeUIntBE(
       totalVotedThresholdNominator,
-      4
+      0,
+      8
     )
     this.mostVotedThresholdNominator = Buffer.alloc(8)
-    this.mostVotedThresholdNominator.writeUInt32BE(
+    this.mostVotedThresholdNominator.writeUIntBE(
       mostVotedThresholdNominator,
-      4
+      0,
+      8
     )
     this.allowEarlyFinish = allowEarlyFinish
   }
