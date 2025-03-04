@@ -1,6 +1,6 @@
 {
   "host": "localhost",
-  "port": 19651,
+  "port": 9650,
   "protocol": "http",
   "networkID": 1002
 }
