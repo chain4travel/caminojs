@@ -1,3 +1,4 @@
+/* example meant to be run on local network with 5 validators (genesis_local_5_validators_2_multisigs.json) */
 import {
   AddProposalTx,
   GeneralProposal,
@@ -8,7 +9,7 @@ import {
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
 import {
-  DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
   PChainAlias,
   PrivateKeyPrefix
 } from "caminojs/utils"
@@ -32,9 +33,9 @@ const avalanche: Avalanche = new Avalanche(
 const bintools = BinTools.getInstance()
 
 // Multisig creator:
-const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const multiSigAliasMemberPrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 // Multisig Example where creator is an Multisig Address with 1 owner (threshold 1)
-const msigAliasAddr = ""
+const msigAliasAddr = "P-kopernikus1z5tv4tg04kf4l9ghclw6ssek8zugs7yd65prpl"
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -45,7 +46,7 @@ const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()
   pchain = avalanche.PChain()
   pKeychain = pchain.keyChain()
-  pKeychain.importKey(multiSigAliasMember1PrivateKey)
+  pKeychain.importKey(multiSigAliasMemberPrivateKey)
 
   pAddresses = pchain.keyChain().getAddresses()
   pAddressStrings = pchain.keyChain().getAddressStrings()
@@ -63,11 +64,12 @@ const main = async (): Promise<any> => {
 
   const bondAmount: any = await pchain.getMinStake()
 
+  const timestamp = new Date().toISOString()
   const proposalDescription = Buffer.from(
-    "This is a description of this general proposal. Vote on new color of the Camino logo."
+    "This is a description of this general proposal. Vote on new color of the Camino logo. Created by caminojs examples at: " +
+      timestamp
   )
-
-  let startTimestamp: number = Date.now() / 1000 + 600 // start after 10 minutes
+  let startTimestamp: number = Date.now() / 1000 + 60 // start after 1 minute
   let endTimestamp: number = startTimestamp + 2592000 // exact 60 days
 
   const platformVMUTXOResponse = await pchain.getUTXOs([msigAliasAddr])
@@ -75,9 +77,9 @@ const main = async (): Promise<any> => {
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
-    390000,
-    500000, // For easier testing
-    true
+    390000, // 39 percent have to agree for the same option to pass
+    500000, // 50 percent have to vote for the proposal to finish
+    true // allow early finish
   )
   proposal.addGeneralOption("Blue")
   proposal.addGeneralOption("Red")
@@ -154,7 +156,7 @@ const main = async (): Promise<any> => {
 
     const generalProposal = addProposalTx.getProposalPayload()
 
-    console.log(addProposalTxTypeID, addProposalTxTypeName)
+    console.log(addProposalTxTypeID, addProposalTxTypeName, timestamp)
     console.log(hex)
     const txid: string = await pchain.issueTx(tx)
     console.log(`Success! TXID: ${txid}`)

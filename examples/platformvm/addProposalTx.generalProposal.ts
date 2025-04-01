@@ -4,7 +4,7 @@ import {
   KeyChain,
   PlatformVMAPI
 } from "caminojs/apis/platformvm"
-import { Avalanche, BinTools, Buffer } from "caminojs/index"
+import { Avalanche, Buffer } from "caminojs/index"
 import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
@@ -15,9 +15,6 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-/**
- * @ignore
- */
 let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 
 let pchain: PlatformVMAPI
@@ -54,15 +51,9 @@ const main = async (): Promise<any> => {
     30 * 10000, // 0 - 100
     true // allow early finish
   )
-  proposal.addGeneralOption(
-    "THIS OPTION CONTENT IS 256 CHARACTERS LONG xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  )
-  proposal.addGeneralOption(
-    "THIS OPTION CONTENT IS 250 CHARACTERS LONG yxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  )
-  proposal.addGeneralOption(
-    "THIS OPTION CONTENT IS 256 CHARACTERS LONG zxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  )
+  proposal.addGeneralOption("General Proposal Option 1 is - color RED")
+  proposal.addGeneralOption("General Proposal Option 2 is - color GREEN")
+  proposal.addGeneralOption("General Proposal Option 3 is - color BLUE")
 
   try {
     let buffer = proposal.toBuffer()
@@ -72,11 +63,14 @@ const main = async (): Promise<any> => {
   }
 
   try {
+    const timestamp = new Date().toISOString()
     let unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos, // utxoset
       pAddressStrings, // fromAddresses
       pAddressStrings, // changeAddresses
-      Buffer.from("hello world"), // description
+      Buffer.from(
+        `This is a general proposal. Created by caminojs examples at: ${timestamp}`
+      ), // description
       proposal, // proposal
       pKeychain.getAddresses()[0], // proposerAddress
       0, // version
@@ -92,7 +86,7 @@ const main = async (): Promise<any> => {
 
     const generalProposal = addProposalTx.getProposalPayload()
 
-    console.log(addProposalTxTypeID, addProposalTxTypeName)
+    console.log(addProposalTxTypeID, addProposalTxTypeName, timestamp)
     console.log(hex)
     const txid: string = await pchain.issueTx(tx)
     console.log(`Success! TXID: ${txid}`)

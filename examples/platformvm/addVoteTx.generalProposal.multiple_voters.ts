@@ -1,8 +1,10 @@
+/* example meant to be run on local network with 5 validators (genesis_local_5_validators_2_multisigs.json) */
 import { AddVoteTx, KeyChain, PlatformVMAPI } from "caminojs/apis/platformvm"
 import { Avalanche, Buffer } from "caminojs/index"
 import {
   DefaultLocalGenesisPrivateKey,
   DefaultLocalGenesisPrivateKey2,
+  FiveValidatorsGenesisPrivateKey,
   PrivateKeyPrefix
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -14,12 +16,10 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-/**
- * @ignore
- */
 let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 let privKey2: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
-let privKey3: string = `${PrivateKeyPrefix}ADD_PRIVATE_KEY_HERE`
+let privKey3: string = `${PrivateKeyPrefix}${FiveValidatorsGenesisPrivateKey}`
+let privKeys = [privKey, privKey2, privKey3]
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -35,198 +35,69 @@ const main = async (): Promise<any> => {
   // 2. The transaction ID returned from issueTx() is your proposal ID
   // 3. You can also get it from the blockchain explorer or by querying the node
   // Example proposal ID (replace with your actual proposal ID):
-  const proposalID = "tXyEwjKTnhrVFk1Ngskv9N3A8KeXcga6qkyhpp7XkJdyJNvgS" // This is an example ID, replace with your actual proposal ID
+  const proposalID = "PROPOSAL_ID" // This is an example ID, replace with your actual proposal ID
 
-  // Both voters will vote for option 0
-  const voteOptionIndex0 = 0
-  const voteOptionIndex1 = 1
-  const voteOptionIndex2 = 2
+  // 0, 30 If 3 of 5 voters vote the same option, the proposal should pass - with 3 same votes
+  const allCases = [
+    [0, 0, 0], // case A - 5 validators, 3 votes, expect Successful
+    [0, 0, 1], // case B - 5 validators, 3 votes, expect Failed
+    [0, 1, 1] // case C - 5 validators, 3 votes, expect Failed
+  ]
+  const cases = [allCases[0]]
 
   pchain = avalanche.PChain()
   pKeychain = pchain.keyChain()
-  try {
-    let keyPair = pKeychain.importKey(privKey)
-    pAddressStrings = pchain.keyChain().getAddressStrings()
-    let platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
 
-    // Create unsigned transaction for the first voter
-    let unsignedTx = await pchain.buildAddVoteTx(
-      platformVMUTXOResponse.utxos, // utxoset
-      pAddressStrings, // fromAddresses
-      pAddressStrings, // changeAddresses
-      proposalID, // proposalID - must be a string in CB58 format
-      voteOptionIndex0, // votePayload - the index of the option to vote for
-      pKeychain.getAddresses()[0], // voterAddress
-      0, // version
-      Buffer.alloc(20) // memo
-    )
+  console.log("Voting for proposal:", proposalID)
 
-    // Sign and issue the transaction for the first voter
-    const tx = unsignedTx.sign(pKeychain)
-    const hex = tx.toStringHex().slice(2)
-    pKeychain.removeKey(keyPair)
+  for (let i = 0; i < cases.length; i++) {
+    for (let j = 0; j < cases[i].length; j++) {
+      try {
+        let keyPair = pKeychain.importKey(privKeys[j])
+        pAddressStrings = pchain.keyChain().getAddressStrings()
+        let platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
 
-    const addVoteTx = unsignedTx.getTransaction() as AddVoteTx
-    const addVoteTxTypeName: string = addVoteTx.getTypeName()
-    const addVoteTxTypeID: number = addVoteTx.getTypeID()
+        // Create unsigned transaction for the first voter
+        let unsignedTx = await pchain.buildAddVoteTx(
+          platformVMUTXOResponse.utxos, // utxoset
+          pAddressStrings, // fromAddresses
+          pAddressStrings, // changeAddresses
+          proposalID, // proposalID - must be a string in CB58 format
+          cases[i][j], // votePayload - the index of the option to vote for
+          pKeychain.getAddresses()[0], // voterAddress
+          0, // version
+          Buffer.alloc(20) // memo
+        )
 
-    console.log("First voter transaction:")
-    console.log("Type ID:", addVoteTxTypeID)
-    console.log("Type Name:", addVoteTxTypeName)
-    console.log("Transaction Hex:", hex)
+        // Sign and issue the transaction for the first voter
+        const tx = unsignedTx.sign(pKeychain)
+        const hex = tx.toStringHex().slice(2)
+        pKeychain.removeKey(keyPair)
 
-    const txid: string = await pchain.issueTx(tx)
-    console.log(`Success! TXID: ${txid}`)
-  } catch (e) {
-    console.log("Error:", e)
+        const addVoteTx = unsignedTx.getTransaction() as AddVoteTx
+        const addVoteTxTypeName: string = addVoteTx.getTypeName()
+        const addVoteTxTypeID: number = addVoteTx.getTypeID()
+
+        console.log(`${j + 1}. voter transaction:`)
+
+        console.log(
+          "Type ID:",
+          addVoteTxTypeID,
+          "Type Name:",
+          addVoteTxTypeName
+        )
+        console.log("Transaction Hex:", hex)
+
+        const txid: string = await pchain.issueTx(tx)
+        console.log(`Success! TXID: ${txid}`)
+        console.log(
+          `Voter address: ${pAddressStrings} voted for option ${cases[i][j]}`
+        )
+      } catch (e) {
+        console.log("Error:", e)
+      }
+      console.log("This was voting for proposal:", proposalID)
+    }
   }
-
-  try {
-    let keyPair = pKeychain.importKey(privKey2)
-    pAddressStrings = pchain.keyChain().getAddressStrings()
-    let platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
-
-    // Create unsigned transaction for the first voter
-    let unsignedTx = await pchain.buildAddVoteTx(
-      platformVMUTXOResponse.utxos, // utxoset
-      pAddressStrings, // fromAddresses
-      pAddressStrings, // changeAddresses
-      proposalID, // proposalID - must be a string in CB58 format
-      voteOptionIndex0, // votePayload - the index of the option to vote for
-      pKeychain.getAddresses()[0], // voterAddress
-      0, // version
-      Buffer.alloc(20) // memo
-    )
-
-    // Sign and issue the transaction for the first voter
-    const tx = unsignedTx.sign(pKeychain)
-    pKeychain.removeKey(keyPair)
-
-    const hex = tx.toStringHex().slice(2)
-
-    const addVoteTx = unsignedTx.getTransaction() as AddVoteTx
-    const addVoteTxTypeName: string = addVoteTx.getTypeName()
-    const addVoteTxTypeID: number = addVoteTx.getTypeID()
-
-    console.log("Second voter transaction:")
-    console.log("Type ID:", addVoteTxTypeID)
-    console.log("Type Name:", addVoteTxTypeName)
-    console.log("Transaction Hex:", hex)
-
-    const txid: string = await pchain.issueTx(tx)
-    console.log(`Success! TXID: ${txid}`)
-  } catch (e) {
-    console.log("Error:", e)
-  }
-
-  try {
-    pchain = avalanche.PChain()
-    pKeychain = pchain.keyChain()
-    let keyPair = pKeychain.importKey(privKey3)
-
-    pAddressStrings = pchain.keyChain().getAddressStrings()
-    let platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
-
-    // Create unsigned transaction for the first voter
-    let unsignedTx = await pchain.buildAddVoteTx(
-      platformVMUTXOResponse.utxos, // utxoset
-      pAddressStrings, // fromAddresses
-      pAddressStrings, // changeAddresses
-      proposalID, // proposalID - must be a string in CB58 format
-      voteOptionIndex1, // votePayload - the index of the option to vote for
-      pKeychain.getAddresses()[0], // voterAddress
-      0, // version
-      Buffer.alloc(20) // memo
-    )
-
-    // Sign and issue the transaction for the first voter
-    const tx = unsignedTx.sign(pKeychain)
-    pKeychain.removeKey(keyPair)
-
-    const hex = tx.toStringHex().slice(2)
-
-    const addVoteTx = unsignedTx.getTransaction() as AddVoteTx
-    const addVoteTxTypeName: string = addVoteTx.getTypeName()
-    const addVoteTxTypeID: number = addVoteTx.getTypeID()
-
-    console.log("Third voter transaction:")
-    console.log("Type ID:", addVoteTxTypeID)
-    console.log("Type Name:", addVoteTxTypeName)
-    console.log("Transaction Hex:", hex)
-
-    const txid: string = await pchain.issueTx(tx)
-    console.log(`Success! TXID: ${txid}`)
-  } catch (e) {
-    console.log("Error:", e)
-  }
-  /*
-  try {
-    pchain = avalanche.PChain()
-    pKeychain = pchain.keyChain()
-    pKeychain.importKey(privKey4)
-    pAddressStrings = pchain.keyChain().getAddressStrings()
-
-    // Create unsigned transaction for the first voter
-    let unsignedTx = await pchain.buildAddVoteTx(
-      platformVMUTXOResponse.utxos, // utxoset
-      pAddressStrings, // fromAddresses
-      pAddressStrings, // changeAddresses
-      proposalID, // proposalID - must be a string in CB58 format
-      voteOptionIndex2, // votePayload - the index of the option to vote for
-      pKeychain.getAddresses()[0], // voterAddress
-      0, // version
-      Buffer.alloc(20) // memo
-    )
-
-    // Sign and issue the transaction for the first voter
-    const tx = unsignedTx.sign(pKeychain)
-    const hex = tx.toStringHex().slice(2)
-
-    const addVoteTx = unsignedTx.getTransaction() as AddVoteTx
-    const addVoteTxTypeName: string = addVoteTx.getTypeName()
-    const addVoteTxTypeID: number = addVoteTx.getTypeID()
-
-    console.log("Fourth voter transaction:")
-    console.log("Type ID:", addVoteTxTypeID)
-    console.log("Type Name:", addVoteTxTypeName)
-    console.log("Transaction Hex:", hex)
-
-    const txid: string = await pchain.issueTx(tx)
-    console.log(`Success! TXID: ${txid}`)
-  } catch (e) {
-    console.log("Error:", e)
-  }
-
-  try {
-    // Create unsigned transaction for the first voter
-    let unsignedTx = await pchain.buildAddVoteTx(
-      platformVMUTXOResponse.utxos, // utxoset
-      pAddressStrings, // fromAddresses
-      pAddressStrings, // changeAddresses
-      proposalID, // proposalID - must be a string in CB58 format
-      voteOptionIndex0, // votePayload - the index of the option to vote for
-      pKeychain.getAddresses()[0], // voterAddress
-      0, // version
-      Buffer.alloc(20) // memo
-    )
-
-    // Sign and issue the transaction for the first voter
-    const tx = unsignedTx.sign(pKeychain)
-    const hex = tx.toStringHex().slice(2)
-
-    const addVoteTx = unsignedTx.getTransaction() as AddVoteTx
-    const addVoteTxTypeName: string = addVoteTx.getTypeName()
-    const addVoteTxTypeID: number = addVoteTx.getTypeID()
-
-    console.log("Fifth voter transaction:")
-    console.log("Type ID:", addVoteTxTypeID)
-    console.log("Type Name:", addVoteTxTypeName)
-    console.log("Transaction Hex:", hex)
-
-    const txid: string = await pchain.issueTx(tx)
-    console.log(`Success! TXID: ${txid}`)
-  } catch (e) {
-    console.log("Error:", e)
-  }*/
 }
 main()

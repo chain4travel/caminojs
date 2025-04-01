@@ -1,9 +1,9 @@
+/* example meant to be run on local network with 5 validators (genesis_local_5_validators_2_multisigs.json) */
 import {
   AddMemberProposal,
   AddProposalTx,
   KeyChain,
-  PlatformVMAPI,
-  UnsignedTx
+  PlatformVMAPI
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
 import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
@@ -17,18 +17,12 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-// BEFORE RUNNING THIS EXAMPLE:
-// crateUser, importKey to PlatformVM and setAddressState
-//You can do this via requests published in camino-postman-collection repository
-/**
- * @ignore
- */
 let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
 let pAddressStrings: string[]
-const targetAddress = "P-kopernikus122gtala73kjrf34xtdq0d9vssqlccxjjam7kk8"
+const targetAddress = "P-kopernikus122gtala73kjrf34xtdq0d9vssqlccxjjam7kk8" // New member address - must be KYC verified
 const bintools: BinTools = BinTools.getInstance()
 const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()
@@ -42,13 +36,9 @@ const InitAvalanche = async () => {
 const main = async (): Promise<any> => {
   await InitAvalanche()
   // TODO: @VjeraTurk get bondAmount from node
-  let startDate = new Date()
-  startDate.setDate(startDate.getDate() + 1)
-  let endDate = new Date(startDate)
-  endDate.setDate(endDate.getDate() + 60)
+  let startTimestamp: number = Date.now() / 1000 + 60 // start after 1 minute
+  let endTimestamp: number = startTimestamp + 5184000 // exact 60 days
 
-  let startTimestamp = Math.floor(startDate.getTime() / 1000)
-  let endTimestamp = Math.floor(endDate.getTime() / 1000)
   const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
   const proposal = new AddMemberProposal(
     startTimestamp,
@@ -56,11 +46,17 @@ const main = async (): Promise<any> => {
     targetAddress
   )
   try {
+    const timestamp = new Date().toISOString()
     let unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos, // utxoset
       pAddressStrings, // fromAddresses
       pAddressStrings, // changeAddresses
-      bintools.stringToBuffer("hello world"), // description
+      Buffer.from(
+        "Add new member  " +
+          targetAddress +
+          " to the network. Created by caminojs examples at: " +
+          timestamp
+      ), // description
       proposal, // proposal
       pKeychain.getAddresses()[0], // proposerAddress
       0, // version
@@ -73,8 +69,9 @@ const main = async (): Promise<any> => {
     const addProposalTx = unsignedTx.getTransaction() as AddProposalTx
     const addProposalTxTypeName: string = addProposalTx.getTypeName()
     const addProposalTxTypeID: number = addProposalTx.getTypeID()
+    console.log(hex)
     const txid: string = await pchain.issueTx(tx)
-    console.log(addProposalTxTypeID, addProposalTxTypeName)
+    console.log(addProposalTxTypeID, addProposalTxTypeName, timestamp)
     console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)

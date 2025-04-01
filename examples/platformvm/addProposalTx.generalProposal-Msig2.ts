@@ -1,3 +1,4 @@
+/* example meant to be run on local network with 5 validators (genesis_local_5_validators_2_multisigs.json) */
 import {
   AddProposalTx,
   GeneralProposal,
@@ -36,7 +37,7 @@ const bintools = BinTools.getInstance()
 const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const multiSigAliasMember2PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 // Multisig Example where creator is an Multisig address with 2 owners (threshold 1 or 2)
-const msigAliasAddr = ""
+const msigAliasAddr = "P-kopernikus1t5qgr9hcmf2vxj7k0hz77kawf9yr389cxte5j0"
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -66,11 +67,13 @@ const main = async (): Promise<any> => {
 
   const bondAmount: any = await pchain.getMinStake()
 
+  const timestamp = new Date().toISOString()
   const proposalDescription = Buffer.from(
-    "This is a description of this general proposal."
+    "This is a description of this general proposal. Created by caminojs examples at: " +
+      timestamp
   )
 
-  let startTimestamp: number = Date.now() / 1000 + 600 // start after 10 minutes
+  let startTimestamp: number = Date.now() / 1000 + 60 // start after 1 minute
   let endTimestamp: number = startTimestamp + 2592000 // exact 60 days
 
   const platformVMUTXOResponse = await pchain.getUTXOs([msigAliasAddr])
@@ -78,9 +81,9 @@ const main = async (): Promise<any> => {
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
-    390000,
-    500000, // For easier testing
-    true
+    390000, // 39 percent have to agree for the same option to pass
+    500000, // 50 percent have to vote for the proposal to finish
+    true // allow early finish
   )
   proposal.addGeneralOption("Option 1")
   proposal.addGeneralOption("Option 2")
@@ -159,7 +162,7 @@ const main = async (): Promise<any> => {
 
     const generalProposal = addProposalTx.getProposalPayload()
 
-    console.log(addProposalTxTypeID, addProposalTxTypeName)
+    console.log(addProposalTxTypeID, addProposalTxTypeName, timestamp)
     console.log(hex)
     const txid: string = await pchain.issueTx(tx)
     console.log(`Success! TXID: ${txid}`)

@@ -1,7 +1,8 @@
+/* example meant to be run on local network with 5 validators (genesis_local_5_validators_2_multisigs.json) */
 import { AddVoteTx, KeyChain, PlatformVMAPI } from "caminojs/apis/platformvm"
 import { Avalanche, Buffer } from "caminojs/index"
 import {
-  DefaultLocalGenesisPrivateKey2,
+  FiveValidatorsGenesisPrivateKey,
   PrivateKeyPrefix
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -13,10 +14,7 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-/**
- * @ignore
- */
-let privKey: string = `${PrivateKeyPrefix}ADD_PRIVATE_KEY_HERE`
+let privKey: string = `${PrivateKeyPrefix}${FiveValidatorsGenesisPrivateKey}`
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -37,7 +35,7 @@ const main = async (): Promise<any> => {
   // 2. The transaction ID returned from issueTx() is your proposal ID
   // 3. You can also get it from the blockchain explorer or by querying the node
   // Example proposal ID (replace with your actual proposal ID):
-  const proposalID = "2fCDUyUDjdiFYFHu62dKmsEESewFwSR96SnmaDMGrnMUAwmEVf" // This is an example ID, replace with your actual proposal ID
+  const proposalID = "PROPOSAL_ID" // This is an example ID, replace with your actual proposal ID
 
   // Both voters will vote for option 0
   const voteOptionIndex = 0
