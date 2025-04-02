@@ -38,7 +38,7 @@ const main = async (): Promise<any> => {
   endDate.setDate(endDate.getDate() + 10)
 
   let startTimestamp: number = Date.now() / 1000 + 60 // add + 60 to start in 1 minute
-  let endTimestamp: number = startTimestamp + 2592000 // exact 60 days
+  let endTimestamp: number = startTimestamp + 2592000 // exact 30 days
 
   const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
 

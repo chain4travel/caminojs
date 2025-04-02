@@ -70,15 +70,15 @@ const main = async (): Promise<any> => {
       timestamp
   )
   let startTimestamp: number = Date.now() / 1000 + 60 // start after 1 minute
-  let endTimestamp: number = startTimestamp + 2592000 // exact 60 days
+  let endTimestamp: number = startTimestamp + 2592000 // exact 30 days
 
   const platformVMUTXOResponse = await pchain.getUTXOs([msigAliasAddr])
 
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
-    390000, // 39 percent have to agree for the same option to pass
-    500000, // 50 percent have to vote for the proposal to finish
+    39 * 10000, // 39 percent have to agree for the same option to pass
+    50 * 10000, // 50 percent have to vote for the proposal to finish
     true // allow early finish
   )
   proposal.addGeneralOption("Blue")
