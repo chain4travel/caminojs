@@ -42,14 +42,26 @@ const main = async (): Promise<any> => {
 
   const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
 
+  const timestamp = new Date().toISOString()
+  const totalVotedThresholdNominator: number = 0 * 10000 // 0 - 100%
+  const mostVotedThresholdNominator: number = 30 * 10000 // 0 - 100%
+  const allowEarlyFinish: boolean = true
+
+  const proposalDescription = Buffer.from(
+    `This is a general proposal. Created by caminojs examples at: ${timestamp}.
+    \nAllow early finish: ${allowEarlyFinish}.
+    \nTotal voted threshold: ${totalVotedThresholdNominator}.
+    \nMost voted threshold: ${mostVotedThresholdNominator}.`
+  ) // description
+
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
     // 50, 50 If 1 of 2 voters vote, the proposal should pass - with just one vote
     // 0, 30 If 3 of 5 voters vote the same option, the proposal should pass - with 3 same votes
-    0 * 10000, // 0 - 100
-    30 * 10000, // 0 - 100
-    true // allow early finish
+    totalVotedThresholdNominator,
+    mostVotedThresholdNominator,
+    allowEarlyFinish
   )
   proposal.addGeneralOption("General Proposal Option 1 is - color RED")
   proposal.addGeneralOption("General Proposal Option 2 is - color GREEN")
@@ -63,14 +75,11 @@ const main = async (): Promise<any> => {
   }
 
   try {
-    const timestamp = new Date().toISOString()
     let unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos, // utxoset
       pAddressStrings, // fromAddresses
       pAddressStrings, // changeAddresses
-      Buffer.from(
-        `This is a general proposal. Created by caminojs examples at: ${timestamp}`
-      ), // description
+      proposalDescription, // description
       proposal, // proposal
       pKeychain.getAddresses()[0], // proposerAddress
       0, // version

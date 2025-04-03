@@ -68,22 +68,29 @@ const main = async (): Promise<any> => {
   const bondAmount: any = await pchain.getMinStake()
 
   const timestamp = new Date().toISOString()
-  const proposalDescription = Buffer.from(
-    "This is a description of this general proposal. Created by caminojs examples at: " +
-      timestamp
-  )
 
   let startTimestamp: number = Date.now() / 1000 + 60 // start after 1 minute
   let endTimestamp: number = startTimestamp + 2592000 // exact 30 days
 
   const platformVMUTXOResponse = await pchain.getUTXOs([msigAliasAddr])
 
+  const totalVotedThresholdNominator: number = 39 * 10000 // 0 - 100%
+  const mostVotedThresholdNominator: number = 50 * 10000 // 0 - 100%
+  const allowEarlyFinish: boolean = true
+
+  const proposalDescription = Buffer.from(
+    `This is a general proposal. Created by caminojs examples at: ${timestamp}.
+    \nAllow early finish: ${allowEarlyFinish}.
+    \nTotal voted threshold: ${totalVotedThresholdNominator}.
+    \nMost voted threshold: ${mostVotedThresholdNominator}.`
+  )
+
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
-    39 * 10000, // 39 percent have to agree for the same option to pass
-    50 * 10000, // 50 percent have to vote for the proposal to finish
-    true // allow early finish
+    totalVotedThresholdNominator,
+    mostVotedThresholdNominator,
+    allowEarlyFinish
   )
   proposal.addGeneralOption("Option 1")
   proposal.addGeneralOption("Option 2")
