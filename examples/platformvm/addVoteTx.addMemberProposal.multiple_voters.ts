@@ -2,56 +2,58 @@
 import {
   AddVoteTx,
   KeyChain,
-  MultisigAlias,
   PlatformVMAPI,
   PlatformVMConstants
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
-import BN from "bn.js"
 import {
   DefaultLocalGenesisPrivateKey,
   DefaultLocalGenesisPrivateKey2,
   FiveValidatorsGenesisPrivateKey,
-  PChainAlias,
-  PrivateKeyPrefix
+  PrivateKeyPrefix,
+  PChainAlias
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
-import createHash from "create-hash"
-import {
-  MultisigKeyChain,
-  MultisigKeyPair,
-  OutputOwners,
-  ZeroBN
-} from "caminojs/common/"
-
-const bintools = BinTools.getInstance()
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
+import createHash from "create-hash"
+
 const avalanche: Avalanche = new Avalanche(
   config.host,
   config.port,
   config.protocol,
   config.networkID
 )
+import BN from "bn.js"
+import {
+  MultisigKeyChain,
+  MultisigKeyPair,
+  OutputOwners
+} from "caminojs/common/"
+
+const bintools = BinTools.getInstance()
 
 let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 let privKey2: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 let privKey3: string = `${PrivateKeyPrefix}${FiveValidatorsGenesisPrivateKey}`
 
-const MultisigAlias1 = "P-kopernikus1z5tv4tg04kf4l9ghclw6ssek8zugs7yd65prpl"
-const MultisigAlias2 = "P-kopernikus1t5qgr9hcmf2vxj7k0hz77kawf9yr389cxte5j0"
+const msig_one_owner = "P-kopernikus1z5tv4tg04kf4l9ghclw6ssek8zugs7yd65prpl"
+const msig_two_owners_threshold_2 =
+  "P-kopernikus1t5qgr9hcmf2vxj7k0hz77kawf9yr389cxte5j0"
 
-const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const multiSigAliasMember2PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 
 let privKeys = [privKey, privKey2, privKey3, ,]
-let multisigAliases = [, , , MultisigAlias1, MultisigAlias2]
+let multisigAliases = [, , , msig_one_owner, msig_two_owners_threshold_2]
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
 let pAddressStrings: string[]
+
 const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()
+  pchain = avalanche.PChain()
 }
 const main = async (): Promise<any> => {
   await InitAvalanche()
@@ -61,11 +63,7 @@ const main = async (): Promise<any> => {
   // 2. The transaction ID returned from issueTx() is your proposal ID
   // 3. You can also get it from the blockchain explorer or by querying the node
   // Example proposal ID (replace with your actual proposal ID):
-  const proposalIDs = [
-    "HhzicFgu6Zh9yJDv5PZwPiPoRtuq5XbxbV5QSTfN4oYKCkGeL",
-    "wKLztetaVLZEwVYmVt6whTjCp7DnoaCWeKgurXVYW2W4Lhz63",
-    "oVoHKgRREoK96cSqoY3bJGQNPwPYXLt7XFAsevzC9yZToXbpx"
-  ] // This are example IDs, replace with your actual proposal IDs
+  const proposalIDs = ["PROPOSAL_ID"] // This are example IDs, replace with your actual proposal IDs
 
   // 50% or more have to vote the same option, the proposal should pass
   const allCases = [
@@ -76,61 +74,73 @@ const main = async (): Promise<any> => {
     [1, 1, 1, 1, 1] // 5 validators, 5 votes, expect Successful & Rejected
   ]
 
-  pchain = avalanche.PChain()
-  pKeychain = pchain.keyChain()
-
   let pAddresses: Buffer[]
-  let pAddressMSStrings
 
   for (let p = 0; p < proposalIDs.length; p++) {
     console.log("Voting for proposal:", proposalIDs[p])
     let cases = allCases[p]
 
-    for (let j = 0; j < cases.length; j++) {
+    // Proposal is passed with 3/5 votes
+    for (let j = 2; j < cases.length; j++) {
       console.log("Voting for case:", cases[j])
+
       try {
+        let unsignedTx
         let tx
-        let keyPair
-        let signatures: [string, string][] = []
+        let keyPair1
+        let keyPair2
 
         let platformVMUTXOResponse
 
+        pKeychain = pchain.keyChain()
+
         if (privKeys[j] !== undefined) {
           // Not multisig
-          keyPair = pKeychain.importKey(privKeys[j])
+          let keyPair = pKeychain.importKey(privKeys[j])
           pAddressStrings = pchain.keyChain().getAddressStrings()
           platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
-        } else {
-          // Multisig
-          pKeychain.importKey(multiSigAliasMember1PrivateKey)
-          pKeychain.importKey(multiSigAliasMember2PrivateKey)
-          pAddresses = pchain.keyChain().getAddresses()
-          pAddressMSStrings = pchain.keyChain().getAddressStrings()
-          pAddressStrings = [multisigAliases[j], pAddressMSStrings]
-          platformVMUTXOResponse = await pchain.getUTXOs([multisigAliases[j]])
-        }
 
-        // Create unsigned transaction for the first voter
-        let unsignedTx = await pchain.buildAddVoteTx(
-          platformVMUTXOResponse.utxos, // utxoset
-          pAddressStrings, // fromAddresses
-          privKeys[j] ? pAddressStrings : [], // changeAddresses
-          proposalIDs[p], // proposalID - must be a string in CB58 format
-          cases[j], // votePayload - the index of the option to vote for
-          privKeys[j]
-            ? pKeychain.getAddresses()[0]
-            : pchain.parseAddress(multisigAliases[j]), // voterAddress
-          0, // version
-          Buffer.alloc(20) // memo
-        )
-
-        if (privKeys[j] !== undefined) {
+          // Create unsigned transaction for the first voter
+          unsignedTx = await pchain.buildAddVoteTx(
+            platformVMUTXOResponse.utxos, // utxoset
+            pAddressStrings, // fromAddresses
+            pAddressStrings, // changeAddresses
+            proposalIDs[p], // proposalID - must be a string in CB58 format
+            cases[j], // votePayload - the index of the option to vote for
+            pKeychain.getAddresses()[0], // voterAddress
+            0, // version
+            Buffer.alloc(20) // memo
+          )
           // Not multisig
           // Sign and issue the transaction for the first voter
           tx = unsignedTx.sign(pKeychain)
-          const hex = tx.toStringHex().slice(2)
           pKeychain.removeKey(keyPair)
         } else {
+          let signatures: [string, string][] = []
+          // Multisig
+          if (multisigAliases[j] === msig_one_owner) {
+            keyPair2 = pKeychain.importKey(multiSigAliasMember2PrivateKey)
+          } else {
+            keyPair1 = pKeychain.importKey(multiSigAliasMember1PrivateKey)
+            keyPair2 = pKeychain.importKey(multiSigAliasMember2PrivateKey)
+          }
+
+          pAddresses = pchain.keyChain().getAddresses()
+          pAddressStrings = pchain.keyChain().getAddressStrings()
+          // pAddressMSStrings = [multisigAliases[j], pAddressMSStrings]
+          platformVMUTXOResponse = await pchain.getUTXOs([multisigAliases[j]])
+          let msigAliasBuffer = pchain.parseAddress(multisigAliases[j])
+
+          unsignedTx = await pchain.buildAddVoteTx(
+            platformVMUTXOResponse.utxos, // utxoset
+            pAddressStrings, // fromAddresses
+            pAddressStrings, // changeAddresses
+            proposalIDs[p], // proposalID - must be a string in CB58 format
+            cases[j],
+            msigAliasBuffer, // voterAddress
+            0, // version
+            Buffer.alloc(20) // memo
+          )
           // Multisig
           // Create the hash from the tx
           const txbuff = unsignedTx.toBuffer()
@@ -149,8 +159,7 @@ const main = async (): Promise<any> => {
             ])
           }
 
-          const msigAliasAddrBuffer = pchain.parseAddress(multisigAliases[j]) // voter and ins owner
-          const msigAlias = await pchain.getMultisigAlias(multisigAliases[j])
+          const owners = await pchain.getMultisigAlias(multisigAliases[j])
 
           const msKeyChain = new MultisigKeyChain(
             avalanche.getHRP(),
@@ -160,11 +169,11 @@ const main = async (): Promise<any> => {
             unsignedTx.getTransaction().getOutputOwners(),
             new Map([
               [
-                msigAliasAddrBuffer.toString("hex"),
+                msigAliasBuffer.toString("hex"),
                 new OutputOwners(
-                  msigAlias.addresses.map((a) => bintools.parseAddress(a, "P")),
-                  ZeroBN,
-                  msigAlias.threshold
+                  owners.addresses.map((a) => bintools.parseAddress(a, "P")),
+                  new BN(owners.locktime),
+                  owners.threshold
                 )
               ]
             ])
@@ -181,8 +190,13 @@ const main = async (): Promise<any> => {
 
           msKeyChain.buildSignatureIndices()
           tx = unsignedTx.sign(msKeyChain)
+          if (multisigAliases[j] === msig_one_owner) {
+            pKeychain.removeKey(keyPair2)
+          } else {
+            pKeychain.removeKey(keyPair1)
+            pKeychain.removeKey(keyPair2)
+          }
         }
-
         const addVoteTx = unsignedTx.getTransaction() as AddVoteTx
         const addVoteTxTypeName: string = addVoteTx.getTypeName()
         const addVoteTxTypeID: number = addVoteTx.getTypeID()
