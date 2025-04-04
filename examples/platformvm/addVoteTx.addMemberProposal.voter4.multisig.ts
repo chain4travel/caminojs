@@ -58,7 +58,7 @@ const main = async (): Promise<any> => {
   const msigAliasBuffer = pchain.parseAddress(msigAlias)
   const owner = await pchain.getMultisigAlias(msigAlias)
   // To find the proposal ID:
-  // 1. First create a proposal using addProposalTx.generalProposal.ts
+  // 1. First create a proposal using addProposalTx.addMemberProposal.ts
   // 2. The transaction ID returned from issueTx() is your proposal ID
   // 3. You can also get it from the blockchain explorer or by querying the node
   // Example proposal ID (replace with your actual proposal ID):
