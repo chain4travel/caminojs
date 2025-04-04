@@ -1,6 +1,6 @@
 {
   "name": "@c4tplatform/caminojs",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "Camino Platform JS Library",
   "main": "dist/index.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "release:prepare": "rm -rf ./dist ./node_modules && yarn install && yarn test && yarn build && yarn bundle && git status",
     "test": "jest",
     "test-watch": "jest --watch",
-    "transpile:examles": "ts-node -r tsconfig-paths/register examples/<your file>.ts",
+    "transpile:examples": "ts-node -r tsconfig-paths/register examples/<your file>.ts",
     "clean": "rm -rf node_modules dist coverage package-lock.json yarn.lock"
   },
   "repository": {
