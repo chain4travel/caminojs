@@ -70,6 +70,7 @@ const main = async (): Promise<any> => {
   const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
 
   try {
+    console.log("Voting for proposal:", proposalID)
     let signatures: [string, string][] = []
     // Create unsigned transaction for the first voter
     let unsignedTx = await pchain.buildAddVoteTx(
@@ -130,7 +131,7 @@ const main = async (): Promise<any> => {
     const addVoteTxTypeName: string = addVoteTx.getTypeName()
     const addVoteTxTypeID: number = addVoteTx.getTypeID()
 
-    console.log("First voter transaction:")
+    console.log("Fourth voter transaction:")
     console.log("Type ID:", addVoteTxTypeID)
     console.log("Type Name:", addVoteTxTypeName)
     console.log("Transaction Hex:", hex)

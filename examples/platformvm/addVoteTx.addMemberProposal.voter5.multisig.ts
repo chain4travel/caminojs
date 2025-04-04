@@ -8,6 +8,7 @@ import {
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
 import {
+  DefaultLocalGenesisPrivateKey,
   DefaultLocalGenesisPrivateKey2,
   PrivateKeyPrefix,
   PChainAlias
@@ -33,11 +34,12 @@ import {
 const bintools = BinTools.getInstance()
 
 // Multisig voter:
-const multiSigAliasMemberPrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const multiSigAliasMemberPrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const multiSigAliasMember2PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 // Multisig Example where creator is an Multisig address with 1 owner (threshold 1)
-const msig_one_owner = "P-kopernikus1z5tv4tg04kf4l9ghclw6ssek8zugs7yd65prpl" // Multisig Address with 1 owner (threshold 1)
-
-const msigAlias = msig_one_owner
+const msig_two_owners_threshold_2 =
+  "P-kopernikus1t5qgr9hcmf2vxj7k0hz77kawf9yr389cxte5j0"
+const msigAlias = msig_two_owners_threshold_2
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -49,6 +51,7 @@ const InitAvalanche = async () => {
   pchain = avalanche.PChain()
   pKeychain = pchain.keyChain()
   pKeychain.importKey(multiSigAliasMemberPrivateKey)
+  pKeychain.importKey(multiSigAliasMember2PrivateKey)
 
   pAddresses = pchain.keyChain().getAddresses()
   pAddressStrings = pchain.keyChain().getAddressStrings()
