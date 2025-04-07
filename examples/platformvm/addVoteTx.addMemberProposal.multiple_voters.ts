@@ -213,12 +213,16 @@ const main = async (): Promise<any> => {
 
         const txid: string = await pchain.issueTx(tx)
         console.log(
-          `for proposal ${proposalIDs[p]} Result: Success! Voter address: ${pAddressStrings} voted for option ${cases[j]} TXID: ${txid}`
+          `for proposal ${proposalIDs[p]} Result: Success! Voter address: ${
+            multisigAliases[j] ?? pAddressStrings
+          } voted for option ${cases[j]} TXID: ${txid}`
         )
         console.log()
       } catch (e) {
         console.log(
-          `For proposal ${proposalIDs[p]} Result: Failed! Voter address: ${pAddressStrings} tried to vote for option ${cases[j]} "Error:", ${e})`
+          `For proposal ${proposalIDs[p]} Result: Failed! Voter address: ${
+            multisigAliases[j] ?? pAddressStrings
+          } tried to vote for option ${cases[j]} "Error:", ${e})`
         )
       }
       console.log("This was voting for proposal:", proposalIDs[p])

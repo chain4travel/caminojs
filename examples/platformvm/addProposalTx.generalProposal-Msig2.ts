@@ -76,7 +76,7 @@ const main = async (): Promise<any> => {
 
   const totalVotedThresholdNominator: number = 39 * 10000 // 0 - 100%
   const mostVotedThresholdNominator: number = 50 * 10000 // 0 - 100%
-  const allowEarlyFinish: boolean = true
+  const allowEarlyFinish: boolean = false
 
   const proposalDescription = Buffer.from(
     `This is a general proposal. Created by caminojs examples at: ${timestamp}.
