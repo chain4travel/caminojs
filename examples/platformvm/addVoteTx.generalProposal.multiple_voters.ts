@@ -130,8 +130,8 @@ const main = async (): Promise<any> => {
 
           unsignedTx = await pchain.buildAddVoteTx(
             platformVMUTXOResponse.utxos, // utxoset
-            pAddressStrings, // fromAddresses
-            pAddressStrings, // changeAddresses
+            [[multisigAliases[j]], pAddressStrings], // fromAddresses
+            [], // changeAddresses
             proposalIDs[p], // proposalID - must be a string in CB58 format
             cases[j],
             msigAliasBuffer, // voterAddress

@@ -78,7 +78,7 @@ const main = async (): Promise<any> => {
     // Create unsigned transaction for the first voter
     let unsignedTx = await pchain.buildAddVoteTx(
       platformVMUTXOResponse.utxos, // utxoset
-      pAddressStrings, // fromAddresses
+      [[msigAlias], pAddressStrings], // fromAddresses
       pAddressStrings, // changeAddresses
       proposalID, // proposalID - must be a string in CB58 format
       voteOptionIndex, // votePayload - the index of the option to vote for

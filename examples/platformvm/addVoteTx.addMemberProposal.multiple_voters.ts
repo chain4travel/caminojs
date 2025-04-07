@@ -81,7 +81,7 @@ const main = async (): Promise<any> => {
     let cases = allCases[p]
 
     // Proposal is passed with 3/5 votes
-    for (let j = 2; j < cases.length; j++) {
+    for (let j = 0; j < cases.length; j++) {
       console.log("Voting for case:", cases[j])
 
       try {
@@ -133,8 +133,8 @@ const main = async (): Promise<any> => {
 
           unsignedTx = await pchain.buildAddVoteTx(
             platformVMUTXOResponse.utxos, // utxoset
-            pAddressStrings, // fromAddresses
-            pAddressStrings, // changeAddresses
+            [[multisigAliases[j]], pAddressStrings], // fromAddresses
+            [], // changeAddresses
             proposalIDs[p], // proposalID - must be a string in CB58 format
             cases[j],
             msigAliasBuffer, // voterAddress

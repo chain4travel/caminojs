@@ -62,7 +62,7 @@ const main = async (): Promise<any> => {
   // 2. The transaction ID returned from issueTx() is your proposal ID
   // 3. You can also get it from the blockchain explorer or by querying the node
   // Example proposal ID (replace with your actual proposal ID):
-  const proposalID = "PROPOSAL_ID" // This is an example ID, replace with your actual proposal ID
+  const proposalID = "Hm7eraX43XUqsy44uGLyaSvdu81nVXWbozDy2tTjniJiVxiKZ" // This is an example ID, replace with your actual proposal ID
 
   // Both voters will vote for option 0
   const voteOptionIndex = 0
@@ -75,8 +75,8 @@ const main = async (): Promise<any> => {
     // Create unsigned transaction for the first voter
     let unsignedTx = await pchain.buildAddVoteTx(
       platformVMUTXOResponse.utxos, // utxoset
-      pAddressStrings, // fromAddresses
-      pAddressStrings, // changeAddresses
+      [[msigAlias], pAddressStrings], // fromAddresses
+      [], // changeAddresses
       proposalID, // proposalID - must be a string in CB58 format
       voteOptionIndex, // votePayload - the index of the option to vote for
       msigAliasBuffer, // voterAddress
