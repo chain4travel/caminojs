@@ -57,7 +57,7 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const msigAliasBuffer = pchain.parseAddress(msigAlias)
+  const msigAliasBuffer = pchain.parseAddress(msigAlias) // proposer and ins owner
   const owner = await pchain.getMultisigAlias(msigAlias)
 
   const bondAmount: any = await pchain.getMinStake()

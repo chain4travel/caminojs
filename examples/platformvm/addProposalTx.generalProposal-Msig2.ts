@@ -76,7 +76,7 @@ const main = async (): Promise<any> => {
 
   const totalVotedThresholdNominator: number = 39 * 10000 // 0 - 100%
   const mostVotedThresholdNominator: number = 50 * 10000 // 0 - 100%
-  const allowEarlyFinish: boolean = false
+  const allowEarlyFinish: boolean = true
 
   const proposalDescription = Buffer.from(
     `This is a general proposal. Created by caminojs examples at: ${timestamp}.
@@ -172,6 +172,8 @@ const main = async (): Promise<any> => {
     console.log(addProposalTxTypeID, addProposalTxTypeName, timestamp)
     console.log(hex)
     const txid: string = await pchain.issueTx(tx)
+    console.log("Proposer address:", msigAliasAddr)
+    console.log(proposalDescription.toString())
     console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)

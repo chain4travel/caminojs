@@ -1,6 +1,7 @@
 /* example meant to be run on local network with 5 validators (genesis_local_5_validators_2_multisigs.json) */
 import {
   AddVoteTx,
+  GetTxStatusResponse,
   KeyChain,
   PlatformVMAPI,
   PlatformVMConstants
@@ -30,6 +31,7 @@ import {
   MultisigKeyPair,
   OutputOwners
 } from "caminojs/common/"
+import { time } from "console"
 
 const bintools = BinTools.getInstance()
 
@@ -66,12 +68,11 @@ const main = async (): Promise<any> => {
   const proposalIDs = ["PROPOSAL_ID"] // This are example IDs, replace with your actual proposal IDs
 
   // 50% or more have to vote the same option, the proposal should pass
+  // Once the proposal is accepted or rejected (reaches >50%), it cannot be voted on again
   const allCases = [
-    [0, 0, 0, 1, 1], // 5 validators, 5 votes, expect Successful & Accepted
-    [0, 0, 1, 1, 1], // 5 validators, 5 votes, expect Successful & Rejected
-    [0, 0, 0, 0, 0], // 5 validators, 5 votes, expect Successful & Accepted
-
-    [1, 1, 1, 1, 1] // 5 validators, 5 votes, expect Successful & Rejected
+    [1, 1, 1, 0, 0],
+    [0, 0, 1, 1, 1],
+    [1, 0, 1, 0, 0]
   ]
 
   let pAddresses: Buffer[]
@@ -192,7 +193,7 @@ const main = async (): Promise<any> => {
           tx = unsignedTx.sign(msKeyChain)
           if (multisigAliases[j] === msig_one_owner) {
             pKeychain.removeKey(keyPair2)
-          } else {
+          } else if (multisigAliases[j] === msig_two_owners_threshold_2) {
             pKeychain.removeKey(keyPair1)
             pKeychain.removeKey(keyPair2)
           }
@@ -211,13 +212,49 @@ const main = async (): Promise<any> => {
         )
         // console.log("Transaction Hex:", hex)
 
+        let attempts = 1
         const txid: string = await pchain.issueTx(tx)
+
         console.log(
           `for proposal ${proposalIDs[p]} Result: Success! Voter address: ${
             multisigAliases[j] ?? pAddressStrings
           } voted for option ${cases[j]} TXID: ${txid}`
         )
-        console.log()
+
+        await new Promise((resolve) => setTimeout(resolve, attempts + 1000))
+        let txStatus: string | GetTxStatusResponse = await avalanche
+          .PChain()
+          .getTxStatus(txid)
+
+        console.log(
+          "Transaction status: after ",
+          attempts,
+          "s timeout",
+          txStatus
+        )
+
+        while (
+          ((typeof txStatus == "object" && txStatus.status !== "Committed") ||
+            (typeof txStatus == "string" && txStatus !== "Committed")) &&
+          attempts < 10
+        ) {
+          await new Promise((resolve) => setTimeout(resolve, attempts + 1000))
+          txStatus = await avalanche.PChain().getTxStatus(txid)
+          console.log(
+            "Transaction status: after ",
+            attempts,
+            " s timeout",
+            txStatus
+          )
+          if (
+            (typeof txStatus == "string" && txStatus == "Committed") ||
+            (typeof txStatus == "object" && txStatus.status == "Committed") ||
+            attempts >= 10
+          ) {
+            break
+          }
+          attempts++
+        }
       } catch (e) {
         console.log(
           `For proposal ${proposalIDs[p]} Result: Failed! Voter address: ${

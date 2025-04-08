@@ -98,6 +98,8 @@ const main = async (): Promise<any> => {
     console.log(addProposalTxTypeID, addProposalTxTypeName, timestamp)
     console.log(hex)
     const txid: string = await pchain.issueTx(tx)
+    console.log("Proposer address:", pKeychain.getAddressStrings()[0])
+    console.log(proposalDescription.toString())
     console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)
