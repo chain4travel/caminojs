@@ -215,12 +215,6 @@ const main = async (): Promise<any> => {
         let attempts = 1
         const txid: string = await pchain.issueTx(tx)
 
-        console.log(
-          `for proposal ${proposalIDs[p]} Result: Success! Voter address: ${
-            multisigAliases[j] ?? pAddressStrings
-          } voted for option ${cases[j]} TXID: ${txid}`
-        )
-
         await new Promise((resolve) => setTimeout(resolve, attempts + 1000))
         let txStatus: string | GetTxStatusResponse = await avalanche
           .PChain()
@@ -233,27 +227,53 @@ const main = async (): Promise<any> => {
           txStatus
         )
 
-        while (
-          ((typeof txStatus == "object" && txStatus.status !== "Committed") ||
-            (typeof txStatus == "string" && txStatus !== "Committed")) &&
-          attempts < 10
+        if (
+          (typeof txStatus == "string" && txStatus == "Committed") ||
+          (typeof txStatus == "object" && txStatus.status == "Committed")
         ) {
-          await new Promise((resolve) => setTimeout(resolve, attempts + 1000))
-          txStatus = await avalanche.PChain().getTxStatus(txid)
           console.log(
-            "Transaction status: after ",
-            attempts,
-            " s timeout",
-            txStatus
+            `for proposal ${proposalIDs[p]} Result: Success! Voter address: ${
+              multisigAliases[j] ?? pAddressStrings
+            } voted for option ${cases[j]} TXID: ${txid}`
           )
-          if (
-            (typeof txStatus == "string" && txStatus == "Committed") ||
-            (typeof txStatus == "object" && txStatus.status == "Committed") ||
-            attempts >= 10
+        } else {
+          while (
+            ((typeof txStatus == "object" && txStatus.status !== "Committed") ||
+              (typeof txStatus == "string" && txStatus !== "Committed")) &&
+            attempts < 21
           ) {
-            break
+            await new Promise((resolve) => setTimeout(resolve, attempts + 1000))
+            txStatus = await avalanche.PChain().getTxStatus(txid)
+            console.log(
+              "Transaction status: after ",
+              attempts,
+              " s timeout",
+              txStatus
+            )
+            if (
+              (typeof txStatus == "string" && txStatus == "Committed") ||
+              (typeof txStatus == "object" && txStatus.status == "Committed")
+            ) {
+              console.log(
+                `for proposal ${
+                  proposalIDs[p]
+                } Result: Success! Voter address: ${
+                  multisigAliases[j] ?? pAddressStrings
+                } voted for option ${cases[j]} TXID: ${txid}`
+              )
+              break
+            } else if (typeof txStatus == "object" && attempts >= 20) {
+              console.log(
+                `For proposal ${proposalIDs[p]} Result: Status: ${
+                  txStatus.status
+                } Voter address: ${
+                  multisigAliases[j] ?? pAddressStrings
+                } tried to vote for option ${cases[j]}`
+              )
+            }
+
+            attempts++
           }
-          attempts++
         }
       } catch (e) {
         console.log(
@@ -263,6 +283,7 @@ const main = async (): Promise<any> => {
         )
       }
       console.log("This was voting for proposal:", proposalIDs[p])
+      console.log("__________________________________________________")
     }
   }
 }

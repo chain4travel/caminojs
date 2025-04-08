@@ -38,7 +38,9 @@ const main = async (): Promise<any> => {
   // TODO: @VjeraTurk get bondAmount from node
   let startTimestamp: number = Date.now() / 1000 + 60 // start after 1 minute
   let endTimestamp: number = startTimestamp + 5184000 // exact 60 days
+  const timestamp = new Date().toISOString()
 
+  const proposalDescription = `Add new member ${targetAddress} to the network. Created by caminojs examples at: ${timestamp}`
   const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
   const proposal = new AddMemberProposal(
     startTimestamp,
@@ -46,17 +48,11 @@ const main = async (): Promise<any> => {
     targetAddress
   )
   try {
-    const timestamp = new Date().toISOString()
     let unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos, // utxoset
       pAddressStrings, // fromAddresses
       pAddressStrings, // changeAddresses
-      Buffer.from(
-        "Add new member  " +
-          targetAddress +
-          " to the network. Created by caminojs examples at: " +
-          timestamp
-      ), // description
+      Buffer.from(proposalDescription), // description
       proposal, // proposal
       pKeychain.getAddresses()[0], // proposerAddress
       0, // version
@@ -72,6 +68,8 @@ const main = async (): Promise<any> => {
     console.log(hex)
     const txid: string = await pchain.issueTx(tx)
     console.log(addProposalTxTypeID, addProposalTxTypeName, timestamp)
+    console.log("Proposer address:", pKeychain.getAddressStrings()[0])
+    console.log(proposalDescription)
     console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)
