@@ -45,6 +45,10 @@ const InitAvalanche = async () => {
   mostVotedThresholdNominator - If the value is 100000 , it is enough that 10% (votes[i]> 0.1) of voters all pick the same option j
 
   Allowed voters are all active validator at the time of proposal creation
+
+
+  If early finish is allowed AND both conditions are met, the proposal will early finish
+
 **/
 const fractionDenominator_v100_000 = 1000000
 const checkWhenEarlyFinishIsExpected = (
