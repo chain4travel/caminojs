@@ -68,16 +68,17 @@ const main = async (): Promise<any> => {
 
   // 50% or more have to vote the same option, the proposal should pass
   const allCases = [
-    [0, 0, 1, 0, 0],
+    [0, 1, 0, 1, 0],
     [0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1]
+    [1, 1, 1, 1, 1],
+    [0, 0, 1, 0, 0]
   ]
 
   let pAddresses: Buffer[]
 
   for (let p = 0; p < proposalIDs.length; p++) {
-    console.log("Voting for proposal:", proposalIDs[p])
     let cases = allCases[p]
+    console.log("Voting for proposal:", proposalIDs[p], " with cases:", cases)
 
     // Proposal is passed with 3/5 votes
     for (let j = 0; j < cases.length; j++) {
