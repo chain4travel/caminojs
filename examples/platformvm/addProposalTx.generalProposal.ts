@@ -60,7 +60,6 @@ const checkWhenEarlyFinishIsExpected = (
   let mostVotedThresholdReached = false
 
   for (let i = 0; i < votes.length; i++) {
-    votesForOption[i] = votes[i]
     let votedSofarPercent = (i + 1) / allowedVoters
     if (
       votedSofarPercent * fractionDenominator_v100_000 >
@@ -189,7 +188,7 @@ const main = async (): Promise<any> => {
       mostVotedThresholdNominator,
       allowEarlyFinish,
       5,
-      [0, 0, 0, 0, 0]
+      [0, 1, 0, 1, 0]
     )
   )
 
