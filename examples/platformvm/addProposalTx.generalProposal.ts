@@ -39,10 +39,10 @@ const InitAvalanche = async () => {
   n - voters allowed to vote   -> TotalAllowedVoters (can only become less if somebody is excluded mid voting ?)
   m - voters voted so far     -> allowedVoters = n - m
 
-  i - option index (range 0-2)
+  j - option index (range 0-2)
 
-  totalVotedThresholdNominator- If the value is 100000 , it is enough that 10%  (m/n>=0.1) of voters submit their votes
-  mostVotedThresholdNominator - If the value is 100000 , it is enough that 10% (votes[i]>= 0.1) of voters all pick the option i
+  totalVotedThresholdNominator- If the value is 100000 , it is enough that 10%  (m/n>0.1) of voters submit their votes
+  mostVotedThresholdNominator - If the value is 100000 , it is enough that 10% (votes[i]> 0.1) of voters all pick the same option j
 
   Allowed voters are all active validator at the time of proposal creation
 **/
