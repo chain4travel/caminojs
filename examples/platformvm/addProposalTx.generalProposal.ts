@@ -36,8 +36,8 @@ const InitAvalanche = async () => {
 The “quorum” of voters above which a proposal can be deemed valid, so that a winning option can be selected, is also configurable (but only in the backend): X% of active validators at proposal time must have voted
 The backend makes the values for “majority” and “quorum” configurable in the proposal but the frontend will for now always choose the 50% for both.
 
-  n - voters allowed to vote
-  m - voters voted so far
+  n - voters allowed to vote   -> TotalAllowedVoters (can only become less if somebody is excluded mid voting ?)
+  m - voters voted so far     -> allowedVoters = n - m
 
   i - option index (range 0-2)
 
@@ -152,8 +152,8 @@ const main = async (): Promise<any> => {
   const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
 
   const timestamp = new Date().toISOString()
-  const totalVotedThresholdNominator: number = 0 * v10_000 // 0 - 100%
-  const mostVotedThresholdNominator: number = 39 * v10_000 // 0 - 100%
+  const totalVotedThresholdNominator: number = 0 * v10_000 // 0 - 100% // 0
+  const mostVotedThresholdNominator: number = 39 * v10_000 // 0 - 100% // 390000
   const allowEarlyFinish: boolean = true
 
   const proposalDescription = Buffer.from(
