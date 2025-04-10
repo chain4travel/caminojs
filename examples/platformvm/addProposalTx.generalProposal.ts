@@ -30,11 +30,11 @@ const InitAvalanche = async () => {
 }
 
 /**
- *In order to determine whether a proposal is successful or not, the conditions for a winning option must be configurable following this framework:
-“Qualified majority”: there is a minimum threshold on the percentage of casted votes for one option, which must be a number between 50% (exclusive) and 100% (inclusive): 50% < VOTES <= 100%
-“Relative majority”: Otherwise, no minimum threshold on percentages
-The “quorum” of voters above which a proposal can be deemed valid, so that a winning option can be selected, is also configurable (but only in the backend): X% of active validators at proposal time must have voted
-The backend makes the values for “majority” and “quorum” configurable in the proposal but the frontend will for now always choose the 50% for both.
+ * In order to determine whether a proposal is successful or not, the conditions for a winning option must be configurable following this framework:
+ * “Qualified majority”: there is a minimum threshold on the percentage of casted votes for one option, which must be a number between 50% (exclusive) and 100% (inclusive): 50% < VOTES <= 100%
+ * “Relative majority”: Otherwise, no minimum threshold on percentages
+ * The “quorum” of voters above which a proposal can be deemed valid, so that a winning option can be selected, is also configurable (but only in the backend): X% of active validators at proposal time must have voted
+ * The backend makes the values for “majority” and “quorum” configurable in the proposal but the frontend will for now always choose the 50% for both.
 
   n - voters allowed to vote   -> TotalAllowedVoters (can only become less if somebody is excluded mid voting ?)
   m - voters voted so far     -> allowedVoters = n - m
@@ -84,7 +84,7 @@ const checkWhenEarlyFinishIsExpected = (
       allowEarlyFinish &&
       totalVotedThresholdReached &&
       mostVotedThresholdReached &&
-      i + 1 < allowedVoters // TODO: will it still trigger ?!
+      i + 1 !== allowedVoters // TODO: will it still trigger ?!
     ) {
       return (
         "For" +
@@ -145,7 +145,7 @@ const main = async (): Promise<any> => {
   let endDate = new Date(startDate)
   endDate.setDate(endDate.getDate() + 10)
 
-  let startTimestamp: number = Date.now() / 1000 + 60 // add + 60 to start in 1 minute
+  let startTimestamp: number = Date.now() / 1000 // add + 60 to start in 1 minute
   let endTimestamp: number = startTimestamp + 2592000 // exact 30 days
 
   const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)

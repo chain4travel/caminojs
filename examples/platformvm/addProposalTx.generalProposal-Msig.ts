@@ -65,7 +65,7 @@ const main = async (): Promise<any> => {
   const bondAmount: any = await pchain.getMinStake()
 
   const timestamp = new Date().toISOString()
-  let startTimestamp: number = Date.now() / 1000 + 60 // start after 1 minute
+  let startTimestamp: number = Date.now() / 1000 // add + 60  to  start after 1 minute
   let endTimestamp: number = startTimestamp + 2592000 // exact 30 days
 
   const platformVMUTXOResponse = await pchain.getUTXOs([msigAliasAddr])
