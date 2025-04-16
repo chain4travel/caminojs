@@ -23,6 +23,7 @@ let pchain: PlatformVMAPI
 let pKeychain: KeyChain
 let pAddressStrings: string[]
 const targetAddress = "P-kopernikus122gtala73kjrf34xtdq0d9vssqlccxjjam7kk8"
+// const targetAddress = "P-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68"
 const bintools: BinTools = BinTools.getInstance()
 const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()

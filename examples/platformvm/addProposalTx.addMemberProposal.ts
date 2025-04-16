@@ -24,6 +24,7 @@ let pchain: PlatformVMAPI
 let pKeychain: KeyChain
 let pAddressStrings: string[]
 const targetAddress = "P-kopernikus122gtala73kjrf34xtdq0d9vssqlccxjjam7kk8" // New member address - must be KYC verified
+// const targetAddress = "P-kopernikus1z5tv4tg04kf4l9ghclw6ssek8zugs7yd65prpl"
 const bintools: BinTools = BinTools.getInstance()
 const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()
