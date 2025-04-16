@@ -15,8 +15,6 @@ import {
   PChainAlias
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
-import * as fs from "fs"
-import * as path from "path"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
 import createHash from "create-hash"
@@ -28,29 +26,20 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 
-// Path to read proposal IDs from
-const proposalIdsPath = path.resolve(
-  __dirname,
-  "../common/latestProposalIds.json"
-)
-
 import BN from "bn.js"
 import {
   MultisigKeyChain,
   MultisigKeyPair,
   OutputOwners
 } from "caminojs/common/"
-import {
-  allCases,
-  getProposalIdFromArgs,
-  getProposalIds
-} from "./proposal-utils"
+import { getProposalIdFromArgs, getProposalIds } from "./proposal-utils"
 
 const bintools = BinTools.getInstance()
 
 let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 let privKey2: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 let privKey3: string = `${PrivateKeyPrefix}${FiveValidatorsGenesisPrivateKey}`
+
 const msig_one_owner = "P-kopernikus1z5tv4tg04kf4l9ghclw6ssek8zugs7yd65prpl"
 const msig_two_owners_threshold_2 =
   "P-kopernikus1t5qgr9hcmf2vxj7k0hz77kawf9yr389cxte5j0"
@@ -58,9 +47,8 @@ const msig_two_owners_threshold_2 =
 const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const multiSigAliasMember2PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 
-let privKeys = [privKey, , privKey2, privKey3, ,]
-// let multisigAliases = [, msig_one_owner, , , msig_two_owners_threshold_2]
-let multisigAliases = [, msig_two_owners_threshold_2, , , msig_one_owner]
+let privKeys = [, privKey2, privKey3, privKey]
+let multisigAliases = [msig_one_owner, , , , msig_two_owners_threshold_2]
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -84,18 +72,22 @@ const main = async (): Promise<any> => {
   // Read proposal IDs from file if no command-line argument
   const savedProposalIds = cmdLineProposalId
     ? [cmdLineProposalId]
-    : getProposalIds()[0]
+    : [getProposalIds()[0]]
 
   // Use saved proposal IDs if available, otherwise use example IDs
   const proposalIDs =
     savedProposalIds.length > 0 ? savedProposalIds : ["PROPOSAL_ID"] // This is an example ID
 
   console.log("Using proposal IDs:", proposalIDs)
+  // 50% or more have to vote the same option, the proposal should pass
+  // Once the proposal is accepted or rejected (reaches >50%), it cannot be voted on again
+  const allCases = [[1, 0, 1, 0, 0]]
+
   let pAddresses: Buffer[]
 
   for (let p = 0; p < proposalIDs.length; p++) {
+    console.log("Voting for proposal:", proposalIDs[p])
     let cases = allCases[p]
-    console.log("Voting for proposal:", proposalIDs[p], " with cases:", cases)
 
     // Proposal is passed with 3/5 votes
     for (let j = 0; j < cases.length; j++) {
@@ -137,7 +129,7 @@ const main = async (): Promise<any> => {
           // Multisig
           if (multisigAliases[j] === msig_one_owner) {
             keyPair2 = pKeychain.importKey(multiSigAliasMember2PrivateKey)
-          } else if (multisigAliases[j] === msig_two_owners_threshold_2) {
+          } else {
             keyPair1 = pKeychain.importKey(multiSigAliasMember1PrivateKey)
             keyPair2 = pKeychain.importKey(multiSigAliasMember2PrivateKey)
           }
@@ -209,7 +201,7 @@ const main = async (): Promise<any> => {
           tx = unsignedTx.sign(msKeyChain)
           if (multisigAliases[j] === msig_one_owner) {
             pKeychain.removeKey(keyPair2)
-          } else {
+          } else if (multisigAliases[j] === msig_two_owners_threshold_2) {
             pKeychain.removeKey(keyPair1)
             pKeychain.removeKey(keyPair2)
           }
@@ -230,6 +222,7 @@ const main = async (): Promise<any> => {
 
         let attempts = 1
         const txid: string = await pchain.issueTx(tx)
+
         await new Promise((resolve) => setTimeout(resolve, attempts + 1000))
         let txStatus: string | GetTxStatusResponse = await avalanche
           .PChain()
@@ -241,6 +234,7 @@ const main = async (): Promise<any> => {
           "s timeout",
           txStatus
         )
+
         if (
           (typeof txStatus == "string" && txStatus == "Committed") ||
           (typeof txStatus == "object" && txStatus.status == "Committed")
@@ -254,7 +248,7 @@ const main = async (): Promise<any> => {
           while (
             ((typeof txStatus == "object" && txStatus.status !== "Committed") ||
               (typeof txStatus == "string" && txStatus !== "Committed")) &&
-            attempts < 201
+            attempts < 21
           ) {
             await new Promise((resolve) => setTimeout(resolve, attempts + 1000))
             txStatus = await avalanche.PChain().getTxStatus(txid)
@@ -264,7 +258,6 @@ const main = async (): Promise<any> => {
               " s timeout",
               txStatus
             )
-            // TODO: Dropped is also a valid status ?
             if (
               (typeof txStatus == "string" && txStatus == "Committed") ||
               (typeof txStatus == "object" && txStatus.status == "Committed")
@@ -277,7 +270,7 @@ const main = async (): Promise<any> => {
                 } voted for option ${cases[j]} TXID: ${txid}`
               )
               break
-            } else if (typeof txStatus == "object" && attempts >= 200) {
+            } else if (typeof txStatus == "object" && attempts >= 20) {
               console.log(
                 `For proposal ${proposalIDs[p]} Result: Status: ${
                   txStatus.status
@@ -298,8 +291,8 @@ const main = async (): Promise<any> => {
         )
       }
       console.log("This was voting for proposal:", proposalIDs[p])
+      console.log("__________________________________________________")
     }
-    console.log("__________________________________________________")
   }
 }
 main()

@@ -15,6 +15,7 @@ import {
   PChainAlias
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
+import { getProposalIdFromArgs, getProposalIds } from "./proposal-utils"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
 import createHash from "create-hash"
@@ -31,7 +32,6 @@ import {
   MultisigKeyPair,
   OutputOwners
 } from "caminojs/common/"
-import { time } from "console"
 
 const bintools = BinTools.getInstance()
 
@@ -65,7 +65,16 @@ const main = async (): Promise<any> => {
   // 2. The transaction ID returned from issueTx() is your proposal ID
   // 3. You can also get it from the blockchain explorer or by querying the node
   // Example proposal ID (replace with your actual proposal ID):
-  const proposalIDs = ["PROPOSAL_ID"] // This are example IDs, replace with your actual proposal IDs
+  const cmdLineProposalId = getProposalIdFromArgs()
+
+  // Read proposal IDs from file if no command-line argument
+  const savedProposalIds = cmdLineProposalId
+    ? [cmdLineProposalId]
+    : [getProposalIds()[0]]
+
+  // Use saved proposal IDs if available, otherwise use example IDs
+  const proposalIDs =
+    savedProposalIds.length > 0 ? savedProposalIds : ["PROPOSAL_ID"] // This is an example ID
 
   // 50% or more have to vote the same option, the proposal should pass
   // Once the proposal is accepted or rejected (reaches >50%), it cannot be voted on again
