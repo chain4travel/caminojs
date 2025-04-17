@@ -1,4 +1,4 @@
-/* example meant to be run on local network with 5 validators (genesis_local_5_validators_2_multisigs.json) */
+/* example meant to be run on local network with 5 validators (genesis_local_5_validators.json) */
 import { AddVoteTx, KeyChain, PlatformVMAPI } from "caminojs/apis/platformvm"
 import { Avalanche, Buffer } from "caminojs/index"
 import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
