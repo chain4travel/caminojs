@@ -1,9 +1,9 @@
+/* example meant to be run on local network with 5 validators (genesis_local_5_validators_2_multisigs.json) */
 import {
   AddProposalTx,
   AddMemberProposal,
   KeyChain,
   PlatformVMAPI,
-  UnsignedTx,
   PlatformVMConstants,
   Tx
 } from "caminojs/apis/platformvm"
@@ -36,11 +36,12 @@ const bintools = BinTools.getInstance()
 const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const multiSigAliasMember2PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 // Multisig Example where creator is an Multisig address with 1 owner or 2 owners (threshold 1 or 2)
-const msig_one_owner = ""
+const msig_one_owner = "P-kopernikus1z5tv4tg04kf4l9ghclw6ssek8zugs7yd65prpl"
 const msig_two_owners_threshold_1 = ""
-const msig_two_owners_threshold_2 = ""
+const msig_two_owners_threshold_2 =
+  "P-kopernikus1t5qgr9hcmf2vxj7k0hz77kawf9yr389cxte5j0"
 
-const new_member_address = "" // New member address - must not be in the network already
+const new_member_address = "P-kopernikus1fa2tyhqvh408pk7gx375wkcqunl2zczcl4acht" // New member address - must be KYC verified
 
 // const msigAliasAddr = msig_one_owner
 // const msigAliasAddr = msig_two_owners_threshold_1
@@ -74,9 +75,15 @@ const main = async (): Promise<any> => {
 
   const bondAmount: any = await pchain.getMinStake()
 
-  const proposalDescription = Buffer.from("Proposal for new member.")
+  const timestamp = new Date().toISOString()
+  const proposalDescription = Buffer.from(
+    "Proposal for new member " +
+      new_member_address +
+      " .\nCreated by caminojs examples at: " +
+      timestamp
+  )
 
-  let startTimestamp: number = Date.now() / 1000 + 600 // start after 10 minutes
+  let startTimestamp: number = Date.now() / 1000 + 60 // start after 1 minute
   let endTimestamp: number = startTimestamp + 5184000 // exact 60 days
   const platformVMUTXOResponse = await pchain.getUTXOs([msigAliasAddr])
 
@@ -159,9 +166,11 @@ const main = async (): Promise<any> => {
 
     const memberProposal = addProposalTx.getProposalPayload()
 
-    console.log(addProposalTxTypeID, addProposalTxTypeName)
+    console.log(addProposalTxTypeID, addProposalTxTypeName, timestamp)
     console.log(hex)
     const txid: string = await pchain.issueTx(tx)
+    console.log("Proposer address:", msigAliasAddr)
+    console.log(proposalDescription.toString())
     console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)

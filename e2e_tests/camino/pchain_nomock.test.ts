@@ -544,7 +544,8 @@ describe("Camino-PChain-Deposit", (): void => {
             [P(addrBString)],
             undefined,
             undefined,
-            ZeroBN
+            ZeroBN,
+            [depositTx.value]
           )
           const tx: Tx = unsignedTx.sign(pKeychain)
           return pChain.issueTx(tx)
@@ -798,7 +799,7 @@ describe("Camino-PChain-Auto-Unlock-Deposit-Half-Amount", (): void => {
       () => balanceOutputs
     ],
     [
-      "Wait 75% of unlock duration and issue an unlockDepositTx to manually unlock deposit",
+      "Wait 100% of unlock duration and issue an unlockDepositTx to manually unlock deposit",
       () =>
         (async function () {
           const unsignedTx: UnsignedTx = await pChain.buildUnlockDepositTx(
@@ -807,7 +808,8 @@ describe("Camino-PChain-Auto-Unlock-Deposit-Half-Amount", (): void => {
             [P(addrBString)],
             undefined,
             undefined,
-            ZeroBN
+            ZeroBN,
+            [depositTx.value]
           )
           const tx: Tx = unsignedTx.sign(pKeychain)
           return pChain.issueTx(tx)

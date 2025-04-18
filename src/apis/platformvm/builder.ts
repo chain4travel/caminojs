@@ -71,6 +71,13 @@ export interface MinimumSpendable {
     locktime: BN,
     lockMode: LockMode
   ): Promise<Error>
+
+  getUndepositable(
+    aad: AssetAmountDestination,
+    asOf: BN,
+    lockTime: BN,
+    depositTxIDs: string[]
+  ): Promise<Error>
 }
 
 export type FromSigner = {
@@ -93,6 +100,7 @@ const zero: BN = new BN(0)
 
 export class Builder {
   spender: MinimumSpendable
+
   caminoEnabled: boolean
 
   constructor(spender: MinimumSpendable, caminoEnabled: boolean) {
@@ -1439,10 +1447,13 @@ export class Builder {
     feeAssetID: Buffer = undefined,
     memo: Buffer = undefined,
     asOf: BN = zero,
-    changeThreshold: number = 1
+    depositTxIDs: string[],
+    changeThreshold: number = 1,
+    lockTime: BN = zero
   ): Promise<UnsignedTx> => {
     let ins: TransferableInput[] = []
     let outs: TransferableOutput[] = []
+    let owners: OutputOwners[] = []
 
     if (this._feeCheck(fee, feeAssetID)) {
       const aad: AssetAmountDestination = new AssetAmountDestination(
@@ -1454,19 +1465,20 @@ export class Builder {
         changeThreshold
       )
 
+      // TODO: see it aad structure is correct or a similar structure is needed
       aad.addAssetAmount(feeAssetID, zero, fee)
-
-      const minSpendableErr: Error = await this.spender.getMinimumSpendable(
+      const undepositableErr: Error = await this.spender.getUndepositable(
         aad,
         asOf,
-        zero,
-        "Unlocked"
+        lockTime,
+        depositTxIDs
       )
-      if (typeof minSpendableErr === "undefined") {
+      if (typeof undepositableErr === "undefined") {
         ins = aad.getInputs()
         outs = aad.getAllOutputs()
+        owners = aad.getOutputOwners()
       } else {
-        throw minSpendableErr
+        throw undepositableErr
       }
     }
 
@@ -1477,7 +1489,7 @@ export class Builder {
       ins,
       memo
     )
-
+    unlockDepositTx.setOutputOwners(owners)
     return new UnsignedTx(unlockDepositTx)
   }
 
