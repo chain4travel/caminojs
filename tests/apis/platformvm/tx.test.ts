@@ -87,7 +87,7 @@ describe("Transactions", (): void => {
 
   beforeEach((): void => {
     set = new UTXOSet()
-    builder = new Builder(set, false)
+    builder = new Builder(set, set, false)
     keymgr1 = new KeyChain(avalanche.getHRP(), alias)
     keymgr2 = new KeyChain(avalanche.getHRP(), alias)
     keymgr3 = new KeyChain(avalanche.getHRP(), alias)

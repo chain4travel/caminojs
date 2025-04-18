@@ -1,7 +1,7 @@
 /* example meant to be run on local network with 5 validators (genesis_local_5_validators.json) */
 import {
   AddProposalTx,
-  AddMemberProposal,
+  GeneralProposal,
   KeyChain,
   PlatformVMAPI,
   PlatformVMConstants,
@@ -34,11 +34,8 @@ const bintools = BinTools.getInstance()
 
 // Multisig creator:
 const multiSigAliasMemberPrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
-// Multisig Example where creator is an Multisig address with 1 owner (threshold 1)
-const msig_one_owner = "P-kopernikus1z5tv4tg04kf4l9ghclw6ssek8zugs7yd65prpl" // Multisig Address with 1 owner (threshold 1)
-const new_member_address = "P-kopernikus1ece6f9yym6939galcvlwzr0dc0tqh4a8jdmmpu" // New member address - must be KYC verified
-
-const msigAlias = msig_one_owner
+// Multisig Example where creator is an Multisig Address with 1 owner (threshold 1)
+const msigAliasAddr = "P-kopernikus1z5tv4tg04kf4l9ghclw6ssek8zugs7yd65prpl"
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -57,30 +54,43 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const msigAliasBuffer = pchain.parseAddress(msigAlias) // proposer and ins owner
-  const owner = await pchain.getMultisigAlias(msigAlias)
+  const msigAliasAddrBuffer = pchain.parseAddress(msigAliasAddr) // proposer and ins owner
+  const msigAlias = await pchain.getMultisigAlias(msigAliasAddr)
+  const msigAliasOwners = new OutputOwners(
+    msigAlias.addresses.map((a) => bintools.parseAddress(a, "P")),
+    new BN(msigAlias.locktime),
+    msigAlias.threshold
+  )
 
   const bondAmount: any = await pchain.getMinStake()
 
   const timestamp = new Date().toISOString()
+  let startTimestamp: number = Date.now() / 1000 // add + 60  to  start after 1 minute
+  let endTimestamp: number = startTimestamp + 2592000 // exact 30 days
+
+  const platformVMUTXOResponse = await pchain.getUTXOs([msigAliasAddr])
+
+  const totalVotedThresholdNominator: number = 39 * 10000 // 0 - 100%
+  const mostVotedThresholdNominator: number = 50 * 10000 // 0 - 100%
+  const allowEarlyFinish: boolean = true
+
   const proposalDescription = Buffer.from(
-    "Proposal for new member " +
-      new_member_address +
-      " .\nCreated at: " +
-      timestamp
+    `This is a description of this general proposal. Vote on new color of the Camino logo. Created by caminojs examples at: ${timestamp}.
+    \nAllow early finish: ${allowEarlyFinish}.
+    \nTotal voted threshold: ${totalVotedThresholdNominator}.
+    \nMost voted threshold: ${mostVotedThresholdNominator}.`
   )
 
-  let startTimestamp: number = Date.now() / 1000 + 60 // start after 1 minute
-  let endTimestamp: number = startTimestamp + 5184000 // exact 60 days
-  const platformVMUTXOResponse = await pchain.getUTXOs([msigAlias])
-
-  const proposalMsigCreator = msigAlias
-
-  const proposal = new AddMemberProposal(
+  const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
-    new_member_address
+    totalVotedThresholdNominator,
+    mostVotedThresholdNominator,
+    allowEarlyFinish
   )
+  proposal.addGeneralOption("Blue")
+  proposal.addGeneralOption("Red")
+  proposal.addGeneralOption("Green")
 
   try {
     let buffer = proposal.toBuffer()
@@ -93,11 +103,11 @@ const main = async (): Promise<any> => {
     let signatures: [string, string][] = []
     let unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos, // utxoset
-      [[proposalMsigCreator], pAddressStrings], // fromAddresses
+      [[msigAliasAddr], pAddressStrings], // fromAddresses
       [], // changeAddresses
       proposalDescription, // description
       proposal, // proposal
-      msigAliasBuffer, // proposerAddress
+      msigAliasAddrBuffer, // proposerAddress
       0, // version
       Buffer.alloc(20) // memo
     )
@@ -124,11 +134,11 @@ const main = async (): Promise<any> => {
       unsignedTx.getTransaction().getOutputOwners(),
       new Map([
         [
-          msigAliasBuffer.toString("hex"),
+          msigAliasAddrBuffer.toString("hex"),
           new OutputOwners(
-            owner.addresses.map((a) => bintools.parseAddress(a, "P")),
-            new BN(owner.locktime),
-            owner.threshold
+            msigAlias.addresses.map((a) => bintools.parseAddress(a, "P")),
+            new BN(msigAlias.locktime),
+            msigAlias.threshold
           )
         ]
       ])
@@ -151,12 +161,12 @@ const main = async (): Promise<any> => {
     const addProposalTxTypeName: string = addProposalTx.getTypeName()
     const addProposalTxTypeID: number = addProposalTx.getTypeID()
 
-    const addMemberProposal = addProposalTx.getProposalPayload()
+    const generalProposal = addProposalTx.getProposalPayload()
 
     console.log(addProposalTxTypeID, addProposalTxTypeName, timestamp)
     console.log(hex)
     const txid: string = await pchain.issueTx(tx)
-    console.log("Proposer address:", msigAlias)
+    console.log("Proposer address:", msigAliasAddr)
     console.log(proposalDescription.toString())
     console.log(`Success! TXID: ${txid}`)
   } catch (e) {
