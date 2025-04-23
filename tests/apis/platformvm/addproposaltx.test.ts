@@ -1001,7 +1001,7 @@ describe("GeneralProposal", (): void => {
           end: "000000006817c3b4",
           start: "0000000067f036b4",
           mostVotedThresholdNominator: "00000000000493e0",
-          totalVotedThresholdNominator: "0000000000000000",
+          totalVotedThresholdNominator: "0000000000000000", // TODO@ make non-zero
           allowEarlyFinish: true,
           options: [
             {
@@ -1041,6 +1041,7 @@ describe("GeneralProposal", (): void => {
     expect(serializedAddProposalTx).toStrictEqual(expectedJSON)
   })
 
+  // TODO@ this looks bad: if 1st buffer will miss some data, resulting tx won't have it, that tx's buffer won't have it and buffers might still be equal
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
     const addProposalTransaction: AddProposalTx = new AddProposalTx()
