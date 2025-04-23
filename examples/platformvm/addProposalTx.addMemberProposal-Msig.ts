@@ -1,15 +1,15 @@
-/* example meant to be run on local network with 5 validators (genesis_local_5_validators.json) */
 import {
   AddProposalTx,
   AddMemberProposal,
   KeyChain,
   PlatformVMAPI,
+  UnsignedTx,
   PlatformVMConstants,
   Tx
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
 import {
-  DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   PChainAlias,
   PrivateKeyPrefix
 } from "caminojs/utils"
@@ -33,10 +33,10 @@ const avalanche: Avalanche = new Avalanche(
 const bintools = BinTools.getInstance()
 
 // Multisig creator:
-const multiSigAliasMemberPrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 // Multisig Example where creator is an Multisig address with 1 owner (threshold 1)
-const msig_one_owner = "P-kopernikus1z5tv4tg04kf4l9ghclw6ssek8zugs7yd65prpl" // Multisig Address with 1 owner (threshold 1)
-const new_member_address = "P-kopernikus1ece6f9yym6939galcvlwzr0dc0tqh4a8jdmmpu" // New member address - must be KYC verified
+const msig_one_owner = "" // Multisig Address with 1 owner (threshold 1)
+const new_member_address = "" // New member address
 
 const msigAlias = msig_one_owner
 
@@ -49,7 +49,7 @@ const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()
   pchain = avalanche.PChain()
   pKeychain = pchain.keyChain()
-  pKeychain.importKey(multiSigAliasMemberPrivateKey)
+  pKeychain.importKey(multiSigAliasMember1PrivateKey)
 
   pAddresses = pchain.keyChain().getAddresses()
   pAddressStrings = pchain.keyChain().getAddressStrings()
@@ -57,20 +57,14 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const msigAliasBuffer = pchain.parseAddress(msigAlias) // proposer and ins owner
+  const msigAliasBuffer = pchain.parseAddress(msigAlias)
   const owner = await pchain.getMultisigAlias(msigAlias)
 
   const bondAmount: any = await pchain.getMinStake()
 
-  const timestamp = new Date().toISOString()
-  const proposalDescription = Buffer.from(
-    "Proposal for new member " +
-      new_member_address +
-      " .\nCreated at: " +
-      timestamp
-  )
+  const proposalDescription = Buffer.from("Proposal for new member.")
 
-  let startTimestamp: number = Date.now() / 1000 + 60 // start after 1 minute
+  let startTimestamp: number = Date.now() / 1000 + 600 // start after 10 minutes
   let endTimestamp: number = startTimestamp + 5184000 // exact 60 days
   const platformVMUTXOResponse = await pchain.getUTXOs([msigAlias])
 
@@ -153,11 +147,9 @@ const main = async (): Promise<any> => {
 
     const addMemberProposal = addProposalTx.getProposalPayload()
 
-    console.log(addProposalTxTypeID, addProposalTxTypeName, timestamp)
+    console.log(addProposalTxTypeID, addProposalTxTypeName)
     console.log(hex)
     const txid: string = await pchain.issueTx(tx)
-    console.log("Proposer address:", msigAlias)
-    console.log(proposalDescription.toString())
     console.log(`Success! TXID: ${txid}`)
   } catch (e) {
     console.log(e)
