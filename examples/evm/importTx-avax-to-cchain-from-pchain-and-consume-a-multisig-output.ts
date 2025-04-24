@@ -11,7 +11,7 @@ import {
   UTXO,
   UTXOSet
 } from "caminojs/apis/evm"
-import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
+import { DefaultLocalGenesisPrivateKey2, PrivateKeyPrefix } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 import { KeyChain as EVMKeyChain } from "caminojs/apis/evm/keychain"
 import { PlatformVMAPI } from "caminojs/apis/platformvm"
@@ -44,7 +44,7 @@ const InitAvalanche = async () => {
   pchain = avalanche.PChain()
   cchain = avalanche.CChain()
   cKeychain = cchain.keyChain()
-  let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+  let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
   // X-local18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p
   cKeychain.importKey(privKey)
 

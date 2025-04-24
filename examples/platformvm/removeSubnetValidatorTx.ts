@@ -17,7 +17,7 @@ import {
 } from "caminojs/apis/platformvm"
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
   NodeIDStringToBuffer
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -32,7 +32,7 @@ const avalanche: Avalanche = new Avalanche(
 
 const bintools: BinTools = BinTools.getInstance()
 // Keypair A
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const outputs: TransferableOutput[] = []
 const inputs: TransferableInput[] = []
 const threshold: number = 1

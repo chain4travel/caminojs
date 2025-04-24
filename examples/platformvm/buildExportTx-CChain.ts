@@ -9,7 +9,7 @@ import {
   GetBalanceResponse,
   GetBalanceResponseAvax
 } from "caminojs/apis/platformvm"
-import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -20,7 +20,7 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const cChainBlockchainID: string = avalanche.getNetwork().C.blockchainID
 const threshold: number = 1
 const locktime: BN = new BN(0)

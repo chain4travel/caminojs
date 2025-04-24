@@ -8,8 +8,8 @@ import {
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
 import {
-  DefaultLocalGenesisPrivateKey,
   DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   FiveValidatorsGenesisPrivateKey,
   PrivateKeyPrefix,
   PChainAlias
@@ -48,15 +48,15 @@ import {
 
 const bintools = BinTools.getInstance()
 
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
-let privKey2: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+let privKey2: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 let privKey3: string = `${PrivateKeyPrefix}${FiveValidatorsGenesisPrivateKey}`
 const msig_one_owner = "P-kopernikus1z5tv4tg04kf4l9ghclw6ssek8zugs7yd65prpl"
 const msig_two_owners_threshold_2 =
   "P-kopernikus1t5qgr9hcmf2vxj7k0hz77kawf9yr389cxte5j0"
 
-const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
-const multiSigAliasMember2PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const multiSigAliasMember2PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 
 let privKeys = [privKey, , privKey2, privKey3, ,]
 // let multisigAliases = [, msig_one_owner, , , msig_two_owners_threshold_2]

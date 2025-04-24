@@ -11,7 +11,7 @@ import {
   UTXO,
   UTXOSet
 } from "caminojs/apis/evm"
-import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
+import { DefaultLocalGenesisPrivateKey2, PrivateKeyPrefix } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 import { AVMAPI } from "caminojs/apis/avm"
 import { KeyChain as AVMKeyChain } from "caminojs/apis/avm/keychain"
@@ -26,7 +26,7 @@ const avalanche: Avalanche = new Avalanche(
 )
 const bintools: BinTools = BinTools.getInstance()
 const cHexAddress: string = "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC"
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 
 const importedIns: TransferableInput[] = []
 const evmOutputs: EVMOutput[] = []

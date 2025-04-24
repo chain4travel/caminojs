@@ -6,7 +6,7 @@ import {
   Tx
 } from "caminojs/apis/platformvm"
 import { OutputOwners } from "caminojs/common/output"
-import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 import BN from "bn.js"
 import createHash from "create-hash"
@@ -23,7 +23,7 @@ const ownerPrivKey: string =
   "PrivateKey-Ge71NJhUY3TjZ9dLohijSnNq46QxobjqxHGMUDAPoVsNFA93w"
 
 const bintools: BinTools = BinTools.getInstance()
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
 let pAddresses: Buffer[]

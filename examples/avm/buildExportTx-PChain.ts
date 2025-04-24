@@ -9,7 +9,7 @@ import {
   PlatformVMAPI
 } from "caminojs/apis/platformvm"
 import {
-  DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
   PrivateKeyPrefix,
   UnixNow
 } from "caminojs/utils"
@@ -22,7 +22,7 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const locktime: BN = new BN(0)
 const asOf: BN = UnixNow()
 const memo: Buffer = Buffer.from(

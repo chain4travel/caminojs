@@ -14,8 +14,8 @@ import {
 
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey,
   DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   PChainAlias
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -30,8 +30,8 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 
-const privKey1: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
-const privKey2: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey1: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey2: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const threshold: number = 1
 const locktime: BN = new BN(0)
 const memo: Buffer = Buffer.from(

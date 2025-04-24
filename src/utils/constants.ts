@@ -34,11 +34,11 @@ export const DummyPlatformChainID: string =
   "11111111111111111111111111111111LpoXX"
 
 // DO NOT use the following private keys and/or mnemonic on Fuji or Testnet
-// This address/account is for testing on the local camsh network
+// This address/account is for testing on the local camino network
 export const DefaultLocalGenesisPrivateKey: string =
-  "ewoqjP7PxY4yr3iLTpLisriqt94hdyDFNgchSxGGztUrTXtNN" // X-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68 // NodeID-D1LbWvUf9iaeEyUbTYYtYq4b7GaYR5tnJ // Validator 2
+"vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE" // X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3 // NodeID-AK7sPBsZM9rQwse23aLhEEBPHZD5gkLrL // Validator 1
 export const DefaultLocalGenesisPrivateKey2: string =
-  "vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE" // X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3 // NodeID-AK7sPBsZM9rQwse23aLhEEBPHZD5gkLrL // Validator 1
+  "ewoqjP7PxY4yr3iLTpLisriqt94hdyDFNgchSxGGztUrTXtNN" // X-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68 // NodeID-D1LbWvUf9iaeEyUbTYYtYq4b7GaYR5tnJ // Validator 2
 export const FiveValidatorsGenesisPrivateKey: string =
   "2iQFSmszgHTuu2QcUxMxAtftswWEGwpPanktBS9sHdaQTxVMmT" // X-kopernikus1k0dynpf6cdy7pf7zulzernx8vcufs9c8qr8yn3 // NodeID-EoYFkbokZEukfWrUovo74YkTFnAMaqTG7 // Validator 4
 export const DefaultEVMLocalGenesisPrivateKey: string =

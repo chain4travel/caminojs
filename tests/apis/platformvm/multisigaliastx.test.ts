@@ -16,7 +16,7 @@ import {
 import { MultisigAliasTx } from "src/apis/platformvm/multisigaliastx"
 import BinTools from "src/utils/bintools"
 import {
-  DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
   DefaultNetworkID,
   PrivateKeyPrefix,
   Serialization
@@ -27,7 +27,7 @@ import Avalanche from "src/index"
 
 const avalanche: Avalanche = new Avalanche("127.0.0.1", 9650, "https", 12345)
 
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const serialization: Serialization = Serialization.getInstance()
 const bintools: BinTools = BinTools.getInstance()
 let platformVM: PlatformVMAPI

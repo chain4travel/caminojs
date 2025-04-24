@@ -10,8 +10,8 @@ import {
 } from "caminojs/apis/platformvm"
 import { Avalanche, BinTools, Buffer } from "caminojs/index"
 import {
-  DefaultLocalGenesisPrivateKey,
   DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   PChainAlias,
   PrivateKeyPrefix
 } from "caminojs/utils"
@@ -34,8 +34,8 @@ const avalanche: Avalanche = new Avalanche(
 )
 const bintools = BinTools.getInstance()
 // Multisig creator:
-const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
-const multiSigAliasMember2PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const multiSigAliasMember2PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 // Multisig Example where creator is an Multisig address with 2 owners (threshold 1 or 2)
 const msigAliasAddr = "P-kopernikus1t5qgr9hcmf2vxj7k0hz77kawf9yr389cxte5j0"
 

@@ -8,7 +8,7 @@ import {
 } from "caminojs/apis/evm"
 import {
   costExportTx,
-  DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
   PrivateKeyPrefix
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -20,7 +20,7 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const cHexAddress: string = "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC"
 const Web3 = require("web3")
 const path: string = "/ext/bc/C/rpc"

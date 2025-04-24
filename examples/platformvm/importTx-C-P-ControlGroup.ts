@@ -13,7 +13,7 @@ import {
   Tx,
   ImportTx
 } from "caminojs/apis/platformvm"
-import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -26,7 +26,7 @@ const avalanche: Avalanche = new Avalanche(
 
 const bintools: BinTools = BinTools.getInstance()
 // X-local18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 // P-local1jwwk62ktygl0w29rsq2hq55amamhpvx82kfnte
 const privKey2 = "PrivateKey-rKsiN3X4NSJcPpWxMSh7WcuY653NGQ7tfADgQwDZ9yyUPPDG9"
 

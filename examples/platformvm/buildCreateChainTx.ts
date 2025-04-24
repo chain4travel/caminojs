@@ -6,7 +6,7 @@ import {
   UnsignedTx,
   Tx
 } from "caminojs/apis/platformvm"
-import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -21,7 +21,7 @@ const avalanche: Avalanche = new Avalanche(
  * @ignore
  */
 const bintools: BinTools = BinTools.getInstance()
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const asOf: BN = new BN(0)
 
 let pchain: PlatformVMAPI

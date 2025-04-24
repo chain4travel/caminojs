@@ -6,7 +6,7 @@ import {
 } from "caminojs/apis/avm/interfaces"
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
   UnixNow
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -18,7 +18,7 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const asOf: BN = UnixNow()
 const threshold: number = 1
 const locktime: BN = new BN(0)

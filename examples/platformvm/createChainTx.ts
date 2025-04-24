@@ -24,7 +24,7 @@ import {
   GetBalanceResponseAvax
 } from "caminojs/apis/platformvm"
 import { BaseOutput } from "caminojs/common"
-import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -36,7 +36,7 @@ const avalanche: Avalanche = new Avalanche(
 )
 
 const bintools: BinTools = BinTools.getInstance()
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const outputs: TransferableOutput[] = []
 const inputs: TransferableInput[] = []
 const threshold: number = 1

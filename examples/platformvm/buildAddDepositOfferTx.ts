@@ -9,7 +9,7 @@ import {
 } from "caminojs/apis/platformvm"
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
   UnixNow
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -26,7 +26,7 @@ const avalanche: Avalanche = new Avalanche(
 /**
  * @ignore
  */
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const ownerPrivKey: string =
   "PrivateKey-Ge71NJhUY3TjZ9dLohijSnNq46QxobjqxHGMUDAPoVsNFA93w"
 let pchain: PlatformVMAPI

@@ -1425,6 +1425,26 @@ export class PlatformVMAPI extends JRPCAPI {
   }
 
   /**
+   * Returns the status of a provided transaction ID by calling the node's `getTxStatus` method.
+   *
+   * @param txid The string representation of the transaction ID
+   *
+   * @returns Returns a Promise string containing the status retrieved from the node and the reason a tx was dropped, if applicable.
+   */
+  awaitTxSucceed = async (
+    txid: string,
+  ): Promise<string | GetTxStatusResponse> => {
+    let status: any
+    while (
+      (status = (await this.getTxStatus(txid)) as GetTxStatusResponse)
+        .status !== "Committed"
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    }
+    return status
+  }
+
+  /**
    * Retrieves the UTXOs related to the addresses provided from the node's `getUTXOs` method.
    *
    * @param addresses An array of addresses as cb58 strings or addresses as {@link https://github.com/feross/buffer|Buffer}s

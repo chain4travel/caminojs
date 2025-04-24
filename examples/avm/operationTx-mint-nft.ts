@@ -18,7 +18,7 @@ import {
   NFTMintOutput
 } from "caminojs/apis/avm"
 import { OutputOwners } from "caminojs/common"
-import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 // before you run this example buildCreateNFTAssetTx.ts
@@ -52,7 +52,7 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 const bintools: BinTools = BinTools.getInstance()
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const outputs: TransferableOutput[] = []
 const inputs: TransferableInput[] = []
 const operations: TransferableOperation[] = []

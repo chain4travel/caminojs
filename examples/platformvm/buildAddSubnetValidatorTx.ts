@@ -7,7 +7,7 @@ import {
   Tx
 } from "caminojs/apis/platformvm"
 import { GetUTXOsResponse } from "caminojs/apis/platformvm/interfaces"
-import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -18,7 +18,7 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const nodeID: string = "NodeID-NFBbbJ4qCmNaCzeW7sxErhvWqvEQMnYcN"
 const startTime: BN = new BN(1652217329)
 const endTime: BN = new BN(1653511017)

@@ -14,7 +14,7 @@ import {
 import { RegisterNodeTx } from "src/apis/platformvm/registernodetx"
 import BinTools from "src/utils/bintools"
 import {
-  DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
   DefaultNetworkID,
   NodeIDStringToBuffer,
   PrivateKeyPrefix,
@@ -34,7 +34,7 @@ const avalanche: Avalanche = new Avalanche(
   undefined
 )
 
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const serialization: Serialization = Serialization.getInstance()
 const bintools: BinTools = BinTools.getInstance()
 const oldNodeID: string = "NodeID-DueWyGi3B9jtKfa9mPoecd4YSDJ1ftF69"

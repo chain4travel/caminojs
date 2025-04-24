@@ -14,7 +14,7 @@ import {
   UTXOSet
 } from "caminojs/apis/avm"
 import { GetBalanceResponse } from "caminojs/apis/avm/interfaces"
-import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
+import { DefaultLocalGenesisPrivateKey2, PrivateKeyPrefix } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -49,7 +49,7 @@ const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()
   xchain = avalanche.XChain()
   xKeychain = xchain.keyChain()
-  let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+  let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
   // X-local18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p
   xKeychain.importKey(privKey)
   privKey = "PrivateKey-R6e8f5QSa89DjpvL9asNdhdJ4u8VqzMJStPV8VVdDmLgPd8a4"

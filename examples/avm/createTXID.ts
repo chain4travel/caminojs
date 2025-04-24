@@ -13,7 +13,7 @@ import {
 } from "caminojs/apis/platformvm"
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
   UnixNow,
   SerializedType
 } from "caminojs/utils"
@@ -28,7 +28,7 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 
 const locktime: BN = new BN(0)
 const asOf: BN = UnixNow()

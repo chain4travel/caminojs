@@ -1,7 +1,7 @@
 /* example meant to be run on local network with 5 validators (genesis_local_5_validators.json) */
 import { AddVoteTx, KeyChain, PlatformVMAPI } from "caminojs/apis/platformvm"
 import { Avalanche, Buffer } from "caminojs/index"
-import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
+import { DefaultLocalGenesisPrivateKey2, PrivateKeyPrefix } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -11,7 +11,7 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain

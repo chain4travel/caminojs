@@ -6,7 +6,7 @@ import {
   UTXOSet
 } from "caminojs/apis/platformvm"
 import { ExamplesConfig } from "../common/examplesConfig"
-import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
+import { DefaultLocalGenesisPrivateKey2, PrivateKeyPrefix } from "caminojs/utils"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
 const avalanche: Avalanche = new Avalanche(
@@ -16,7 +16,7 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain

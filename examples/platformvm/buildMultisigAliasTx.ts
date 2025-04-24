@@ -15,8 +15,8 @@ import {
 
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey,
   DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   PChainAlias
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -31,8 +31,8 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 
-const privKey1: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
-const privKey2: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey1: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey2: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const asOf: BN = new BN(0)
 const msigAlias = "P-kopernikus1t5qgr9hcmf2vxj7k0hz77kawf9yr389cxte5j0"
 

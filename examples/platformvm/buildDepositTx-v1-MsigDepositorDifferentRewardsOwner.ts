@@ -9,7 +9,7 @@ import {
 import { OutputOwners } from "caminojs/common/output"
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   PChainAlias
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -45,7 +45,7 @@ const owner = {
 }
 
 const bintools: BinTools = BinTools.getInstance()
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
 let pAddresses: Buffer[]

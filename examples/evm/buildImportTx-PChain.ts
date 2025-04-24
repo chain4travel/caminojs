@@ -9,7 +9,7 @@ import {
 } from "caminojs/apis/evm"
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
   costImportTx
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -23,7 +23,7 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 const cHexAddress: string = "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC"
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 
 let pchain: PlatformVMAPI
 let cchain: EVMAPI
