@@ -11,7 +11,7 @@ import {
   UnsignedTx
 } from "caminojs/apis/evm"
 import {
-  DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   ONEAVAX,
   PrivateKeyPrefix
 } from "caminojs/utils"
@@ -56,7 +56,7 @@ const InitAvalanche = async () => {
   cchain = avalanche.CChain()
   pKeychain = pchain.keyChain()
   cKeychain = cchain.keyChain()
-  let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+  let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
   // X-local18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p
 
   // let privKey: string = "PrivateKey-2PvNEohp3sNL41g4XcCBym5hpeT1szSTZXxL7VGS28eoGvq3k7"

@@ -11,7 +11,7 @@ import {
 import { GetUTXOsResponse } from "caminojs/apis/avm/interfaces"
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   UnixNow
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -44,7 +44,7 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const bintools: BinTools = BinTools.getInstance()
 const threshold: number = 1
 const locktime: BN = new BN(0)

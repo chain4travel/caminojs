@@ -2,7 +2,7 @@
 import { AddVoteTx, KeyChain, PlatformVMAPI } from "caminojs/apis/platformvm"
 import { Avalanche, Buffer } from "caminojs/index"
 import {
-  DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
   PrivateKeyPrefix
 } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
@@ -14,7 +14,7 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain

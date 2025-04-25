@@ -1,7 +1,7 @@
 import { Avalanche } from "caminojs/index"
 import { PlatformVMAPI, KeyChain } from "caminojs/apis/platformvm"
 import { GetStakeResponse } from "caminojs/apis/platformvm/interfaces"
-import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -12,7 +12,7 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const encoding: string = "hex"
 
 let pchain: PlatformVMAPI

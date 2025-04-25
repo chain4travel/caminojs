@@ -6,7 +6,7 @@ import {
   Tx
 } from "caminojs/apis/platformvm"
 import { OutputOwners } from "caminojs/common/output"
-import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 import BN from "bn.js"
 
@@ -21,7 +21,7 @@ const avalanche: Avalanche = new Avalanche(
 /**
  * @ignore
  */
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain

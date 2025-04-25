@@ -8,7 +8,7 @@ import {
   GetTxStatusResponse
 } from "caminojs/apis/platformvm"
 import { ExamplesConfig } from "../common/examplesConfig"
-import { DefaultLocalGenesisPrivateKey } from "caminojs/utils"
+import { DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
 import { ZeroBN } from "caminojs/common"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -22,7 +22,7 @@ const avalanche: Avalanche = new Avalanche(
 /**
  * @ignore
  */
-let privKey: string = `PrivateKey-${DefaultLocalGenesisPrivateKey}`
+let privKey: string = `PrivateKey-${DefaultLocalGenesisPrivateKey2}`
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain

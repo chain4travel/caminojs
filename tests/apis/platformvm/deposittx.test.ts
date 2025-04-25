@@ -14,7 +14,7 @@ import {
 import { DepositTx } from "src/apis/platformvm/depositTx"
 import BinTools from "src/utils/bintools"
 import {
-  DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   DefaultNetworkID,
   PrivateKeyPrefix,
   Serialization
@@ -32,7 +32,7 @@ const avalanche: Avalanche = new Avalanche(
   undefined
 )
 
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const serialization: Serialization = Serialization.getInstance()
 const bintools: BinTools = BinTools.getInstance()
 let rewardOutputOwners: SECPOwnerOutput

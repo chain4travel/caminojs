@@ -17,7 +17,7 @@ import {
   PlatformVMAPI,
   KeyChain as PlatformVMKeyChain
 } from "caminojs/apis/platformvm"
-import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -57,7 +57,7 @@ const InitAvalanche = async () => {
   pchain = avalanche.PChain()
   xKeychain = xchain.keyChain()
   pKeychain = pchain.keyChain()
-  let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+  let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
   // P-local18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p
   xKeychain.importKey(privKey)
   pKeychain.importKey(privKey)

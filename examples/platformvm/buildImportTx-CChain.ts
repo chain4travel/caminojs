@@ -8,7 +8,7 @@ import {
 } from "caminojs/apis/platformvm"
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey2
+  DefaultLocalGenesisPrivateKey
 } from "caminojs//utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
@@ -20,7 +20,7 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const threshold: number = 1
 const locktime: BN = new BN(0)
 const memo: Buffer = Buffer.from(

@@ -11,7 +11,7 @@ import {
   TransferableOutput
 } from "caminojs/apis/evm"
 import { RequestResponseData } from "caminojs/common"
-import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -22,7 +22,7 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 const bintools: BinTools = BinTools.getInstance()
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const cHexAddress: string = "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC"
 const evmInputs: EVMInput[] = []
 let exportedOuts: TransferableOutput[] = []

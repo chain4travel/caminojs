@@ -1,7 +1,7 @@
 import { Avalanche, Buffer } from "caminojs/index"
 import { AVMAPI, KeyChain } from "caminojs/apis/avm"
 import { ExamplesConfig } from "../common/examplesConfig"
-import { DefaultLocalGenesisPrivateKey2, PrivateKeyPrefix } from "caminojs/utils"
+import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
 const avalanche: Avalanche = new Avalanche(
@@ -10,7 +10,7 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 let xchain: AVMAPI
 let xKeychain: KeyChain
 let xAddressStrings: string[]

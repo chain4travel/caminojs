@@ -9,7 +9,7 @@ import {
   Tx,
   UnsignedTx
 } from "caminojs/apis/evm"
-import { DefaultLocalGenesisPrivateKey2, PrivateKeyPrefix } from "caminojs/utils"
+import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -19,7 +19,7 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const cHexAddress: string = "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC"
 const Web3 = require("web3")
 const path: string = "/ext/bc/C/rpc"

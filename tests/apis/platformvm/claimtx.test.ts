@@ -12,7 +12,7 @@ import {
 import { ClaimAmount, ClaimTx, ClaimType } from "src/apis/platformvm/claimtx"
 import BinTools from "src/utils/bintools"
 import {
-  DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   DefaultNetworkID,
   PrivateKeyPrefix,
   Serialization
@@ -29,7 +29,7 @@ const avalanche: Avalanche = new Avalanche(
   undefined,
   undefined
 )
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const serialization: Serialization = Serialization.getInstance()
 const bintools: BinTools = BinTools.getInstance()
 const ownerID: Buffer = Buffer.from(

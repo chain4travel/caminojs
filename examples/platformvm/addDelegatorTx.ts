@@ -20,7 +20,7 @@ import {
 import { BaseOutput } from "caminojs/common"
 import {
   PrivateKeyPrefix,
-  DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   NodeIDStringToBuffer,
   UnixNow
 } from "caminojs/utils"
@@ -35,7 +35,7 @@ const avalanche: Avalanche = new Avalanche(
 )
 
 const bintools: BinTools = BinTools.getInstance()
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const outputs: TransferableOutput[] = []
 const inputs: TransferableInput[] = []
 const stakeOuts: TransferableOutput[] = []

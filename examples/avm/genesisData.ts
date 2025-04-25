@@ -9,7 +9,7 @@ import {
   SECPTransferOutput
 } from "caminojs/apis/avm"
 import {
-  DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   PrivateKeyPrefix,
   Serialization,
   SerializedType
@@ -25,7 +25,7 @@ const avalanche: Avalanche = new Avalanche(
 )
 let xchain: AVMAPI
 let xKeychain: KeyChain
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 let xAddresses: Buffer[]
 const cb58: SerializedType = "cb58"
 const threshold: number = 1

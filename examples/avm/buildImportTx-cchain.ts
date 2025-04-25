@@ -2,7 +2,7 @@ import { Avalanche, BN, Buffer } from "caminojs/index"
 import { AVMAPI, KeyChain, Tx, UnsignedTx, UTXOSet } from "caminojs/apis/avm"
 import { GetUTXOsResponse } from "caminojs/apis/avm/interfaces"
 import {
-  DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   PrivateKeyPrefix,
   UnixNow
 } from "caminojs/utils"
@@ -15,7 +15,7 @@ const avalanche: Avalanche = new Avalanche(
   config.protocol,
   config.networkID
 )
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const threshold: number = 1
 const locktime: BN = new BN(0)
 const asOf: BN = UnixNow()

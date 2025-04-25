@@ -35,9 +35,9 @@ export const DummyPlatformChainID: string =
 
 // DO NOT use the following private keys and/or mnemonic on Fuji or Testnet
 // This address/account is for testing on the local camino network
-export const DefaultLocalGenesisPrivateKey: string =
-  "vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"  // X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3 // NodeID-AK7sPBsZM9rQwse23aLhEEBPHZD5gkLrL // Validator 1
 export const DefaultLocalGenesisPrivateKey2: string =
+  "vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"  // X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3 // NodeID-AK7sPBsZM9rQwse23aLhEEBPHZD5gkLrL // Validator 1
+export const DefaultLocalGenesisPrivateKey: string =
   "ewoqjP7PxY4yr3iLTpLisriqt94hdyDFNgchSxGGztUrTXtNN"  // X-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68 // NodeID-D1LbWvUf9iaeEyUbTYYtYq4b7GaYR5tnJ // Validator 2
 export const DefaultLocalGenesisPrivateKey3: string =
   "2tMmHrX7G7SeuuQ5kWbKWPq1ZaGZMYyFoggd7NgmPn5Z7Henmd" // X-kopernikus175wrfudlk9rpn9j4yydfwhcwx6alrxueq5kcr0 // NodeID-PM2LqrGsxudhZSP49upMonevbQvnvAciv // Validator 3

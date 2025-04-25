@@ -1,8 +1,8 @@
 import { AddVoteTx } from "caminojs/apis/platformvm"
 import { Avalanche, Buffer, BinTools } from "caminojs/index"
 import { 
-  DefaultLocalGenesisPrivateKey,
   DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   DefaultLocalGenesisPrivateKey3,
   DefaultLocalGenesisPrivateKey4,
   DefaultLocalGenesisPrivateKey5,
@@ -17,8 +17,8 @@ const avalanche: Avalanche = new Avalanche(
 )
 
 let voters: [string, number][] = [
-  [DefaultLocalGenesisPrivateKey,  0],
-  [DefaultLocalGenesisPrivateKey2, 1],
+  [DefaultLocalGenesisPrivateKey2,  0],
+  [DefaultLocalGenesisPrivateKey, 1],
   [DefaultLocalGenesisPrivateKey3, 0],
   [DefaultLocalGenesisPrivateKey4, 2],
   [DefaultLocalGenesisPrivateKey5, 2],

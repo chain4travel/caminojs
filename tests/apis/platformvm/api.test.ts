@@ -6,8 +6,8 @@ import BN from "bn.js"
 import BinTools from "src/utils/bintools"
 import * as bech32 from "bech32"
 import {
-  DefaultLocalGenesisPrivateKey2,
   DefaultLocalGenesisPrivateKey,
+  DefaultLocalGenesisPrivateKey2,
   DefaultPlatformChainID,
   PrivateKeyPrefix,
   TestXBlockchainID
@@ -79,8 +79,8 @@ const bintools: BinTools = BinTools.getInstance()
 const serializer: Serialization = Serialization.getInstance()
 const display: SerializedEncoding = "display"
 const dumpSerialization: boolean = false
-const defaultPK: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
-const defaultPK2: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const defaultPK: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const defaultPK2: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 const txID: Buffer = Buffer.from(
   createHash("sha256")
     .update(bintools.fromBNToBuffer(new BN(1), 32))

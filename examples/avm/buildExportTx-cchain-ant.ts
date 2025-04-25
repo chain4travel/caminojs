@@ -3,7 +3,7 @@ import { AVMAPI, KeyChain, Tx, UnsignedTx, UTXOSet } from "caminojs/apis/avm"
 import { GetUTXOsResponse } from "caminojs/apis/avm/interfaces"
 import { EVMAPI, KeyChain as EVMKeyChain } from "caminojs/apis/evm"
 import {
-  DefaultLocalGenesisPrivateKey2,
+  DefaultLocalGenesisPrivateKey,
   PrivateKeyPrefix,
   UnixNow
 } from "caminojs/utils"
@@ -17,7 +17,7 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 const bintools: BinTools = BinTools.getInstance()
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 
 const locktime: BN = new BN(0)
 const asOf: BN = UnixNow()

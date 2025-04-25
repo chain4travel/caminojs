@@ -7,7 +7,7 @@ import {
   Tx
 } from "caminojs/apis/platformvm"
 import { GetUTXOsResponse } from "caminojs/apis/platformvm/interfaces"
-import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey2 } from "caminojs/utils"
+import { PrivateKeyPrefix, DefaultLocalGenesisPrivateKey } from "caminojs/utils"
 import { ExamplesConfig } from "../common/examplesConfig"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
@@ -18,7 +18,7 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
+let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const threshold: number = 2
 const memo: Buffer = Buffer.from(
   "PlatformVM utility method buildCreateSubnetTx to create a CreateSubnetTx which creates a 1-of-2 AVAX utxo and a 2-of-3 SubnetAuth"
