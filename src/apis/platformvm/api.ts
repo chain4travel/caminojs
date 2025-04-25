@@ -732,10 +732,10 @@ export class PlatformVMAPI extends JRPCAPI {
         return {
           rewardOwner: c.rewardOwner
             ? ({
-                locktime: new BN(c.rewardOwner.locktime),
-                threshold: new BN(c.rewardOwner.threshold).toNumber(),
-                addresses: c.rewardOwner.addresses
-              } as Owner)
+              locktime: new BN(c.rewardOwner.locktime),
+              threshold: new BN(c.rewardOwner.threshold).toNumber(),
+              addresses: c.rewardOwner.addresses
+            } as Owner)
             : undefined,
           validatorRewards: new BN(c.validatorRewards),
           expiredDepositRewards: new BN(c.expiredDepositRewards)
@@ -1431,17 +1431,25 @@ export class PlatformVMAPI extends JRPCAPI {
    *
    * @returns Returns a Promise string containing the status retrieved from the node and the reason a tx was dropped, if applicable.
    */
-  awaitTxSucceed = async (
+  awaitTx = async (
     txid: string,
+    { timeoutMs = 60_000, pollMs = 1_000 } = {}
   ): Promise<string | GetTxStatusResponse> => {
-    let status: any
-    while (
-      (status = (await this.getTxStatus(txid)) as GetTxStatusResponse)
-        .status !== "Committed"
-    ) {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+    const deadline = timeoutMs ? Date.now() + timeoutMs : Number.POSITIVE_INFINITY
+
+    for (; ;) {
+      const resp = await this.getTxStatus(txid) as GetTxStatusResponse
+
+      if (resp.status != "Processing") {
+        return resp
+      }
+
+      if (Date.now() >= deadline) {
+        throw new Error(
+          `Timeout while waiting for tx ${txid}. Last status: ${resp.status}`
+        )
+      }
     }
-    return status
   }
 
   /**
@@ -1690,7 +1698,7 @@ export class PlatformVMAPI extends JRPCAPI {
     } else if (!(sourceChain instanceof Buffer)) {
       throw new ChainIdError(
         "Error - PlatformVMAPI.buildImportTx: Invalid destinationChain type: " +
-          typeof sourceChain
+        typeof sourceChain
       )
     }
     const atomicUTXOs: UTXOSet = await (
@@ -1783,7 +1791,7 @@ export class PlatformVMAPI extends JRPCAPI {
     } else if (!(destinationChain instanceof Buffer)) {
       throw new ChainIdError(
         "Error - PlatformVMAPI.buildExportTx: Invalid destinationChain type: " +
-          typeof destinationChain
+        typeof destinationChain
       )
     }
     if (destinationChain.length !== 32) {
@@ -1982,7 +1990,7 @@ export class PlatformVMAPI extends JRPCAPI {
     if (stakeAmount.lt(minStake)) {
       throw new StakeError(
         "PlatformVMAPI.buildAddDelegatorTx -- stake amount must be at least " +
-          minStake.toString(10)
+        minStake.toString(10)
       )
     }
 
@@ -2097,7 +2105,7 @@ export class PlatformVMAPI extends JRPCAPI {
     if (stakeAmount.lt(minStake)) {
       throw new StakeError(
         `PlatformVMAPI.${caller} -- stake amount must be at least ` +
-          minStake.toString(10)
+        minStake.toString(10)
       )
     }
 
@@ -2363,7 +2371,7 @@ export class PlatformVMAPI extends JRPCAPI {
     if (stakeAmount.lt(minStake)) {
       throw new StakeError(
         `PlatformVMAPI.${caller} -- stake amount must be at least ` +
-          minStake.toString(10)
+        minStake.toString(10)
       )
     }
 
@@ -3149,10 +3157,10 @@ export class PlatformVMAPI extends JRPCAPI {
       to:
         to.length > 0
           ? {
-              locktime: toLockTime.toString(10),
-              threshold: toThreshold,
-              addresses: to
-            }
+            locktime: toLockTime.toString(10),
+            threshold: toThreshold,
+            addresses: to
+          }
           : undefined,
       change:
         change.length > 0

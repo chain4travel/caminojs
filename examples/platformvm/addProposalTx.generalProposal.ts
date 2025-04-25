@@ -53,7 +53,7 @@ const main = async (): Promise<any> => {
   const exitConditions: exitConditions[] = [
     {
       mostVotedThresholdNominator: 0,
-      totalVotedThresholdNominator: 39 * fractionDenominator,
+      totalVotedThresholdNominator: 39 * fractionDenominator / 100,
       allowEarlyFinish: true
     },
     {
@@ -62,13 +62,13 @@ const main = async (): Promise<any> => {
       allowEarlyFinish: true
     },
     {
-      mostVotedThresholdNominator: 50 * fractionDenominator,
-      totalVotedThresholdNominator: 50 * fractionDenominator,
+      mostVotedThresholdNominator: 50 * fractionDenominator / 100,
+      totalVotedThresholdNominator: 50 * fractionDenominator / 100,
       allowEarlyFinish: true
     },
     {
-      mostVotedThresholdNominator: 100 * fractionDenominator,
-      totalVotedThresholdNominator: 100 * fractionDenominator,
+      mostVotedThresholdNominator: 100 * fractionDenominator / 100,
+      totalVotedThresholdNominator: 100 * fractionDenominator / 100,
       allowEarlyFinish: true
     }
   ]
@@ -97,7 +97,6 @@ const main = async (): Promise<any> => {
       proposal.addGeneralOption("General Proposal Option 1 is - color RED")
       proposal.addGeneralOption("General Proposal Option 2 is - color GREEN")
       proposal.addGeneralOption("General Proposal Option 3 is - color BLUE")
-
       try {
         let buffer = proposal.toBuffer()
       } catch (e) {
