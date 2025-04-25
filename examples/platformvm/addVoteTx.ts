@@ -32,13 +32,10 @@ const main = async (): Promise<any> => {
   const bintools: BinTools = BinTools.getInstance()
 
   // To find the proposal ID:
-  // 1. First create a proposal using addProposalTx.generalProposal.ts
+  // 1. First create a proposal using addProposalTx.generalProposal.ts (or any other proposal type .ts)
   // 2. The transaction ID returned from issueTx() is your proposal ID
   // 3. You can also get it from the blockchain explorer or by querying the node
   const proposalID = "2EE97uACw3y13uTXokoZqmaoNLaQhztzVsPybmMHwiGfSLHz7i" // This is an example ID, replace with your actual proposal ID
-
-  // Both voters will vote for option 0
-  const voteOptionIndex = 0
 
   for (let i = 0; i < voters.length; i++) {
     const pKeychain = pchain.newKeyChain()
