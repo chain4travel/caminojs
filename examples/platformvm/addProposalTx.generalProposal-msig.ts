@@ -4,7 +4,6 @@ import {
   GeneralProposal,
   KeyChain,
   PlatformVMAPI,
-  UnsignedTx,
   PlatformVMConstants,
   Tx
 } from "caminojs/apis/platformvm"
@@ -23,6 +22,7 @@ import {
   OutputOwners
 } from "caminojs/common"
 import createHash from "create-hash"
+import { fractionDenominator } from "./proposal-utils"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
 
@@ -57,27 +57,20 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
+
   const msigAliasAddrBuffer = pchain.parseAddress(msigAliasAddr) // proposer and ins owner
   const msigAlias = await pchain.getMultisigAlias(msigAliasAddr)
-  const msigAliasOwners = new OutputOwners(
-    msigAlias.addresses.map((a) => bintools.parseAddress(a, "P")),
-    new BN(msigAlias.locktime),
-    msigAlias.threshold
-  )
 
-  const bondAmount: any = await pchain.getMinStake()
-
-  const timestamp = new Date().toISOString()
-
-  let startTimestamp: number = Date.now() / 1000 // add + 60 to start after 1 minute
-  let endTimestamp: number = startTimestamp + 2592000 // exact 30 days
-
+  const startDelay = 5 // seconds
+  const startTimestamp: number = Date.now() / 1000 + startDelay // seconds
+  const endTimestamp: number = startTimestamp + 2592000 // +30 days
   const platformVMUTXOResponse = await pchain.getUTXOs([msigAliasAddr])
 
-  const totalVotedThresholdNominator: number = 39 * 10000 // 0 - 100%
-  const mostVotedThresholdNominator: number = 50 * 10000 // 0 - 100%
-  const allowEarlyFinish: boolean = true
+  const mostVotedThresholdNominator = 39 * fractionDenominator / 100  // >39% (2/5 voters)
+  const totalVotedThresholdNominator = 39 * fractionDenominator / 100 // >39% (2/5 voters)
+  const allowEarlyFinish = true
 
+  const timestamp = new Date().toISOString()
   const proposalDescription = Buffer.from(
     `This is a general proposal. Created by caminojs examples at: ${timestamp}.
     \nAllow early finish: ${allowEarlyFinish}.
@@ -104,23 +97,20 @@ const main = async (): Promise<any> => {
   }
 
   try {
-    let signatures: [string, string][] = []
-    let unsignedTx = await pchain.buildAddProposalTx(
-      platformVMUTXOResponse.utxos, // utxoset
+    const unsignedTx = await pchain.buildAddProposalTx(
+      platformVMUTXOResponse.utxos,
       [[msigAliasAddr], pAddressStrings], // fromAddresses
       [], // changeAddresses
-      proposalDescription, // description
-      proposal, // proposal
+      proposalDescription,
+      proposal,
       msigAliasAddrBuffer, // proposerAddress
       0, // version
       Buffer.alloc(20) // memo
     )
 
-    // Create the hash from the tx
-    const txbuff = unsignedTx.toBuffer()
-    const msg: Buffer = Buffer.from(
-      createHash("sha256").update(txbuff).digest()
-    )
+    // Create signatures as part of the example
+    const msg: Buffer = Buffer.from(createHash("sha256").update(unsignedTx.toBuffer()).digest())
+    let signatures: [string, string][] = []
     for (let address of pAddresses) {
       // We need the keychain for signing
       const keyPair = pKeychain.getKey(address)
@@ -160,21 +150,22 @@ const main = async (): Promise<any> => {
     // Apply the signatures and send the tx
     const tx: Tx = unsignedTx.sign(msKeyChain)
     const hex = tx.toStringHex().slice(2)
-    const unsignedTx2 = new UnsignedTx()
-    unsignedTx2.fromBuffer(Buffer.from(hex, "hex"))
 
-    const addProposalTx = unsignedTx2.getTransaction() as AddProposalTx
+    const addProposalTx = unsignedTx.getTransaction() as AddProposalTx
     const addProposalTxTypeName: string = addProposalTx.getTypeName()
     const addProposalTxTypeID: number = addProposalTx.getTypeID()
 
-    const generalProposal = addProposalTx.getProposalPayload()
 
-    console.log(addProposalTxTypeID, addProposalTxTypeName, timestamp)
+    console.log(`Tx type: ${addProposalTxTypeID} ${addProposalTxTypeName}`)
     console.log(hex)
-    const txid: string = await pchain.issueTx(tx)
+
+    const txID: string = await pchain.issueTx(tx)
     console.log("Proposer address:", msigAliasAddr)
     console.log(proposalDescription.toString())
-    console.log(`Success! TXID: ${txid}`)
+    console.log(`Issued tx: ${txID}`)
+
+    const txStatus = await pchain.awaitTx(txID)
+    console.log("Tx status:", txStatus)
   } catch (e) {
     console.log(e)
   }

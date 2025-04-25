@@ -35,37 +35,33 @@ const main = async (): Promise<any> => {
   const startDelay = 5 // seconds
   const startTimestamp: number = Date.now() / 1000 + startDelay // seconds
   const endTimestamp: number = startTimestamp + 2592000 // +30 days
-  let platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
+  const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
 
-  const exitCondition = {
-    mostVotedThresholdNominator: 39 * fractionDenominator / 100,  // >39% (2/5 voters)
-    totalVotedThresholdNominator: 39 * fractionDenominator / 100, // >39% (2/5 voters)
-    allowEarlyFinish: true
-  }
+  const mostVotedThresholdNominator = 39 * fractionDenominator / 100  // >39% (2/5 voters)
+  const totalVotedThresholdNominator = 39 * fractionDenominator / 100 // >39% (2/5 voters)
+  const allowEarlyFinish = true
 
-  let timestamp = new Date().toISOString()
+  const timestamp = new Date().toISOString()
   const proposalDescription = Buffer.from(
     `This is a general proposal. Created by caminojs examples at: ${timestamp}.
-        \nAllow early finish: ${exitCondition.allowEarlyFinish}.
-        \nTotal voted threshold: ${exitCondition.totalVotedThresholdNominator}.
-        \nMost voted threshold: ${exitCondition.mostVotedThresholdNominator}.`
+        \nAllow early finish: ${allowEarlyFinish}.
+        \nTotal voted threshold: ${totalVotedThresholdNominator}.
+        \nMost voted threshold: ${mostVotedThresholdNominator}.`
   )
 
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
-    // 50, 50 If 1 of 2 voters vote, the proposal should pass - with just one vote
-    // 0, 30 If 3 of 5 voters vote the same option, the proposal should pass - with 3 same votes
-    exitCondition.totalVotedThresholdNominator,
-    exitCondition.mostVotedThresholdNominator,
-    exitCondition.allowEarlyFinish
+    totalVotedThresholdNominator,
+    mostVotedThresholdNominator,
+    allowEarlyFinish
   )
   proposal.addGeneralOption("General Proposal Option 1 is - color RED")
   proposal.addGeneralOption("General Proposal Option 2 is - color GREEN")
   proposal.addGeneralOption("General Proposal Option 3 is - color BLUE")
 
   try {
-    let unsignedTx = await pchain.buildAddProposalTx(
+    const unsignedTx = await pchain.buildAddProposalTx(
       platformVMUTXOResponse.utxos,
       pAddressStrings, // fromAddresses
       pAddressStrings, // changeAddresses
@@ -86,7 +82,6 @@ const main = async (): Promise<any> => {
     console.log(`Tx type: ${addProposalTxTypeID} ${addProposalTxTypeName}`)
     console.log("Tx bytes:", hex)
 
-    console.log(addProposalTxTypeID, addProposalTxTypeName, timestamp)
     const txID: string = await pchain.issueTx(tx)
     console.log("Proposer address:", pKeychain.getAddressStrings()[0])
     console.log(proposalDescription.toString())
