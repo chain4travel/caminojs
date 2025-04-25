@@ -1,6 +1,6 @@
 import { AddVoteTx } from "caminojs/apis/platformvm"
 import { Avalanche, Buffer, BinTools } from "caminojs/index"
-import { 
+import {
   DefaultLocalGenesisPrivateKey2,
   DefaultLocalGenesisPrivateKey,
   DefaultLocalGenesisPrivateKey3,
@@ -17,14 +17,13 @@ const avalanche: Avalanche = new Avalanche(
 )
 
 let voters: [string, number][] = [
-  [DefaultLocalGenesisPrivateKey2,  0],
+  [DefaultLocalGenesisPrivateKey2, 0],
   [DefaultLocalGenesisPrivateKey, 1],
   [DefaultLocalGenesisPrivateKey3, 0],
   [DefaultLocalGenesisPrivateKey4, 2],
-  [DefaultLocalGenesisPrivateKey5, 2],
+  [DefaultLocalGenesisPrivateKey5, 2]
 ]
-for (let i = 0; i < 5; i++) voters[i][0]=`${PrivateKeyPrefix}${voters[i][0]}`
-
+for (let i = 0; i < 5; i++) voters[i][0] = `${PrivateKeyPrefix}${voters[i][0]}`
 
 const main = async (): Promise<any> => {
   await avalanche.fetchNetworkSettings()
@@ -45,7 +44,13 @@ const main = async (): Promise<any> => {
     const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
 
     try {
-      console.log(`keys[${i}] ${voters[i]} ${bintools.addressToString("kopernikus", "P", pKeychain.getAddresses()[0])} voting for proposal ${proposalID}`)
+      console.log(
+        `keys[${i}] ${voters[i]} ${bintools.addressToString(
+          "kopernikus",
+          "P",
+          pKeychain.getAddresses()[0]
+        )} voting for proposal ${proposalID}`
+      )
       console.log(pAddressStrings)
       let unsignedTx = await pchain.buildAddVoteTx(
         platformVMUTXOResponse.utxos,
@@ -57,19 +62,19 @@ const main = async (): Promise<any> => {
         0, // version
         Buffer.alloc(20) // memo
       )
-  
+
       // Sign and issue the transaction for the first voter
       const tx = unsignedTx.sign(pKeychain)
       const hex = tx.toStringHex().slice(2)
-  
+
       const addVoteTx = unsignedTx.getTransaction() as AddVoteTx
       const addVoteTxTypeName: string = addVoteTx.getTypeName()
       const addVoteTxTypeID: number = addVoteTx.getTypeID()
-  
+
       console.log("Type ID:", addVoteTxTypeID)
       console.log("Type Name:", addVoteTxTypeName)
       console.log("Transaction Hex:", hex)
-  
+
       const txID: string = await pchain.issueTx(tx)
       console.log(`Issued tx: ${txID}`)
       const txStatus = await pchain.awaitTx(txID)

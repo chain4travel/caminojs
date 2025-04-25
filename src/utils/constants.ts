@@ -36,15 +36,15 @@ export const DummyPlatformChainID: string =
 // DO NOT use the following private keys and/or mnemonic on Fuji or Testnet
 // This address/account is for testing on the local camino network
 export const DefaultLocalGenesisPrivateKey2: string =
-  "vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE"  // X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3 // NodeID-AK7sPBsZM9rQwse23aLhEEBPHZD5gkLrL // Validator 1
+  "vmRQiZeXEXYMyJhEiqdC2z5JhuDbxL8ix9UVvjgMu2Er1NepE" // X-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3 // NodeID-AK7sPBsZM9rQwse23aLhEEBPHZD5gkLrL // Validator 1
 export const DefaultLocalGenesisPrivateKey: string =
-  "ewoqjP7PxY4yr3iLTpLisriqt94hdyDFNgchSxGGztUrTXtNN"  // X-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68 // NodeID-D1LbWvUf9iaeEyUbTYYtYq4b7GaYR5tnJ // Validator 2
+  "ewoqjP7PxY4yr3iLTpLisriqt94hdyDFNgchSxGGztUrTXtNN" // X-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68 // NodeID-D1LbWvUf9iaeEyUbTYYtYq4b7GaYR5tnJ // Validator 2
 export const DefaultLocalGenesisPrivateKey3: string =
   "2tMmHrX7G7SeuuQ5kWbKWPq1ZaGZMYyFoggd7NgmPn5Z7Henmd" // X-kopernikus175wrfudlk9rpn9j4yydfwhcwx6alrxueq5kcr0 // NodeID-PM2LqrGsxudhZSP49upMonevbQvnvAciv // Validator 3
 export const DefaultLocalGenesisPrivateKey4: string =
-  "KpWQv31KtNbtvBPhN3YFk3bmmkuD5Vtv6op41DBjCvZhnPXsb"  // X-kopernikus1xgzw9p806nk2gt3f9xl36w6yjps6ye4d9qn3uz // NodeID-5ZUdznHckQcqucAnNf3vzXnPF97tfRtfn // Validator 4
+  "KpWQv31KtNbtvBPhN3YFk3bmmkuD5Vtv6op41DBjCvZhnPXsb" // X-kopernikus1xgzw9p806nk2gt3f9xl36w6yjps6ye4d9qn3uz // NodeID-5ZUdznHckQcqucAnNf3vzXnPF97tfRtfn // Validator 4
 export const DefaultLocalGenesisPrivateKey5: string =
-  "Vhw1gdFvJ941yrHXTZdf4x2BLZNSMqGJ4X1kWiiL4XepzHzmG"  // X-kopernikus1jandhaejyvd7z0nfzw5wq3gtnvrgvktplwlynf // NodeID-EoYFkbokZEukfWrUovo74YkTFnAMaqTG7 // Validator 5
+  "Vhw1gdFvJ941yrHXTZdf4x2BLZNSMqGJ4X1kWiiL4XepzHzmG" // X-kopernikus1jandhaejyvd7z0nfzw5wq3gtnvrgvktplwlynf // NodeID-EoYFkbokZEukfWrUovo74YkTFnAMaqTG7 // Validator 5
 
 export const DefaultEVMLocalGenesisPrivateKey: string =
   "0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"

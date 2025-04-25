@@ -5,7 +5,10 @@ import {
   PlatformVMAPI
 } from "caminojs/apis/platformvm"
 import { Avalanche, Buffer } from "caminojs/index"
-import { DefaultLocalGenesisPrivateKey2, PrivateKeyPrefix } from "caminojs/utils"
+import {
+  DefaultLocalGenesisPrivateKey2,
+  PrivateKeyPrefix
+} from "caminojs/utils"
 import { fractionDenominator } from "./proposal-utils"
 import config from "../common/examplesConfig.json"
 
@@ -37,8 +40,8 @@ const main = async (): Promise<any> => {
   const endTimestamp: number = startTimestamp + 2592000 // +30 days
   const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
 
-  const mostVotedThresholdNominator = 39 * fractionDenominator / 100  // >39% (2/5 voters)
-  const totalVotedThresholdNominator = 39 * fractionDenominator / 100 // >39% (2/5 voters)
+  const mostVotedThresholdNominator = (39 * fractionDenominator) / 100 // >39% (2/5 voters)
+  const totalVotedThresholdNominator = (39 * fractionDenominator) / 100 // >39% (2/5 voters)
   const allowEarlyFinish = true
 
   const timestamp = new Date().toISOString()

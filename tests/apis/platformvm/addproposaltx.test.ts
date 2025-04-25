@@ -1046,7 +1046,9 @@ describe("GeneralProposal", (): void => {
     const addProposalTxFromBuffer: AddProposalTx = new AddProposalTx()
     addProposalTxFromBuffer.fromBuffer(buf)
     const buf2: Buffer = addProposalTxFromBuffer.toBuffer()
-    expect(addProposalTxFromBuffer.serialize()).toStrictEqual(addProposalTx.serialize())
+    expect(addProposalTxFromBuffer.serialize()).toStrictEqual(
+      addProposalTx.serialize()
+    )
     expect(buf.toString("hex")).toStrictEqual(buf2.toString("hex"))
   })
 })

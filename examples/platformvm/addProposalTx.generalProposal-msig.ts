@@ -66,8 +66,8 @@ const main = async (): Promise<any> => {
   const endTimestamp: number = startTimestamp + 2592000 // +30 days
   const platformVMUTXOResponse = await pchain.getUTXOs([msigAliasAddr])
 
-  const mostVotedThresholdNominator = 39 * fractionDenominator / 100  // >39% (2/5 voters)
-  const totalVotedThresholdNominator = 39 * fractionDenominator / 100 // >39% (2/5 voters)
+  const mostVotedThresholdNominator = (39 * fractionDenominator) / 100 // >39% (2/5 voters)
+  const totalVotedThresholdNominator = (39 * fractionDenominator) / 100 // >39% (2/5 voters)
   const allowEarlyFinish = true
 
   const timestamp = new Date().toISOString()
@@ -109,7 +109,9 @@ const main = async (): Promise<any> => {
     )
 
     // Create signatures as part of the example
-    const msg: Buffer = Buffer.from(createHash("sha256").update(unsignedTx.toBuffer()).digest())
+    const msg: Buffer = Buffer.from(
+      createHash("sha256").update(unsignedTx.toBuffer()).digest()
+    )
     let signatures: [string, string][] = []
     for (let address of pAddresses) {
       // We need the keychain for signing
@@ -154,7 +156,6 @@ const main = async (): Promise<any> => {
     const addProposalTx = unsignedTx.getTransaction() as AddProposalTx
     const addProposalTxTypeName: string = addProposalTx.getTypeName()
     const addProposalTxTypeID: number = addProposalTx.getTypeID()
-
 
     console.log(`Tx type: ${addProposalTxTypeID} ${addProposalTxTypeName}`)
     console.log(hex)

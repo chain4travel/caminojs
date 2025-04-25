@@ -1435,10 +1435,12 @@ export class PlatformVMAPI extends JRPCAPI {
     txid: string,
     { timeoutMs = 60_000, pollMs = 1_000 } = {}
   ): Promise<string | GetTxStatusResponse> => {
-    const deadline = timeoutMs ? Date.now() + timeoutMs : Number.POSITIVE_INFINITY
+    const deadline = timeoutMs
+      ? Date.now() + timeoutMs
+      : Number.POSITIVE_INFINITY
 
-    for (; ;) {
-      const resp = await this.getTxStatus(txid) as GetTxStatusResponse
+    for (;;) {
+      const resp = (await this.getTxStatus(txid)) as GetTxStatusResponse
 
       if (resp.status != "Processing") {
         return resp
