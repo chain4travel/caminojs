@@ -767,7 +767,7 @@ describe("GeneralProposal", (): void => {
   const bintools = BinTools.getInstance()
   const serialization = Serialization.getInstance()
   const addProposalTxHex: string =
-    "000000002010000003ea00000000000000000000000000000000000000000000000000000000000000000000000159eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a0000000700016bcc41d9bdc0000000000000000000000001000000013cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c000000010903208c79e9d29ad5e5ea7caf771ecca4db7a218c44d7c3619deea62e6227640000000159eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a0000000500016bcc41e9000000000001000000000000001400000000000000000000000000000000000000000000000b68656c6c6f20776f726c6400000331000000002019000000030000010054484953204f5054494f4e20434f4e54454e54204953203235362043484152414354455253204c4f4e4720787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878000000fa54484953204f5054494f4e20434f4e54454e54204953203235302043484152414354455253204c4f4e47207978787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878780000010054484953204f5054494f4e20434f4e54454e54204953203235362043484152414354455253204c4f4e47207a78787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878780000000066d1b693000000006720dea30005f37000000000000a604000000000003cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c0000000a00000001000000000000000200000009000000011884e644385fa70dbd4e385e4ce1f0b5e84080308ffe57247c199684e590b4143d2f518f2b908d87b141a37d011cb409751138ddae40c6bac99ad496a5d1e06d0100000009000000011884e644385fa70dbd4e385e4ce1f0b5e84080308ffe57247c199684e590b4143d2f518f2b908d87b141a37d011cb409751138ddae40c6bac99ad496a5d1e06d019b2dc6f2"
+    "000000002010000003ea00000000000000000000000000000000000000000000000000000000000000000000000359eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000007000003a35284fdc00000000000000000000000010000000146a9c04f4bf783aa69daabd519dcf36978168b6659eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00002001acd3edf0ab435e41c595f1abf911d44a1ce5f2d43bc2870c4f72e7bfd5685777000000000000000000000000000000000000000000000000000000000000000000000007000001ba60d338000000000000000000000000010000000146a9c04f4bf783aa69daabd519dcf36978168b6659eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00002001acd3edf0ab435e41c595f1abf911d44a1ce5f2d43bc2870c4f72e7bfd5685777746869732074782069640000000000000000000000000000000000000000000000000007000000174876e8000000000000000000000000010000000146a9c04f4bf783aa69daabd519dcf36978168b6600000002acd3edf0ab435e41c595f1abf911d44a1ce5f2d43bc2870c4f72e7bfd56857770000000059eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00002000acd3edf0ab435e41c595f1abf911d44a1ce5f2d43bc2870c4f72e7bfd5685777000000000000000000000000000000000000000000000000000000000000000000000005000001d1a94a20000000000100000000c85579c382384d5473a019299bb99d5944156540cb1171c8a75c6038f934df6d0000000059eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000005000003a3529440000000000100000000000000140000000000000000000000000000000000000000000000c85468697320697320612067656e6572616c2070726f706f73616c2e20437265617465642062792063616d696e6f6a73206578616d706c65732061743a20323032352d30342d32355431323a33373a35352e3139335a2e0a20202020202020200a416c6c6f77206561726c792066696e6973683a20747275652e0a20202020202020200a546f74616c20766f746564207468726573686f6c643a203339303030302e0a20202020202020200a4d6f737420766f746564207468726573686f6c643a203339303030302e000000b2000000002019000000030000002847656e6572616c2050726f706f73616c204f7074696f6e2031206973202d20636f6c6f72205245440000002a47656e6572616c2050726f706f73616c204f7074696f6e2032206973202d20636f6c6f7220475245454e0000002947656e6572616c2050726f706f73616c204f7074696f6e2033206973202d20636f6c6f7220424c554500000000680b82280000000068330f28000000000005f370000000000005f3700146a9c04f4bf783aa69daabd519dcf36978168b660000000a00000001000000000000000300000009000000015ec02d8698909050ac76a40add9b07682303223e98f933b54e84cae77337142b5b0fa03aacdd7ee383c2f96acb11477f46ea8cd63a687a7d2e1e51bdaedf92020100000009000000015ec02d8698909050ac76a40add9b07682303223e98f933b54e84cae77337142b5b0fa03aacdd7ee383c2f96acb11477f46ea8cd63a687a7d2e1e51bdaedf92020100000009000000015ec02d8698909050ac76a40add9b07682303223e98f933b54e84cae77337142b5b0fa03aacdd7ee383c2f96acb11477f46ea8cd63a687a7d2e1e51bdaedf9202018b30b8c9"
   const unsignedTx = new UnsignedTx()
   unsignedTx.fromBuffer(Buffer.from(addProposalTxHex, "hex"))
   const addProposalTx = unsignedTx.getTransaction() as AddProposalTx
@@ -784,7 +784,7 @@ describe("GeneralProposal", (): void => {
 
   test("getProposerAddress", async (): Promise<void> => {
     const expectedAddress: Buffer = bintools.stringToAddress(
-      "P-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68"
+      "P-kopernikus1g65uqn6t77p656w64023nh8nd9updzmxh8ttv3"
     )
     const address: Buffer = addProposalTx.getProposerAddress()
     expect(address.toString()).toBe(expectedAddress.toString())
@@ -800,8 +800,12 @@ describe("GeneralProposal", (): void => {
 
   test("getProposalDescription", async (): Promise<void> => {
     const description = addProposalTx.getProposalDescription()
-    const proposalDescription = new Buffer("hello world")
-    expect(description).toStrictEqual(proposalDescription)
+    const proposalDescription = Buffer.from(
+      "This is a general proposal. Created by caminojs examples at: 2025-04-25T12:37:55.193Z.\n        \nAllow early finish: true.\n        \nTotal voted threshold: 390000.\n        \nMost voted threshold: 390000."
+    )
+    expect(description.toString("hex")).toStrictEqual(
+      proposalDescription.toString("hex")
+    )
   })
 
   test("getAllowEarlyFinish", async (): Promise<void> => {
@@ -815,9 +819,9 @@ describe("GeneralProposal", (): void => {
     networkIDBuff.writeUInt32BE(1002, 0)
 
     const expectedJSON = {
-      _typeName: "AddProposalTx",
-      _typeID: PlatformVMConstants.ADDPROPOSALTX,
       _codecID: null,
+      _typeID: PlatformVMConstants.ADDPROPOSALTX,
+      _typeName: "AddProposalTx",
       networkID: serialization.encoder(
         networkIDBuff,
         "hex",
@@ -830,6 +834,69 @@ describe("GeneralProposal", (): void => {
         "Buffer",
         "cb58"
       ),
+      ins: [
+        {
+          _codecID: null,
+          _typeID: null,
+          _typeName: "TransferableInput",
+          assetID:
+            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a",
+          input: {
+            _codecID: null,
+            _typeID: 8192,
+            _typeName: "LockedIn",
+            ids: {
+              bondTxID:
+                "0000000000000000000000000000000000000000000000000000000000000000",
+              depositTxID:
+                "acd3edf0ab435e41c595f1abf911d44a1ce5f2d43bc2870c4f72e7bfd5685777"
+            },
+            input: {
+              _codecID: null,
+              _typeID: 5,
+              _typeName: "SECPTransferInput",
+              amount: "000001d1a94a2000",
+              sigIdxs: [
+                {
+                  _codecID: null,
+                  _typeID: null,
+                  _typeName: "SigIdx",
+                  bsize: "00000004",
+                  bytes: "00000000",
+                  source: "0000000000000000000000000000000000000000"
+                }
+              ]
+            }
+          },
+          outputidx: "00000000",
+          txid: "acd3edf0ab435e41c595f1abf911d44a1ce5f2d43bc2870c4f72e7bfd5685777"
+        },
+        {
+          _codecID: null,
+          _typeID: null,
+          _typeName: "TransferableInput",
+          assetID:
+            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a",
+          input: {
+            _codecID: null,
+            _typeID: 5,
+            _typeName: "SECPTransferInput",
+            amount: "000003a352944000",
+            sigIdxs: [
+              {
+                _codecID: null,
+                _typeID: null,
+                _typeName: "SigIdx",
+                bsize: "00000004",
+                bytes: "00000000",
+                source: "0000000000000000000000000000000000000000"
+              }
+            ]
+          },
+          outputidx: "00000000",
+          txid: "c85579c382384d5473a019299bb99d5944156540cb1171c8a75c6038f934df6d"
+        }
+      ],
       outs: [
         {
           _codecID: null,
@@ -847,64 +914,99 @@ describe("GeneralProposal", (): void => {
                 _typeID: null,
                 _typeName: "Address",
                 bsize: "00000014",
-                bytes: "3cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c"
+                bytes: "46a9c04f4bf783aa69daabd519dcf36978168b66"
               }
             ],
-            amount: "00016bcc41d9bdc0",
+            amount: "000003a35284fdc0",
             locktime: "0000000000000000",
             threshold: "00000001"
           }
-        }
-      ],
-      ins: [
+        },
         {
-          _typeName: "TransferableInput",
-          _typeID: null,
           _codecID: null,
-          input: {
-            _codecID: null,
-            _typeID: 5,
-            _typeName: "SECPTransferInput",
-            amount: "00016bcc41e90000",
-            sigIdxs: [
-              {
-                _codecID: null,
-                _typeID: null,
-                _typeName: "SigIdx",
-                bsize: "00000004",
-                bytes: "00000000",
-                source: "0000000000000000000000000000000000000000"
-              }
-            ]
-          },
-          outputidx: "00000001",
-          txid: "0903208c79e9d29ad5e5ea7caf771ecca4db7a218c44d7c3619deea62e622764",
+          _typeID: null,
+          _typeName: "TransferableOutput",
           assetID:
-            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a"
+            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a",
+          output: {
+            _codecID: null,
+            _typeID: 8193,
+            _typeName: "LockedOut",
+            ids: {
+              bondTxID:
+                "0000000000000000000000000000000000000000000000000000000000000000",
+              depositTxID:
+                "acd3edf0ab435e41c595f1abf911d44a1ce5f2d43bc2870c4f72e7bfd5685777"
+            },
+            output: {
+              _codecID: null,
+              _typeID: 7,
+              _typeName: "SECPTransferOutput",
+              addresses: [
+                {
+                  _codecID: null,
+                  _typeID: null,
+                  _typeName: "Address",
+                  bsize: "00000014",
+                  bytes: "46a9c04f4bf783aa69daabd519dcf36978168b66"
+                }
+              ],
+              amount: "000001ba60d33800",
+              locktime: "0000000000000000",
+              threshold: "00000001"
+            }
+          }
+        },
+        {
+          _codecID: null,
+          _typeID: null,
+          _typeName: "TransferableOutput",
+          assetID:
+            "59eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a",
+          output: {
+            _codecID: null,
+            _typeID: 8193,
+            _typeName: "LockedOut",
+            ids: {
+              bondTxID:
+                "7468697320747820696400000000000000000000000000000000000000000000",
+              depositTxID:
+                "acd3edf0ab435e41c595f1abf911d44a1ce5f2d43bc2870c4f72e7bfd5685777"
+            },
+            output: {
+              _codecID: null,
+              _typeID: 7,
+              _typeName: "SECPTransferOutput",
+              addresses: [
+                {
+                  _codecID: null,
+                  _typeID: null,
+                  _typeName: "Address",
+                  bsize: "00000014",
+                  bytes: "46a9c04f4bf783aa69daabd519dcf36978168b66"
+                }
+              ],
+              amount: "000000174876e800",
+              locktime: "0000000000000000",
+              threshold: "00000001"
+            }
+          }
         }
       ],
-      memo: serialization
-        .typeToBuffer(bintools.cb58Encode(Buffer.alloc(20)), "cb58")
-        .toString("hex"),
-      proposalDescription: serialization.encoder(
-        Buffer.from("hello world"),
-        "hex",
-        "Buffer",
-        "hex"
-      ),
+      memo: "0000000000000000000000000000000000000000",
+      proposalDescription:
+        "5468697320697320612067656e6572616c2070726f706f73616c2e20437265617465642062792063616d696e6f6a73206578616d706c65732061743a20323032352d30342d32355431323a33373a35352e3139335a2e0a20202020202020200a416c6c6f77206561726c792066696e6973683a20747275652e0a20202020202020200a546f74616c20766f746564207468726573686f6c643a203339303030302e0a20202020202020200a4d6f737420766f746564207468726573686f6c643a203339303030302e",
       proposalPayload: {
         proposal: {
-          end: "000000006720dea3",
-          start: "0000000066d1b693",
-          mostVotedThresholdNominator: "000a604000000000",
-          totalVotedThresholdNominator: "0005f37000000000",
-          allowEarlyFinish: false,
+          end: "0000000068330f28",
+          start: "00000000680b8228",
+          mostVotedThresholdNominator: "000000000005f370",
+          totalVotedThresholdNominator: "000000000005f370",
+          allowEarlyFinish: true,
           options: [
             {
               option: serialization.encoder(
-                Buffer.from(
-                  "THIS OPTION CONTENT IS 256 CHARACTERS LONG xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                ),
+                Buffer.from("General Proposal Option 1 is - color RED"),
                 "hex",
                 "Buffer",
                 "hex"
@@ -912,9 +1014,7 @@ describe("GeneralProposal", (): void => {
             },
             {
               option: serialization.encoder(
-                Buffer.from(
-                  "THIS OPTION CONTENT IS 250 CHARACTERS LONG yxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                ),
+                Buffer.from("General Proposal Option 2 is - color GREEN"),
                 "hex",
                 "Buffer",
                 "hex"
@@ -922,9 +1022,7 @@ describe("GeneralProposal", (): void => {
             },
             {
               option: serialization.encoder(
-                Buffer.from(
-                  "THIS OPTION CONTENT IS 256 CHARACTERS LONG zxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                ),
+                Buffer.from("General Proposal Option 3 is - color BLUE"),
                 "hex",
                 "Buffer",
                 "hex"
@@ -933,7 +1031,7 @@ describe("GeneralProposal", (): void => {
           ]
         }
       },
-      proposerAddress: "3cb7d3842e8cee6a0ebd09f1fe884f6861e1b29c",
+      proposerAddress: "46a9c04f4bf783aa69daabd519dcf36978168b66",
       proposerAuth: {
         _codecID: null,
         _typeID: 10,
@@ -945,10 +1043,12 @@ describe("GeneralProposal", (): void => {
 
   test("toBuffer and fromBuffer", async (): Promise<void> => {
     const buf: Buffer = addProposalTx.toBuffer()
-    const addProposalTransaction: AddProposalTx = new AddProposalTx()
-    addProposalTransaction.fromBuffer(buf)
-    const buf2: Buffer = addProposalTransaction.toBuffer()
-
+    const addProposalTxFromBuffer: AddProposalTx = new AddProposalTx()
+    addProposalTxFromBuffer.fromBuffer(buf)
+    const buf2: Buffer = addProposalTxFromBuffer.toBuffer()
+    expect(addProposalTxFromBuffer.serialize()).toStrictEqual(
+      addProposalTx.serialize()
+    )
     expect(buf.toString("hex")).toStrictEqual(buf2.toString("hex"))
   })
 })

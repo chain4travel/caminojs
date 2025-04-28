@@ -2,25 +2,23 @@ import {
   AddProposalTx,
   GeneralProposal,
   KeyChain,
-  PlatformVMAPI,
-  UnsignedTx
+  PlatformVMAPI
 } from "caminojs/apis/platformvm"
-import { Avalanche, BinTools, Buffer } from "caminojs/index"
-import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
-import { ExamplesConfig } from "../common/examplesConfig"
-import BN from "bn.js"
+import { Avalanche, Buffer } from "caminojs/index"
+import {
+  DefaultLocalGenesisPrivateKey2,
+  PrivateKeyPrefix
+} from "caminojs/utils"
+import { fractionDenominator } from "./addProposalTx"
+import config from "../common/examplesConfig.json"
 
-const config: ExamplesConfig = require("../common/examplesConfig.json")
 const avalanche: Avalanche = new Avalanche(
   config.host,
   config.port,
   config.protocol,
   config.networkID
 )
-/**
- * @ignore
- */
-let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+let privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -36,46 +34,42 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const bondAmount: any = await pchain.getMinStake()
-  let startDate = new Date()
-  startDate.setDate(startDate.getDate() + 1)
-  let endDate = new Date(startDate)
-  endDate.setDate(endDate.getDate() + 10)
 
-  let startTimestamp: number = Math.floor(startDate.getTime() / 1000)
-  let endTimestamp = Math.floor(endDate.getTime() / 1000)
+  const startDelay = 5 // seconds
+  const startTimestamp: number = Date.now() / 1000 + startDelay // seconds
+  const endTimestamp: number = startTimestamp + 2592000 // +30 days
   const platformVMUTXOResponse = await pchain.getUTXOs(pAddressStrings)
+
+  const mostVotedThresholdNominator = (39 * fractionDenominator) / 100 // >39% (2/5 voters)
+  const totalVotedThresholdNominator = (39 * fractionDenominator) / 100 // >39% (2/5 voters)
+  const allowEarlyFinish = true
+
+  const timestamp = new Date().toISOString()
+  const proposalDescription = Buffer.from(
+    `This is a general proposal. Created by caminojs examples at: ${timestamp}.
+        \nAllow early finish: ${allowEarlyFinish}.
+        \nTotal voted threshold: ${totalVotedThresholdNominator}.
+        \nMost voted threshold: ${mostVotedThresholdNominator}.`
+  )
+
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
-    390000,
-    680000,
-    false
+    totalVotedThresholdNominator,
+    mostVotedThresholdNominator,
+    allowEarlyFinish
   )
-  proposal.addGeneralOption(
-    "THIS OPTION CONTENT IS 256 CHARACTERS LONG xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  )
-  proposal.addGeneralOption(
-    "THIS OPTION CONTENT IS 250 CHARACTERS LONG yxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  )
-  proposal.addGeneralOption(
-    "THIS OPTION CONTENT IS 256 CHARACTERS LONG zxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  )
+  proposal.addGeneralOption("General Proposal Option 1 is - color RED")
+  proposal.addGeneralOption("General Proposal Option 2 is - color GREEN")
+  proposal.addGeneralOption("General Proposal Option 3 is - color BLUE")
 
   try {
-    let buffer = proposal.toBuffer()
-    console.log(buffer)
-  } catch (e) {
-    console.log(e)
-  }
-
-  try {
-    let unsignedTx = await pchain.buildAddProposalTx(
-      platformVMUTXOResponse.utxos, // utxoset
+    const unsignedTx = await pchain.buildAddProposalTx(
+      platformVMUTXOResponse.utxos,
       pAddressStrings, // fromAddresses
       pAddressStrings, // changeAddresses
-      Buffer.from("hello world"), // description
-      proposal, // proposal
+      proposalDescription,
+      proposal,
       pKeychain.getAddresses()[0], // proposerAddress
       0, // version
       Buffer.alloc(20) // memo
@@ -88,12 +82,16 @@ const main = async (): Promise<any> => {
     const addProposalTxTypeName: string = addProposalTx.getTypeName()
     const addProposalTxTypeID: number = addProposalTx.getTypeID()
 
-    const generalProposal = addProposalTx.getProposalPayload()
+    console.log(`Tx type: ${addProposalTxTypeID} ${addProposalTxTypeName}`)
+    console.log("Tx bytes:", hex)
 
-    console.log(addProposalTxTypeID, addProposalTxTypeName)
-    console.log(hex)
-    const txid: string = await pchain.issueTx(tx)
-    console.log(`Success! TXID: ${txid}`)
+    const txID: string = await pchain.issueTx(tx)
+    console.log("Proposer address:", pKeychain.getAddressStrings()[0])
+    console.log(proposalDescription.toString())
+    console.log(`Issued tx: ${txID}`)
+
+    const txStatus = await pchain.awaitTx(txID)
+    console.log("Tx status:", txStatus)
   } catch (e) {
     console.log(e)
   }

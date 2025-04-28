@@ -1,9 +1,9 @@
+/* example meant to be run on local network with 5 validators (genesis_local_5_validators.json) */
 import {
   AddProposalTx,
   GeneralProposal,
   KeyChain,
   PlatformVMAPI,
-  UnsignedTx,
   PlatformVMConstants,
   Tx
 } from "caminojs/apis/platformvm"
@@ -22,6 +22,7 @@ import {
   OutputOwners
 } from "caminojs/common"
 import createHash from "create-hash"
+import { fractionDenominator } from "./addProposalTx"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
 
@@ -36,7 +37,7 @@ const bintools = BinTools.getInstance()
 const multiSigAliasMember1PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
 const multiSigAliasMember2PrivateKey = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 // Multisig Example where creator is an Multisig address with 2 owners (threshold 1 or 2)
-const msigAliasAddr = ""
+const msigAliasAddr = "P-kopernikus1t5qgr9hcmf2vxj7k0hz77kawf9yr389cxte5j0"
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -56,31 +57,33 @@ const InitAvalanche = async () => {
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
+
   const msigAliasAddrBuffer = pchain.parseAddress(msigAliasAddr) // proposer and ins owner
   const msigAlias = await pchain.getMultisigAlias(msigAliasAddr)
-  const msigAliasOwners = new OutputOwners(
-    msigAlias.addresses.map((a) => bintools.parseAddress(a, "P")),
-    new BN(msigAlias.locktime),
-    msigAlias.threshold
-  )
 
-  const bondAmount: any = await pchain.getMinStake()
-
-  const proposalDescription = Buffer.from(
-    "This is a description of this general proposal."
-  )
-
-  let startTimestamp: number = Date.now() / 1000 + 600 // start after 10 minutes
-  let endTimestamp: number = startTimestamp + 2592000 // exact 60 days
-
+  const startDelay = 5 // seconds
+  const startTimestamp: number = Date.now() / 1000 + startDelay // seconds
+  const endTimestamp: number = startTimestamp + 2592000 // +30 days
   const platformVMUTXOResponse = await pchain.getUTXOs([msigAliasAddr])
+
+  const mostVotedThresholdNominator = (39 * fractionDenominator) / 100 // >39% (2/5 voters)
+  const totalVotedThresholdNominator = (39 * fractionDenominator) / 100 // >39% (2/5 voters)
+  const allowEarlyFinish = true
+
+  const timestamp = new Date().toISOString()
+  const proposalDescription = Buffer.from(
+    `This is a general proposal. Created by caminojs examples at: ${timestamp}.
+    \nAllow early finish: ${allowEarlyFinish}.
+    \nTotal voted threshold: ${totalVotedThresholdNominator}.
+    \nMost voted threshold: ${mostVotedThresholdNominator}.`
+  )
 
   const proposal = new GeneralProposal(
     startTimestamp,
     endTimestamp,
-    390000,
-    500000, // For easier testing
-    true
+    totalVotedThresholdNominator,
+    mostVotedThresholdNominator,
+    allowEarlyFinish
   )
   proposal.addGeneralOption("Option 1")
   proposal.addGeneralOption("Option 2")
@@ -94,23 +97,22 @@ const main = async (): Promise<any> => {
   }
 
   try {
-    let signatures: [string, string][] = []
-    let unsignedTx = await pchain.buildAddProposalTx(
-      platformVMUTXOResponse.utxos, // utxoset
+    const unsignedTx = await pchain.buildAddProposalTx(
+      platformVMUTXOResponse.utxos,
       [[msigAliasAddr], pAddressStrings], // fromAddresses
       [], // changeAddresses
-      proposalDescription, // description
-      proposal, // proposal
+      proposalDescription,
+      proposal,
       msigAliasAddrBuffer, // proposerAddress
       0, // version
       Buffer.alloc(20) // memo
     )
 
-    // Create the hash from the tx
-    const txbuff = unsignedTx.toBuffer()
+    // Create signatures as part of the example
     const msg: Buffer = Buffer.from(
-      createHash("sha256").update(txbuff).digest()
+      createHash("sha256").update(unsignedTx.toBuffer()).digest()
     )
+    let signatures: [string, string][] = []
     for (let address of pAddresses) {
       // We need the keychain for signing
       const keyPair = pKeychain.getKey(address)
@@ -150,19 +152,21 @@ const main = async (): Promise<any> => {
     // Apply the signatures and send the tx
     const tx: Tx = unsignedTx.sign(msKeyChain)
     const hex = tx.toStringHex().slice(2)
-    const unsignedTx2 = new UnsignedTx()
-    unsignedTx2.fromBuffer(Buffer.from(hex, "hex"))
 
-    const addProposalTx = unsignedTx2.getTransaction() as AddProposalTx
+    const addProposalTx = unsignedTx.getTransaction() as AddProposalTx
     const addProposalTxTypeName: string = addProposalTx.getTypeName()
     const addProposalTxTypeID: number = addProposalTx.getTypeID()
 
-    const generalProposal = addProposalTx.getProposalPayload()
-
-    console.log(addProposalTxTypeID, addProposalTxTypeName)
+    console.log(`Tx type: ${addProposalTxTypeID} ${addProposalTxTypeName}`)
     console.log(hex)
-    const txid: string = await pchain.issueTx(tx)
-    console.log(`Success! TXID: ${txid}`)
+
+    const txID: string = await pchain.issueTx(tx)
+    console.log("Proposer address:", msigAliasAddr)
+    console.log(proposalDescription.toString())
+    console.log(`Issued tx: ${txID}`)
+
+    const txStatus = await pchain.awaitTx(txID)
+    console.log("Tx status:", txStatus)
   } catch (e) {
     console.log(e)
   }
