@@ -4,7 +4,7 @@ import {
   KeyChain,
   UnlockDepositTx,
 } from "caminojs/apis/platformvm"
-import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
+import { DefaultLocalGenesisPrivateKey2, PrivateKeyPrefix } from "caminojs/utils"
 import BN from "bn.js"
 import config from "../common/examplesConfig.json"
 
@@ -15,7 +15,7 @@ const avalanche: Avalanche = new Avalanche(
   config.networkID
 )
 
-const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey2}`
 
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
@@ -36,8 +36,8 @@ const main = async (): Promise<any> => {
   // This example gets ALL deposit transaction IDs.
   const undeposits = [
     {
-      amount: 0.3 * 1000000000, // 0.3 CAM
-      depositTxID: "" // TODO@
+      amount: 100_000_000_000,
+      depositTxID: "fGxf9SVv7mBmeENu58njFSCFWRHPLXhu6qxvj4S3Tj7qiFTKY"
     }
   ]
 

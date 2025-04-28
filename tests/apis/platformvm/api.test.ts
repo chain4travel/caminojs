@@ -3021,8 +3021,12 @@ describe("PlatformVMAPI", (): void => {
       undefined,
       [defaultAddr],
       Buffer.from("memo"),
-      ZeroBN,
-      {} // TODO@ undeposits
+      [
+        { // TODO@
+          amount: 0,
+          depositTxID: "",
+        }
+      ]
     )
 
     const txu1 = await result
