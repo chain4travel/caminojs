@@ -18,7 +18,6 @@ import { KeyChain } from "src/apis/platformvm/keychain"
 import {
   SECPTransferOutput,
   TransferableOutput,
-  AmountOutput,
   ParseableOutput,
   StakeableLockOut,
   SECPOwnerOutput
@@ -26,8 +25,6 @@ import {
 import {
   TransferableInput,
   SECPTransferInput,
-  AmountInput,
-  StakeableLockIn
 } from "src/apis/platformvm/inputs"
 import { UTXO } from "src/apis/platformvm/utxos"
 import createHash from "create-hash"
@@ -1139,8 +1136,8 @@ describe("PlatformVMAPI", (): void => {
       platformvm.setAVAXAssetID(assetID)
       set = new UTXOSet()
       lset = new UTXOSet()
-      builder = new Builder(set, set, false)
-      lbuilder = new Builder(lset, set, false)
+      builder = new Builder(set, false)
+      lbuilder = new Builder(lset, false)
       platformvm.newKeyChain()
       keymgr2 = new KeyChain(avalanche.getHRP(), alias)
       keymgr3 = new KeyChain(avalanche.getHRP(), alias)
@@ -3023,11 +3020,9 @@ describe("PlatformVMAPI", (): void => {
     const result = api.buildUnlockDepositTx(
       undefined,
       [defaultAddr],
-      [defaultAddr],
       Buffer.from("memo"),
       ZeroBN,
-      new BN(0),
-      [txID.toString()]
+      {} // TODO@ undeposits
     )
 
     const txu1 = await result
