@@ -9,7 +9,7 @@ import {
   DefaultLocalGenesisPrivateKey2,
   PrivateKeyPrefix
 } from "caminojs/utils"
-import { fractionDenominator } from "./proposal-utils"
+import { fractionDenominator } from "./addProposalTx"
 import config from "../common/examplesConfig.json"
 
 const avalanche: Avalanche = new Avalanche(

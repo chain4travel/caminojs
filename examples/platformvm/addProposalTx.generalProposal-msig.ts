@@ -22,7 +22,7 @@ import {
   OutputOwners
 } from "caminojs/common"
 import createHash from "create-hash"
-import { fractionDenominator } from "./proposal-utils"
+import { fractionDenominator } from "./addProposalTx"
 
 const config: ExamplesConfig = require("../common/examplesConfig.json")
 
