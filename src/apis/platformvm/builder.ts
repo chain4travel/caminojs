@@ -38,6 +38,7 @@ import {
   TransferableInput,
   TransferableOutput,
   UTXO,
+  Undeposit,
   UnlockDepositTx,
   UnsignedTx
 } from "."
@@ -74,9 +75,7 @@ export interface MinimumSpendable {
 
   getUndepositable(
     aad: AssetAmountDestination,
-    asOf: BN,
-    lockTime: BN,
-    depositTxIDs: string[]
+    undeposits: Undeposit[],
   ): Promise<Error>
 }
 
@@ -1442,14 +1441,10 @@ export class Builder {
     networkID: number = DefaultNetworkID,
     blockchainID: Buffer,
     fromSigner: FromSigner,
-    changeAddresses: Buffer[],
     fee: BN = zero,
     feeAssetID: Buffer = undefined,
     memo: Buffer = undefined,
-    asOf: BN = zero,
-    depositTxIDs: string[],
-    changeThreshold: number = 1,
-    lockTime: BN = zero
+    undeposits: Undeposit[],
   ): Promise<UnsignedTx> => {
     let ins: TransferableInput[] = []
     let outs: TransferableOutput[] = []
@@ -1461,17 +1456,15 @@ export class Builder {
         0,
         fromSigner.from,
         fromSigner.signer,
-        changeAddresses,
-        changeThreshold
+        [],
+        0,
       )
 
       // TODO: see it aad structure is correct or a similar structure is needed
       aad.addAssetAmount(feeAssetID, zero, fee)
       const undepositableErr: Error = await this.spender.getUndepositable(
         aad,
-        asOf,
-        lockTime,
-        depositTxIDs
+        undeposits
       )
       if (typeof undepositableErr === "undefined") {
         ins = aad.getInputs()

@@ -87,7 +87,8 @@ import {
   OwnerParam,
   MultisigAliasParams,
   UpgradePhasesReply,
-  GetCurrentSupplyResponse
+  GetCurrentSupplyResponse,
+  Undeposit
 } from "./interfaces"
 import { TransferableInput } from "./inputs"
 import { TransferableOutput } from "./outputs"
@@ -96,7 +97,6 @@ import { GenesisData } from "../avm"
 import { Auth, LockMode, Builder, FromSigner, NodeOwner } from "./builder"
 import { Network } from "../../utils/networks"
 import { Spender } from "./spender"
-import { Undepositer } from "./undepositer"
 import { Offer } from "./adddepositoffertx"
 import type { Proposal } from "./addproposaltx"
 import { SubnetAuth } from "./subnetauth"
@@ -2734,20 +2734,12 @@ export class PlatformVMAPI extends JRPCAPI {
   buildUnlockDepositTx = async (
     utxoset: UTXOSet,
     fromAddresses: string[],
-    changeAddresses: string[] = undefined,
     memo: PayloadBase | Buffer = undefined,
-    asOf: BN = ZeroBN,
-    amountToLock: BN,
-    depositTxIDs: string[],
-    changeThreshold: number = 1
+    undeposits: Undeposit[],
   ): Promise<UnsignedTx> => {
     const caller = "buildUnlockDepositTx"
 
     const fromSigner = this._parseFromSigner(fromAddresses, caller)
-    const change: Buffer[] = this._cleanAddressArrayBuffer(
-      changeAddresses,
-      caller
-    )
     if (memo instanceof PayloadBase) {
       memo = memo.getPayload()
     }
@@ -2763,13 +2755,10 @@ export class PlatformVMAPI extends JRPCAPI {
       networkID,
       blockchainID,
       fromSigner,
-      change,
       fee,
       avaxAssetID,
       memo,
-      asOf,
-      depositTxIDs,
-      changeThreshold
+      undeposits,
     )
 
     if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
@@ -3207,27 +3196,22 @@ export class PlatformVMAPI extends JRPCAPI {
   undeposit = async (
     from: string[] | string,
     signer: string[] | string,
-    to: string[] | string,
+    to: string[],
     toThreshold: number,
-    toLockTime: BN,
-    change: string[],
-    changeThreshold: number,
     amountToBurn: BN,
-    depositTxIDs: string[],
+    undeposits: Undeposit[],
     encoding?: string
   ): Promise<UndepositReply> => {
     const params: UndepositParams = {
-      addresses: typeof from === "string" ? [from] : from ?? [],
+      from,
+      signer,
       undepositTo: {
-        locktime: toLockTime.toString(10),
+        locktime: "0",
         threshold: toThreshold,
-        addresses: typeof to === "string" ? [to] : to ?? []
+        addresses: to
       },
       amountToBurn: amountToBurn.toString(10),
-      undeposits: depositTxIDs.map((txID) => ({
-        amount: amountToBurn.toString(10),
-        depositTxID: txID
-      })),
+      undeposits: undeposits,
       encoding: encoding ?? "hex"
     }
 
@@ -3240,17 +3224,14 @@ export class PlatformVMAPI extends JRPCAPI {
     // We need to update signature index source here
     const ins = TransferableInput.fromArray(Buffer.from(r.ins.slice(2), "hex"))
     ins.forEach((e, idx) =>
-      e.getSigIdxs().forEach((s, sidx) => {
-        s.setSource(bintools.cb58Decode(r.signers[`${idx}`][`${sidx}`]))
+      e.getSigIdxs().forEach((s, sigIndex) => {
+        s.setSource(bintools.cb58Decode(r.signers[`${idx}`][`${sigIndex}`]))
       })
     )
 
-    let outs = TransferableOutput.fromArray(Buffer.from(r.outs.slice(2), "hex"))
-    // If multisig -> must expect multiple signers
     return {
       ins,
-      out: outs,
-      sigIdxs: r.signers ? r.signers : [0],
+      out: TransferableOutput.fromArray(Buffer.from(r.outs.slice(2), "hex")),
       owners: r.owners
         ? OutputOwners.fromArray(Buffer.from(r.owners.slice(2), "hex"))
         : []

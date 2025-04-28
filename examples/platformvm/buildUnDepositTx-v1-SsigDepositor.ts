@@ -2,8 +2,7 @@ import { Avalanche, Buffer } from "caminojs/index"
 import {
   PlatformVMAPI,
   KeyChain,
-  UnsignedTx,
-  Tx,
+  UnlockDepositTx,
 } from "caminojs/apis/platformvm"
 import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
 import BN from "bn.js"
@@ -17,45 +16,53 @@ const avalanche: Avalanche = new Avalanche(
 )
 
 const privKey: string = `${PrivateKeyPrefix}${DefaultLocalGenesisPrivateKey}`
+
 let pchain: PlatformVMAPI
 let pKeychain: KeyChain
-let pAddresses: Buffer[]
 let pAddressStrings: string[]
-
 const InitAvalanche = async () => {
   await avalanche.fetchNetworkSettings()
   pchain = avalanche.PChain()
   pKeychain = pchain.keyChain()
-  pKeychain.importKey(privKey) // P-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68
-  pAddresses = pchain.keyChain().getAddresses()
+  pKeychain.importKey(privKey)
   pAddressStrings = pchain.keyChain().getAddressStrings()
 }
 
 const main = async (): Promise<any> => {
   await InitAvalanche()
-  const amount_cam = 0.3
-  const amountToUnLock = new BN(amount_cam * 1000000000)
-  const memo: Buffer = Buffer.from("unDepositTx with single-sig deposit ")
   const platformvmUTXOResponse = await pchain.getUTXOs(pAddressStrings)
 
   // You can specify certain (1) deposit transaction IDs.
   // This example gets ALL deposit transaction IDs.
-  const depositTxIDs: string[] = platformvmUTXOResponse.utxos.getLockedTxIDs().depositIDs
+  const undeposits = [
+    {
+      amount: 0.3 * 1000000000, // 0.3 CAM
+      depositTxID: "" // TODO@
+    }
+  ]
 
-  const unsignedTx: UnsignedTx = await pchain.buildUnlockDepositTx(
+  const unsignedTx = await pchain.buildUnlockDepositTx(
     platformvmUTXOResponse.utxos,
-    pAddressStrings,
-    pAddressStrings,
-    memo,
-    new BN(0),
-    amountToUnLock,
-    depositTxIDs
+    pAddressStrings, // from addresses
+    Buffer.from("unDepositTx with single-sig deposit "), // memo
+    undeposits
   )
 
-  const tx: Tx = unsignedTx.sign(pKeychain)
-  const txid: string = await pchain.issueTx(tx)
-  console.log(`Success! TXID: ${txid}`)
-  console.log(`Success! TX: ${tx}`)
+  const tx = unsignedTx.sign(pKeychain)
+  const hex = tx.toStringHex().slice(2)
+
+  const unlockDepositTx = unsignedTx.getTransaction() as UnlockDepositTx
+  const unlockDepositTxTypeName: string = unlockDepositTx.getTypeName()
+  const unlockDepositTxTypeID: number = unlockDepositTx.getTypeID()
+
+  console.log(`Tx type: ${unlockDepositTxTypeID} ${unlockDepositTxTypeName}`)
+  console.log("Tx bytes:", hex)
+
+  const txID = await pchain.issueTx(tx)
+  console.log(`Issued tx: ${txID}`)
+
+  const txStatus = await pchain.awaitTx(txID)
+  console.log("Tx status:", txStatus)
 }
 
 main()

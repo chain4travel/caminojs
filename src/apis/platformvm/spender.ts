@@ -5,7 +5,7 @@
 
 import BN from "bn.js"
 
-import { AssetAmountDestination, PlatformVMAPI } from "."
+import { AssetAmountDestination, PlatformVMAPI, Undeposit } from "."
 import { FeeAssetError } from "../../utils/errors"
 
 import { LockMode } from "./builder"
@@ -71,9 +71,7 @@ export class Spender {
 
   getUndepositable = async (
     aad: AssetAmountDestination,
-    asOf: BN,
-    lockTime: BN,
-    depositTxIDs: string[]
+    undeposits: Undeposit[],
   ): Promise<Error> => {
     if (aad.getAmounts().length !== 1) {
       return new FeeAssetError("spender -- multiple assets not yet supported")
@@ -102,11 +100,8 @@ export class Spender {
       signer,
       to,
       aad.getDestinationsThreshold(),
-      lockTime,
-      change,
-      aad.getChangeAddressesThreshold(),
       aa.getBurn(),
-      depositTxIDs
+      undeposits
     )
 
     result.ins.forEach((inp) => {
