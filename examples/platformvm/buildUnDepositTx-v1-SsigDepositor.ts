@@ -4,13 +4,11 @@ import {
   KeyChain,
   UnsignedTx,
   Tx,
-  UTXOSet,
-  GetUTXOsResponse
 } from "caminojs/apis/platformvm"
 import { DefaultLocalGenesisPrivateKey, PrivateKeyPrefix } from "caminojs/utils"
 import BN from "bn.js"
+import config from "../common/examplesConfig.json"
 
-const config = require("../common/examplesConfig.json")
 const avalanche: Avalanche = new Avalanche(
   config.host,
   config.port,
@@ -37,35 +35,15 @@ const main = async (): Promise<any> => {
   await InitAvalanche()
   const amount_cam = 0.3
   const amountToUnLock = new BN(amount_cam * 1000000000)
-  const memo: Buffer = Buffer.from("unDepositTx with singlesig deposit ")
-
-  let utxoStrings: string[] = [""]
-  let platformvmUTXOResponse: GetUTXOsResponse
-  let utxoSet: UTXOSet
-  // utxoset takes time to be updated. here we check if the utxoset is the same like the previous one
-  // we put a slight delay of 100 ms
-  while (true) {
-    platformvmUTXOResponse = await pchain.getUTXOs(pAddressStrings)
-    utxoSet = platformvmUTXOResponse.utxos
-
-    if (
-      utxoSet.getAllUTXOStrings().sort().toString() !=
-      utxoStrings.sort().toString()
-    ) {
-      utxoStrings = utxoSet.getAllUTXOStrings()
-      break
-    }
-    delay(100)
-  }
-
-  utxoStrings = utxoSet.getAllUTXOStrings()
+  const memo: Buffer = Buffer.from("unDepositTx with single-sig deposit ")
+  const platformvmUTXOResponse = await pchain.getUTXOs(pAddressStrings)
 
   // You can specify certain (1) deposit transaction IDs.
   // This example gets ALL deposit transaction IDs.
-  const depositTxIDs: string[] = utxoSet.getLockedTxIDs().depositIDs
+  const depositTxIDs: string[] = platformvmUTXOResponse.utxos.getLockedTxIDs().depositIDs
 
   const unsignedTx: UnsignedTx = await pchain.buildUnlockDepositTx(
-    utxoSet,
+    platformvmUTXOResponse.utxos,
     pAddressStrings,
     pAddressStrings,
     memo,
@@ -78,10 +56,6 @@ const main = async (): Promise<any> => {
   const txid: string = await pchain.issueTx(tx)
   console.log(`Success! TXID: ${txid}`)
   console.log(`Success! TX: ${tx}`)
-}
-
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 main()
