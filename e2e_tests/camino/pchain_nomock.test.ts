@@ -542,10 +542,12 @@ describe("Camino-PChain-Deposit", (): void => {
             dummyUtxoSet,
             [P(addrBString)], // from
             undefined, // memo
-            [{
-              amount: 100,
-              depositTxID: depositTx.value
-            }]
+            [
+              {
+                amount: 100,
+                depositTxID: depositTx.value
+              }
+            ]
           )
           const tx: Tx = unsignedTx.sign(pKeychain)
           return pChain.issueTx(tx)
@@ -806,10 +808,12 @@ describe("Camino-PChain-Auto-Unlock-Deposit-Half-Amount", (): void => {
             dummyUtxoSet,
             [P(addrBString)], // from
             undefined, // memo
-            [{
-              amount: 100,
-              depositTxID: depositTx.value
-            }]
+            [
+              {
+                amount: 100,
+                depositTxID: depositTx.value
+              }
+            ]
           )
           const tx: Tx = unsignedTx.sign(pKeychain)
           return pChain.issueTx(tx)

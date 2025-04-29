@@ -2,9 +2,12 @@ import { Avalanche, Buffer } from "caminojs/index"
 import {
   PlatformVMAPI,
   KeyChain,
-  UnlockDepositTx,
+  UnlockDepositTx
 } from "caminojs/apis/platformvm"
-import { DefaultLocalGenesisPrivateKey2, PrivateKeyPrefix } from "caminojs/utils"
+import {
+  DefaultLocalGenesisPrivateKey2,
+  PrivateKeyPrefix
+} from "caminojs/utils"
 import BN from "bn.js"
 import config from "../common/examplesConfig.json"
 

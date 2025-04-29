@@ -591,7 +591,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
 
   getUndepositable = async (
     aad: AssetAmountDestination,
-    undeposits: Undeposit[],
+    undeposits: Undeposit[]
   ): Promise<Error> => {
     throw new Error("Its stub, not implemented")
   }

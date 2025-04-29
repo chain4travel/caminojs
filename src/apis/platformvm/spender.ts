@@ -71,7 +71,7 @@ export class Spender {
 
   getUndepositable = async (
     aad: AssetAmountDestination,
-    undeposits: Undeposit[],
+    undeposits: Undeposit[]
   ): Promise<Error> => {
     if (aad.getAmounts().length !== 1) {
       return new FeeAssetError("spender -- multiple assets not yet supported")

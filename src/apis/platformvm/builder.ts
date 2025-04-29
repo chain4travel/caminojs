@@ -75,7 +75,7 @@ export interface MinimumSpendable {
 
   getUndepositable(
     aad: AssetAmountDestination,
-    undeposits: Undeposit[],
+    undeposits: Undeposit[]
   ): Promise<Error>
 }
 
@@ -1444,7 +1444,7 @@ export class Builder {
     fee: BN = zero,
     feeAssetID: Buffer = undefined,
     memo: Buffer = undefined,
-    undeposits: Undeposit[],
+    undeposits: Undeposit[]
   ): Promise<UnsignedTx> => {
     let ins: TransferableInput[] = []
     let outs: TransferableOutput[] = []
@@ -1457,7 +1457,7 @@ export class Builder {
         fromSigner.from,
         fromSigner.signer,
         [],
-        0,
+        0
       )
 
       // TODO: see it aad structure is correct or a similar structure is needed

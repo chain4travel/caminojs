@@ -24,7 +24,7 @@ import {
 } from "src/apis/platformvm/outputs"
 import {
   TransferableInput,
-  SECPTransferInput,
+  SECPTransferInput
 } from "src/apis/platformvm/inputs"
 import { UTXO } from "src/apis/platformvm/utxos"
 import createHash from "create-hash"
@@ -3021,10 +3021,12 @@ describe("PlatformVMAPI", (): void => {
       undefined,
       [defaultAddr],
       Buffer.from("memo"),
-      [{
-        amount: 100,
-        depositTxID: txID.toString(),
-      }]
+      [
+        {
+          amount: 100,
+          depositTxID: txID.toString()
+        }
+      ]
     )
 
     const txu1 = await result

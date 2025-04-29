@@ -2735,7 +2735,7 @@ export class PlatformVMAPI extends JRPCAPI {
     utxoset: UTXOSet,
     fromAddresses: string[],
     memo: PayloadBase | Buffer = undefined,
-    undeposits: Undeposit[],
+    undeposits: Undeposit[]
   ): Promise<UnsignedTx> => {
     const caller = "buildUnlockDepositTx"
 
@@ -2758,7 +2758,7 @@ export class PlatformVMAPI extends JRPCAPI {
       fee,
       avaxAssetID,
       memo,
-      undeposits,
+      undeposits
     )
 
     if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
