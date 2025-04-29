@@ -540,12 +540,12 @@ describe("Camino-PChain-Deposit", (): void => {
         (async function () {
           const unsignedTx: UnsignedTx = await pChain.buildUnlockDepositTx(
             dummyUtxoSet,
-            [P(addrBString)],
-            [P(addrBString)],
-            undefined,
-            undefined,
-            ZeroBN,
-            [depositTx.value]
+            [P(addrBString)], // from
+            undefined, // memo
+            [{
+              amount: 100,
+              depositTxID: depositTx.value
+            }]
           )
           const tx: Tx = unsignedTx.sign(pKeychain)
           return pChain.issueTx(tx)
@@ -799,17 +799,17 @@ describe("Camino-PChain-Auto-Unlock-Deposit-Half-Amount", (): void => {
       () => balanceOutputs
     ],
     [
-      "Wait 100% of unlock duration and issue an unlockDepositTx to manually unlock deposit",
+      "Wait 75% of unlock duration and issue an unlockDepositTx to manually unlock deposit",
       () =>
         (async function () {
           const unsignedTx: UnsignedTx = await pChain.buildUnlockDepositTx(
             dummyUtxoSet,
-            [P(addrBString)],
-            [P(addrBString)],
-            undefined,
-            undefined,
-            ZeroBN,
-            [depositTx.value]
+            [P(addrBString)], // from
+            undefined, // memo
+            [{
+              amount: 100,
+              depositTxID: depositTx.value
+            }]
           )
           const tx: Tx = unsignedTx.sign(pKeychain)
           return pChain.issueTx(tx)
