@@ -111,7 +111,6 @@ export class Spender {
       aad.addOutput(out)
     })
     aad.setOutputOwners(result.owners)
-    // TODO: what do I do with signers?
     return
   }
 }
