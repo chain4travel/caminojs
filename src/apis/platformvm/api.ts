@@ -3242,6 +3242,7 @@ export class PlatformVMAPI extends JRPCAPI {
     if (this.core.getNetwork().P.lockModeBondDeposit) {
       return new Builder(new Spender(this), true)
     }
+    return new Builder(utxoSet, false)
   }
 
   /**
