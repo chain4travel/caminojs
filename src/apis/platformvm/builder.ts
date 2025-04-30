@@ -1460,7 +1460,6 @@ export class Builder {
         0
       )
 
-      // TODO: see it aad structure is correct or a similar structure is needed
       aad.addAssetAmount(feeAssetID, zero, fee)
       const undepositableErr: Error = await this.spender.getUndepositable(
         aad,
