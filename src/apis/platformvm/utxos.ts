@@ -38,6 +38,7 @@ import {
   UnknownFormatError
 } from "../../utils/errors"
 import { LockMode } from "./builder"
+import { Undeposit } from "./interfaces"
 
 /**
  * @ignore
@@ -586,5 +587,12 @@ export class UTXOSet extends StandardUTXOSet<UTXO> {
       }
     })
     return undefined
+  }
+
+  getUndepositable = async (
+    aad: AssetAmountDestination,
+    undeposits: Undeposit[]
+  ): Promise<Error> => {
+    throw new Error("Its stub, not implemented")
   }
 }

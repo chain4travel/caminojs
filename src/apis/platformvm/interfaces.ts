@@ -349,6 +349,27 @@ export interface SpendReply {
   owners: OutputOwners[]
 }
 
+// Define the Undeposit interface to match the Go struct
+export interface Undeposit {
+  amount: number | string
+  depositTxID: string
+}
+export interface UndepositParams {
+  from: string[] | string
+  signer: string[] | string
+
+  undepositTo: OwnerParam
+  amountToBurn: number | string
+  undeposits: Undeposit[]
+  encoding?: string
+}
+
+export interface UndepositReply {
+  ins: TransferableInput[]
+  out: TransferableOutput[]
+  owners: OutputOwners[]
+}
+
 export interface ClaimAmountParams {
   id?: Buffer
   claimType: ClaimType

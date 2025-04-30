@@ -73,6 +73,8 @@ import {
   GetMinStakeResponse,
   GetMaxStakeAmountParams,
   SpendParams,
+  UndepositParams,
+  UndepositReply,
   SpendReply,
   AddressParams,
   MultisigAliasReply,
@@ -85,7 +87,8 @@ import {
   OwnerParam,
   MultisigAliasParams,
   UpgradePhasesReply,
-  GetCurrentSupplyResponse
+  GetCurrentSupplyResponse,
+  Undeposit
 } from "./interfaces"
 import { TransferableInput } from "./inputs"
 import { TransferableOutput } from "./outputs"
@@ -2731,18 +2734,12 @@ export class PlatformVMAPI extends JRPCAPI {
   buildUnlockDepositTx = async (
     utxoset: UTXOSet,
     fromAddresses: string[],
-    changeAddresses: string[] = undefined,
     memo: PayloadBase | Buffer = undefined,
-    asOf: BN = ZeroBN,
-    amountToLock: BN,
-    changeThreshold: number = 1
+    undeposits: Undeposit[]
   ): Promise<UnsignedTx> => {
     const caller = "buildUnlockDepositTx"
+
     const fromSigner = this._parseFromSigner(fromAddresses, caller)
-    const change: Buffer[] = this._cleanAddressArrayBuffer(
-      changeAddresses,
-      caller
-    )
     if (memo instanceof PayloadBase) {
       memo = memo.getPayload()
     }
@@ -2758,12 +2755,10 @@ export class PlatformVMAPI extends JRPCAPI {
       networkID,
       blockchainID,
       fromSigner,
-      change,
       fee,
       avaxAssetID,
       memo,
-      asOf,
-      changeThreshold
+      undeposits
     )
 
     if (!(await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee()))) {
@@ -3186,6 +3181,51 @@ export class PlatformVMAPI extends JRPCAPI {
     ins.forEach((e, idx) =>
       e.getSigIdxs().forEach((s, sidx) => {
         s.setSource(bintools.cb58Decode(r.signers[`${idx}`][`${sidx}`]))
+      })
+    )
+
+    return {
+      ins,
+      out: TransferableOutput.fromArray(Buffer.from(r.outs.slice(2), "hex")),
+      owners: r.owners
+        ? OutputOwners.fromArray(Buffer.from(r.owners.slice(2), "hex"))
+        : []
+    }
+  }
+
+  undeposit = async (
+    from: string[] | string,
+    signer: string[] | string,
+    to: string[],
+    toThreshold: number,
+    amountToBurn: BN,
+    undeposits: Undeposit[],
+    encoding?: string
+  ): Promise<UndepositReply> => {
+    const params: UndepositParams = {
+      from,
+      signer,
+      undepositTo: {
+        locktime: "0",
+        threshold: toThreshold,
+        addresses: to
+      },
+      amountToBurn: amountToBurn.toString(10),
+      undeposits: undeposits,
+      encoding: encoding ?? "hex"
+    }
+
+    const response: RequestResponseData = await this.callMethod(
+      "platform.undeposit",
+      params
+    )
+    const r = response.data.result
+
+    // We need to update signature index source here
+    const ins = TransferableInput.fromArray(Buffer.from(r.ins.slice(2), "hex"))
+    ins.forEach((e, idx) =>
+      e.getSigIdxs().forEach((s, sigIndex) => {
+        s.setSource(bintools.cb58Decode(r.signers[`${idx}`][`${sigIndex}`]))
       })
     )
 

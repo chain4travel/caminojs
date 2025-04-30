@@ -18,16 +18,13 @@ import { KeyChain } from "src/apis/platformvm/keychain"
 import {
   SECPTransferOutput,
   TransferableOutput,
-  AmountOutput,
   ParseableOutput,
   StakeableLockOut,
   SECPOwnerOutput
 } from "src/apis/platformvm/outputs"
 import {
   TransferableInput,
-  SECPTransferInput,
-  AmountInput,
-  StakeableLockIn
+  SECPTransferInput
 } from "src/apis/platformvm/inputs"
 import { UTXO } from "src/apis/platformvm/utxos"
 import createHash from "create-hash"
@@ -42,7 +39,6 @@ import {
   SerializedEncoding,
   SerializedType
 } from "src/utils/serialization"
-import { AddValidatorTx } from "src/apis/platformvm/validationtx"
 import {
   Blockchain,
   GetMinStakeResponse,
@@ -1530,7 +1526,7 @@ describe("PlatformVMAPI", (): void => {
       )
       expect(txu2.toString()).toBe(txu1.toString())
     })
-
+    /*  TODO: @VjeraTurk Change to buildAddCaminoValidatorTX
     test("buildAddDelegatorTx 1", async (): Promise<void> => {
       const addrbuff1 = addrs1.map((a) => platformvm.parseAddress(a))
       const addrbuff2 = addrs2.map((a) => platformvm.parseAddress(a))
@@ -1608,8 +1604,7 @@ describe("PlatformVMAPI", (): void => {
 
       serialzeit(tx1, "AddDelegatorTx")
     })
-    /*
-   TODO: @VjeraTurk Change to buildAddCaminoValidatorTX
+
     test("buildAddValidatorTx sort StakeableLockOuts 1", async (): Promise<void> => {
       // two UTXO. The 1st has a lesser stakeablelocktime and a greater amount of AVAX. The 2nd has a greater stakeablelocktime and a lesser amount of AVAX.
       // We expect this test to only consume the 2nd UTXO since it has the greater locktime.
@@ -2146,7 +2141,7 @@ describe("PlatformVMAPI", (): void => {
         stakeableLockOut2.getStakeableLocktime().toString()
       )
     })
-*/
+
     test("buildAddValidatorTx 1", async (): Promise<void> => {
       const addrbuff1 = addrs1.map((a) => platformvm.parseAddress(a))
       const addrbuff2 = addrs2.map((a) => platformvm.parseAddress(a))
@@ -2506,7 +2501,7 @@ describe("PlatformVMAPI", (): void => {
       expect(staketotal.toString(10)).toBe("3000000000")
       expect(totaltotal.toString(10)).toBe("4000000000")
     })
-
+*/
     test("buildCreateSubnetTx1", async (): Promise<void> => {
       platformvm.setCreationTxFee(new BN(10))
       const addrbuff1: Buffer[] = addrs1.map(
@@ -3007,7 +3002,7 @@ describe("PlatformVMAPI", (): void => {
       ZeroBN,
       1
     )
-    const spendResponse = {
+    const undepositResponse = {
       ins: [
         new TransferableInput(
           txID,
@@ -3020,24 +3015,26 @@ describe("PlatformVMAPI", (): void => {
       owners: []
     }
 
-    api.spend = jest.fn().mockReturnValue(spendResponse)
+    api.undeposit = jest.fn().mockReturnValue(undepositResponse)
 
     const result = api.buildUnlockDepositTx(
       undefined,
       [defaultAddr],
-      [defaultAddr],
       Buffer.from("memo"),
-      ZeroBN,
-      new BN(1),
-      1
+      [
+        {
+          amount: 100,
+          depositTxID: txID.toString()
+        }
+      ]
     )
 
     const txu1 = await result
     const expectedUnlockDepositTx = new UnlockDepositTx(
       networkID,
       Buffer.alloc(32, 0),
-      spendResponse.out,
-      spendResponse.ins,
+      undepositResponse.out,
+      undepositResponse.ins,
       Buffer.from("memo")
     )
     const expectedUnsignedTx = new UnsignedTx(expectedUnlockDepositTx)
