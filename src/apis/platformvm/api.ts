@@ -2733,7 +2733,7 @@ export class PlatformVMAPI extends JRPCAPI {
    */
   buildUnlockDepositTx = async (
     utxoset: UTXOSet,
-    fromAddresses: string[],
+    fromAddresses: FromType,
     memo: PayloadBase | Buffer = undefined,
     undeposits: Undeposit[]
   ): Promise<UnsignedTx> => {

@@ -89,10 +89,6 @@ export class Spender {
       .getDestinations()
       .map((a) => this.platformAPI.addressFromBuffer(a))
 
-    const change = aad
-      .getChangeAddresses()
-      .map((a) => this.platformAPI.addressFromBuffer(a))
-
     const aa = aad.getAmounts()[0]
 
     const result = await this.platformAPI.undeposit(

@@ -1459,8 +1459,8 @@ export class Builder {
         [],
         0
       )
-
       aad.addAssetAmount(feeAssetID, zero, fee)
+
       const undepositableErr: Error = await this.spender.getUndepositable(
         aad,
         undeposits
