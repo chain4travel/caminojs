@@ -35,6 +35,7 @@ import {
   AddValidatorTx,
   CaminoAddValidatorTx
 } from "./validationtx"
+import { UnlockDepositTx } from "./unlockdeposittx"
 
 /**
  * @ignore
@@ -73,6 +74,8 @@ export const SelectTxClass = (txtype: number, ...args: any[]): BaseTx => {
     return new AddressStateTx(...args)
   } else if (txtype === PlatformVMConstants.CLAIMTX) {
     return new ClaimTx(...args)
+  } else if (txtype === PlatformVMConstants.UNLOCKDEPOSITTX) {
+    return new UnlockDepositTx(...args)
   } else if (txtype === PlatformVMConstants.MULTISIGALIASTX) {
     return new MultisigAliasTx(...args)
   } else if (txtype === PlatformVMConstants.ADDDEPOSITOFFERTX) {
